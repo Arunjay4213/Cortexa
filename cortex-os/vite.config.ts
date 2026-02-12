@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/fluffy_memory/',
+      base: '/Cortexa/',
       server: {
         port: 3000,
         host: '0.0.0.0',
