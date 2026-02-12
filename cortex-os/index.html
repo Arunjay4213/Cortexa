@@ -20,11 +20,11 @@
             colors: {
               background: "#0a0a0a",
               foreground: "#fafafa",
-              card: "#0a0a0a", // blending cards with bg for that terminal feel
+              card: "#0a0a0a",
               "card-foreground": "#fafafa",
               popover: "#0a0a0a",
               "popover-foreground": "#fafafa",
-              primary: "#10b981", // Emerald
+              primary: "#10b981",
               "primary-foreground": "#000000",
               secondary: "#27272a",
               "secondary-foreground": "#fafafa",
@@ -47,34 +47,14 @@
         background-color: #0a0a0a;
         color: #fafafa;
       }
-      /* Custom Scrollbar for that terminal feel */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #0a0a0a; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #27272a; 
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #3f3f46; 
-      }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: #0a0a0a; }
+      ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
