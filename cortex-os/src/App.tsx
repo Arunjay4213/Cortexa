@@ -172,7 +172,7 @@ export default function App() {
             <div className="w-5 h-5 bg-emerald-500 rounded-sm flex items-center justify-center">
               <div className="w-2 h-2 bg-black rounded-full" />
             </div>
-            <span className="font-bold tracking-tight text-sm">CortexOS</span>
+            <span className="font-bold tracking-tight text-sm">Cortexa</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-500 max-w-4xl">
@@ -403,7 +403,7 @@ export default function App() {
       <section className="py-16 px-4 bg-zinc-900/20 relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">Memory Systems vs. CortexOS</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Memory Systems vs. Cortexa</h2>
             <p className="text-zinc-400">Why enterprise agents need financial-grade memory infrastructure.</p>
           </div>
 
@@ -413,7 +413,7 @@ export default function App() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-[40%] text-zinc-300 pl-6">Capability</TableHead>
                   <TableHead className="w-[30%] text-zinc-500">Memo / Zep</TableHead>
-                  <TableHead className="w-[30%] text-emerald-500 font-bold bg-emerald-950/10">CortexOS</TableHead>
+                  <TableHead className="w-[30%] text-emerald-500 font-bold bg-emerald-950/10">Cortexa</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -511,7 +511,7 @@ export default function App() {
             <div className="absolute top-0 right-0 p-24 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
             <CardHeader>
               <div className="flex items-center justify-between mb-2">
-                 <Badge variant="outline" className="border-emerald-500/20 text-emerald-500 bg-emerald-500/5">With CortexOS</Badge>
+                 <Badge variant="outline" className="border-emerald-500/20 text-emerald-500 bg-emerald-500/5">With Cortexa</Badge>
                  <Zap className="text-emerald-500 w-5 h-5" />
               </div>
               <CardTitle className="text-xl">Financial-Grade Memory</CardTitle>
@@ -561,7 +561,7 @@ export default function App() {
                 This is the "Black Box" era of agentic memory.
               </p>
               <p>
-                CortexOS is the first step into the Financial Era of memory. We believe that every token has a cost, and every retrieved memory must prove its return. We are not building a better database. We are building the ticker tape, the risk desk, and the audit trail for the most expensive resource in the AI stack: Context.
+                Cortexa is the first step into the Financial Era of memory. We believe that every token has a cost, and every retrieved memory must prove its return. We are not building a better database. We are building the ticker tape, the risk desk, and the audit trail for the most expensive resource in the AI stack: Context.
               </p>
               <p className="pt-4 text-emerald-500 font-bold">
                 Stop debugging by intuition. Start optimizing by attribution.
@@ -583,7 +583,7 @@ export default function App() {
             <div className="w-2 h-2 bg-zinc-500 rounded-full" />
           </div>
           <p className="text-white text-sm mb-2 font-mono">
-            © 2026 CortexOS Inc. San Francisco, CA.
+            © 2026 Cortexa Inc. San Francisco, CA.
             <span className="block text-zinc-400 text-xs mt-1">(If this says 2024, please debug your context window)</span>
           </p>
         </div>
