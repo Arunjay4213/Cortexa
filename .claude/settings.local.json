@@ -8,7 +8,8 @@
       "Bash(npx skills:*)",
       "Bash(npm run dev:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill -9)"
+      "Bash(xargs kill -9)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

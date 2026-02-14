@@ -20,6 +20,7 @@ dependencies = [
     "opentelemetry-api>=1.25,<2",
     "opentelemetry-sdk>=1.25,<2",
     "alembic>=1.13,<2",
+    "uuid-utils>=0.9,<1",
 ]
 
 [project.optional-dependencies]
