@@ -369,7 +369,8 @@ class ProvenanceGraph:
             text("""
                 WITH RECURSIVE user_footprint AS (
                     -- Base: memories created from user's interactions
-                    SELECT ce.target_id AS node_id, 'memory'::text AS node_type
+                    SELECT ce.target_id AS node_id,
+                           CAST('memory' AS TEXT) AS node_type
                     FROM creation_edges ce
                     JOIN interaction_nodes i ON ce.source_id = i.id
                     WHERE i.user_id = :user_id
@@ -377,7 +378,8 @@ class ProvenanceGraph:
                     UNION
 
                     -- Recursive: all nodes derived from those memories
-                    SELECT de.target_id AS node_id, de.target_type::text AS node_type
+                    SELECT de.target_id AS node_id,
+                           CAST(de.target_type AS TEXT) AS node_type
                     FROM derivation_edges de
                     JOIN user_footprint uf ON de.source_id = uf.node_id
                 )
@@ -387,7 +389,8 @@ class ProvenanceGraph:
         )
 
         for row in result:
-            node_id, node_type = row[0], row[1]
+            node_id = UUID(str(row[0])) if not isinstance(row[0], UUID) else row[0]
+            node_type = row[1]
             if node_type == "memory":
                 footprint.memory_node_ids.append(node_id)
             elif node_type == "summary":
@@ -411,14 +414,16 @@ class ProvenanceGraph:
         result = await session.execute(
             text("""
                 WITH RECURSIVE user_footprint AS (
-                    SELECT ce.target_id AS node_id, 'memory'::text AS node_type
+                    SELECT ce.target_id AS node_id,
+                           CAST('memory' AS TEXT) AS node_type
                     FROM creation_edges ce
                     JOIN interaction_nodes i ON ce.source_id = i.id
                     WHERE i.user_id = :user_id
 
                     UNION
 
-                    SELECT de.target_id AS node_id, de.target_type::text AS node_type
+                    SELECT de.target_id AS node_id,
+                           CAST(de.target_type AS TEXT) AS node_type
                     FROM derivation_edges de
                     JOIN user_footprint uf ON de.source_id = uf.node_id
                 )
@@ -432,7 +437,10 @@ class ProvenanceGraph:
             {"user_id": user_id},
         )
 
-        return [row[0] for row in result]
+        return [
+            UUID(str(row[0])) if not isinstance(row[0], UUID) else row[0]
+            for row in result
+        ]
 
     # ── Helpers ─────────────────────────────────────────────────────────
 

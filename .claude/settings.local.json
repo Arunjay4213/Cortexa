@@ -9,7 +9,8 @@
       "Bash(npm run dev:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill -9)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []
