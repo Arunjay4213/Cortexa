@@ -1,5 +1,6 @@
 """Alembic migration environment."""
 
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -17,6 +18,12 @@ for _table in list(legacy_metadata.tables.values()):
 target_metadata = Base.metadata
 
 config = context.config
+
+# Override database URL from environment if present
+db_url = os.getenv("CORTEX_DATABASE_URL_SYNC")
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

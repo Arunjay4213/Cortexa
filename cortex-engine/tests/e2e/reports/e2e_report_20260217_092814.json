@@ -1,0 +1,162 @@
+{
+  "timestamp": "20260217_092814",
+  "mode": "quick",
+  "suites": {
+    "validity": {
+      "suite_name": "Attribution Validity",
+      "results": [
+        {
+          "test_name": "attribution_correlation",
+          "passed": true,
+          "metrics": {
+            "mean_correlation": 0.7589736659610101,
+            "correlation_threshold": 0.6,
+            "passed_correlation": true,
+            "mean_precision_at_3": 0.7333333333333333,
+            "precision_threshold": 0.5,
+            "passed_precision": true,
+            "queries_processed": 50
+          }
+        },
+        {
+          "test_name": "zero_attribution_accuracy",
+          "passed": false,
+          "metrics": {
+            "low_score_memories": 86,
+            "actually_unused": 67,
+            "accuracy": 0.7790697674418605,
+            "threshold": 0.8
+          }
+        },
+        {
+          "test_name": "attribution_stability",
+          "passed": true,
+          "metrics": {
+            "mean_variance": 0.06,
+            "variance_threshold": 0.3,
+            "query_sets_tested": 10
+          }
+        },
+        {
+          "test_name": "contradiction_detection",
+          "passed": false,
+          "metrics": {
+            "total_tested": 0,
+            "detected_count": 0,
+            "detection_rate": 0.0,
+            "threshold": 0.7
+          }
+        },
+        {
+          "test_name": "waste_rate_correlation",
+          "passed": false,
+          "metrics": {
+            "mae": 0.384,
+            "threshold": 0.15,
+            "queries_analyzed": 50
+          }
+        },
+        {
+          "test_name": "memory_removal_impact",
+          "passed": false,
+          "metrics": {
+            "total_tested": 20,
+            "degradation_count": 1,
+            "degradation_rate": 0.05,
+            "threshold": 0.6
+          }
+        }
+      ],
+      "passed": false
+    },
+    "performance": {
+      "suite_name": "Performance",
+      "results": [
+        {
+          "test_name": "eas_latency",
+          "passed": true,
+          "metrics": {
+            "n_memories": 1000,
+            "n_queries": 50,
+            "mean_latency_ms": 0.45,
+            "p50_latency_ms": 0.32,
+            "p95_latency_ms": 1.1,
+            "p99_latency_ms": 2.54,
+            "threshold_ms": 500
+          }
+        },
+        {
+          "test_name": "welford_accuracy",
+          "passed": true,
+          "metrics": {
+            "n_updates": 10000,
+            "mean_error_pct": 0.0,
+            "std_error_pct": 0.0,
+            "threshold_pct": 0.1
+          }
+        },
+        {
+          "test_name": "dashboard_overview_latency",
+          "passed": true,
+          "metrics": {
+            "latency_ms": 197.38,
+            "threshold_ms": 2000,
+            "transactions_processed": 100
+          }
+        },
+        {
+          "test_name": "memory_growth_scaling",
+          "passed": true,
+          "metrics": {
+            "memory_sizes": [
+              100,
+              500,
+              1000
+            ],
+            "latencies_ms": [
+              0.85,
+              0.35,
+              0.55
+            ],
+            "log_log_slope": -0.3809,
+            "max_slope": 1.5
+          }
+        }
+      ],
+      "passed": true
+    },
+    "benchmark": {
+      "suite_name": "Benchmark",
+      "results": [
+        {
+          "test_name": "memorybench_integration",
+          "passed": true,
+          "skipped": true,
+          "metrics": {
+            "reason": "MemoryBench not installed"
+          }
+        },
+        {
+          "test_name": "custom_benchmark_suite",
+          "passed": true,
+          "metrics": {
+            "total_queries": 4,
+            "passed_queries": 4,
+            "accuracy": 1.0
+          }
+        }
+      ],
+      "passed": true
+    }
+  },
+  "summary": {
+    "total_suites": 3,
+    "passed_suites": 2,
+    "failed_suites": 1,
+    "total_tests": 11,
+    "passed_tests": 7,
+    "failed_tests": 4,
+    "skipped_tests": 1,
+    "success_rate": 0.6364
+  }
+}

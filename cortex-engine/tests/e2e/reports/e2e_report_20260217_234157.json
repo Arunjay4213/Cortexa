@@ -1,0 +1,84 @@
+{
+  "timestamp": "20260217_234157",
+  "mode": "quick",
+  "suites": {
+    "validity": {
+      "suite_name": "Attribution Validity",
+      "results": [
+        {
+          "test_name": "attribution_correlation",
+          "passed": true,
+          "metrics": {
+            "mean_correlation": 0.7167982719193745,
+            "correlation_threshold": 0.6,
+            "passed_correlation": true,
+            "mean_precision_at_3": 0.8266666666666665,
+            "precision_threshold": 0.5,
+            "passed_precision": true,
+            "queries_processed": 50,
+            "results_with_attribution": 50
+          }
+        },
+        {
+          "test_name": "zero_attribution_accuracy",
+          "passed": true,
+          "metrics": {
+            "low_score_memories": 58,
+            "actually_unused": 56,
+            "accuracy": 0.9655172413793104,
+            "threshold": 0.8
+          }
+        },
+        {
+          "test_name": "attribution_stability",
+          "passed": true,
+          "metrics": {
+            "mean_variance": 0.026666666666666672,
+            "variance_threshold": 0.3,
+            "query_sets_tested": 10
+          }
+        },
+        {
+          "test_name": "contradiction_detection",
+          "passed": false,
+          "metrics": {
+            "total_tested": 0,
+            "detected_count": 0,
+            "detection_rate": 0.0,
+            "threshold": 0.7
+          }
+        },
+        {
+          "test_name": "waste_rate_correlation",
+          "passed": true,
+          "metrics": {
+            "mae": 0.072,
+            "threshold": 0.15,
+            "queries_analyzed": 50
+          }
+        },
+        {
+          "test_name": "memory_removal_impact",
+          "passed": false,
+          "metrics": {
+            "total_tested": 20,
+            "degradation_count": 8,
+            "degradation_rate": 0.4,
+            "threshold": 0.6
+          }
+        }
+      ],
+      "passed": false
+    }
+  },
+  "summary": {
+    "total_suites": 1,
+    "passed_suites": 0,
+    "failed_suites": 1,
+    "total_tests": 6,
+    "passed_tests": 4,
+    "failed_tests": 2,
+    "skipped_tests": 0,
+    "success_rate": 0.6667
+  }
+}
