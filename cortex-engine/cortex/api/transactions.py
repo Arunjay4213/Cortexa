@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from cortex.attribution import embed
 from cortex.attribution.eas import compute_eas
+from cortex.api.websocket import manager
 from cortex.config import settings
 from cortex.database import get_session
 from cortex.db.tables import (
@@ -99,24 +100,55 @@ async def _run_eas_and_store(
         q = select(memories).where(memories.c.id.in_(retrieved_memory_ids))
         if not snapshot:
             q = q.where(memories.c.deleted_at.is_(None))
-        # Deterministic ordering: scores are assigned by position, so row order
-        # must be stable across separate queries (single-shot vs two-phase).
-        q = q.order_by(memories.c.id)
+        # CRITICAL: Scores are assigned by position. Must preserve the order of
+        # retrieved_memory_ids! Use CASE to order by position in the input list.
+        # Bug fix: previous .order_by(memories.c.id) sorted alphabetically,
+        # breaking the positional correspondence between scores and memories.
+        ordering = text(
+            "CASE " +
+            " ".join(f"WHEN memories.id = '{mid}' THEN {i}" for i, mid in enumerate(retrieved_memory_ids)) +
+            " END"
+        )
+        q = q.order_by(ordering)
         result = await db.execute(q)
         mem_rows = result.all()
 
     # Compute EAS — zero LLM calls
+    # Phase 1 diagnosis: response similarity alone = 0.782 correlation
+    # Query term = 0.029 correlation (noise)
     eas_result = {"scores": np.array([]), "raw_scores": np.array([]), "compute_ms": 0.0}
     if mem_rows:
         mem_embeddings = np.array([r.embedding for r in mem_rows if r.embedding])
         if mem_embeddings.size > 0:
-            eas_result = compute_eas(mem_embeddings, q_emb, r_emb)
+            eas_result = compute_eas(
+                mem_embeddings, q_emb, r_emb,
+                method="response_only"
+            )
+
+    # Apply calibration if available
+    from cortex.attribution.calibrator import get_calibrator
+    calibrator = get_calibrator()
 
     # Store attribution scores
     score_objs: list[AttributionScore] = []
     mem_with_embeddings = [r for r in mem_rows if r.embedding]
+    raw_eas_scores = []
     for i, mem_row in enumerate(mem_with_embeddings):
-        score_val = float(eas_result["scores"][i]) if i < len(eas_result["scores"]) else 0.0
+        raw_eas_scores.append(
+            float(eas_result["scores"][i]) if i < len(eas_result["scores"]) else 0.0
+        )
+
+    # Calibrate if model is available
+    # TEMPORARILY DISABLED for debugging
+    if False and calibrator and calibrator.is_fitted:
+        calibrated = calibrator.transform(raw_eas_scores)
+        confidence = 1.0  # calibrated
+    else:
+        calibrated = raw_eas_scores
+        confidence = 0.5  # uncalibrated (raw EAS)
+
+    for i, mem_row in enumerate(mem_with_embeddings):
+        score_val = calibrated[i] if i < len(calibrated) else 0.0
         raw_val = float(eas_result["raw_scores"][i]) if i < len(eas_result["raw_scores"]) else 0.0
         score_id = str(uuid.uuid4())
 
@@ -128,7 +160,7 @@ async def _run_eas_and_store(
                 score=score_val,
                 raw_score=raw_val,
                 method=AttributionMethod.eas.value,
-                confidence=1.0,
+                confidence=confidence,
                 compute_time_ms=eas_result["compute_ms"],
             )
         )
@@ -140,7 +172,7 @@ async def _run_eas_and_store(
                 score=score_val,
                 raw_score=raw_val,
                 method=AttributionMethod.eas,
-                confidence=1.0,
+                confidence=confidence,
                 compute_time_ms=eas_result["compute_ms"],
             )
         )
@@ -148,6 +180,7 @@ async def _run_eas_and_store(
     # Atomic Welford UPSERT — no race conditions under concurrent writes.
     # The entire mean/m2/count update happens in a single SQL statement.
     now = datetime.now(UTC)
+    now_naive = datetime.now()  # Naive datetime for memory_profiles table
     for score_obj in score_objs:
         await db.execute(
             text("""
@@ -169,7 +202,7 @@ async def _run_eas_and_store(
                     END,
                     updated_at = :now
             """),
-            {"mem_id": score_obj.memory_id, "score": score_obj.score, "now": now},
+            {"mem_id": score_obj.memory_id, "score": score_obj.score, "now": now_naive},
         )
 
         # Bump retrieval_count + last_accessed on the memory itself
@@ -192,59 +225,69 @@ async def create_transaction(
     body: TransactionCreate,
     db: AsyncSession = Depends(get_session),
 ):
-    # 1. Embed query + response in a single batch call (not two sequential)
-    texts_to_embed = []
-    embed_indices: dict[str, int] = {}
-    if not body.query_embedding:
-        embed_indices["query"] = len(texts_to_embed)
-        texts_to_embed.append(body.query_text)
-    if not body.response_embedding:
-        embed_indices["response"] = len(texts_to_embed)
-        texts_to_embed.append(body.response_text)
+    try:
+        # 1. Embed query + response in a single batch call (not two sequential)
+        texts_to_embed = []
+        embed_indices: dict[str, int] = {}
+        if not body.query_embedding:
+            embed_indices["query"] = len(texts_to_embed)
+            texts_to_embed.append(body.query_text)
+        if not body.response_embedding:
+            embed_indices["response"] = len(texts_to_embed)
+            texts_to_embed.append(body.response_text)
 
-    embeddings = embed(texts_to_embed) if texts_to_embed else []
+        embeddings = embed(texts_to_embed) if texts_to_embed else []
 
-    q_emb = body.query_embedding or embeddings[embed_indices["query"]]
-    r_emb = body.response_embedding or embeddings[embed_indices["response"]]
+        q_emb = body.query_embedding or embeddings[embed_indices["query"]]
+        r_emb = body.response_embedding or embeddings[embed_indices["response"]]
 
-    input_tokens = body.input_tokens or len(body.query_text.split())
-    output_tokens = body.output_tokens or len(body.response_text.split())
+        input_tokens = body.input_tokens or len(body.query_text.split())
+        output_tokens = body.output_tokens or len(body.response_text.split())
 
-    # 2. Store transaction (completed)
-    txn_id = str(uuid.uuid4())
-    await db.execute(
-        transactions.insert().values(
-            id=txn_id,
-            query_text=body.query_text,
-            query_embedding=q_emb,
-            response_text=body.response_text,
-            response_embedding=r_emb,
-            retrieved_memory_ids=body.retrieved_memory_ids,
-            agent_id=body.agent_id,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            model=body.model,
-            status=TransactionStatus.completed.value,
-            created_at=datetime.now(UTC),
+        # 2. Store transaction (completed)
+        txn_id = str(uuid.uuid4())
+        await db.execute(
+            transactions.insert().values(
+                id=txn_id,
+                query_text=body.query_text,
+                query_embedding=q_emb,
+                response_text=body.response_text,
+                response_embedding=r_emb,
+                retrieved_memory_ids=body.retrieved_memory_ids,
+                agent_id=body.agent_id,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                model=body.model,
+                status=TransactionStatus.completed.value,
+                created_at=datetime.now(UTC),
+            )
         )
-    )
 
-    # 3. EAS + store scores + atomic Welford
-    score_objs = await _run_eas_and_store(
-        db, txn_id, q_emb, r_emb, body.retrieved_memory_ids
-    )
-    await db.commit()
+        # 3. EAS + store scores + atomic Welford
+        score_objs = await _run_eas_and_store(
+            db, txn_id, q_emb, r_emb, body.retrieved_memory_ids
+        )
+        await db.commit()
+        await manager.broadcast("dashboard", {"type": "transaction_created", "agent_id": body.agent_id, "transaction_id": txn_id})
 
-    # 4. Build response with per-agent cost config
-    config = await _get_cost_config(db, body.agent_id)
-    cost = transaction_cost(input_tokens, output_tokens, config, txn_id)
+        # 4. Build response with per-agent cost config
+        config = await _get_cost_config(db, body.agent_id)
+        cost = transaction_cost(input_tokens, output_tokens, config, txn_id)
 
-    txn_row = (await db.execute(select(transactions).where(transactions.c.id == txn_id))).first()
-    return TransactionWithScores(
-        transaction=_row_to_txn(txn_row),
-        scores=score_objs,
-        cost=cost,
-    )
+        txn_row = (await db.execute(select(transactions).where(transactions.c.id == txn_id))).first()
+        return TransactionWithScores(
+            transaction=_row_to_txn(txn_row),
+            scores=score_objs,
+            cost=cost,
+        )
+    except Exception as e:
+        import sys, traceback
+        print(f"\n{'='*80}", file=sys.stderr)
+        print(f"ERROR in create_transaction:", file=sys.stderr)
+        print(f"Exception: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        print(f"{'='*80}\n", file=sys.stderr)
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {str(e)}")
 
 
 # ── Two-phase protocol ────────────────────────────────────────────────

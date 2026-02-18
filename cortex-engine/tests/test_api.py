@@ -1,10 +1,7 @@
 """API integration tests using FastAPI TestClient.
 
-These tests run against an in-memory SQLite-compatible mock or require
-a running Postgres. For CI, set CORTEX_DATABASE_URL to a test database.
-
-For quick local testing without Postgres, these tests mock the DB layer
-and test the HTTP contract.
+Pure metrics tests run without DB or sentence-transformers.
+Endpoint tests require a running Postgres and are skipped otherwise.
 """
 
 import uuid
@@ -31,11 +28,10 @@ class TestHealthz:
 
 
 class TestMemoriesEndpoints:
-    """Test memory CRUD HTTP contract (requires DB or mock)."""
+    """Test memory CRUD HTTP contract (requires DB + embedding model)."""
 
     def test_create_memory_returns_201(self, client):
         """POST /api/v1/memories should return 201 with embedded content."""
-        # This test requires a DB connection. Skip if unavailable.
         try:
             resp = client.post(
                 "/api/v1/memories",
@@ -53,7 +49,7 @@ class TestMemoriesEndpoints:
                 assert len(data["embedding"]) > 0
                 assert data["id"] is not None
         except Exception:
-            pytest.skip("Database not available")
+            pytest.skip("Database or embedding model not available")
 
 
 class TestTransactionsEndpoints:
@@ -93,7 +89,10 @@ class TestTransactionsEndpoints:
             assert data["cost"]["total_cost"] >= 0
 
         except Exception:
-            pytest.skip("Database not available")
+            pytest.skip("Database or embedding model not available")
+
+
+# ── Pure unit tests (no DB, no embedding model) ──────────────────────
 
 
 class TestMetricsCalculator:
@@ -154,3 +153,27 @@ class TestMetricsCalculator:
         assert cost.input_cost == pytest.approx(0.015)
         assert cost.output_cost == pytest.approx(0.0375)
         assert cost.total_cost == pytest.approx(0.0525)
+
+    def test_memory_pnl(self):
+        from cortex.metrics.calculator import memory_pnl
+        from cortex.models import TokenCostConfig
+
+        config = TokenCostConfig(input_token_cost=0.00001, output_token_cost=0.00003)
+        result = memory_pnl("m1", total_attribution=1.0, retrieval_count=100, tokens=50, config=config)
+        assert result.revenue == 1.0
+        assert result.cost == pytest.approx(50 * 0.00001 * 100)
+        assert result.pnl == pytest.approx(1.0 - 0.05)
+        assert result.roi > 0
+
+    def test_contradiction_risk(self):
+        from cortex.metrics.calculator import contradiction_risk
+
+        # No contradictions → risk = 0
+        assert contradiction_risk([]) == 0.0
+
+        # Single high probability → risk ≈ probability
+        assert contradiction_risk([0.9]) == pytest.approx(0.9)
+
+        # Multiple → CRS = 1 - Π(1-p)
+        risk = contradiction_risk([0.5, 0.5])
+        assert risk == pytest.approx(0.75)

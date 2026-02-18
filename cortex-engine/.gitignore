@@ -28,3 +28,39 @@ htmlcov/
 # Env
 .env
 .env.*
+
+# Test databases
+*.db
+*_test.db
+
+# Temporary test files
+test_*.py
+debug_*.py
+e2e_test_output.txt
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
