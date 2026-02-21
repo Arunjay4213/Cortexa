@@ -1,528 +1,369 @@
 "use client";
 
-import { Suspense, useState, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
-  useTransactions,
-  useAttributionByTransaction,
-  useTopMemories,
-} from "@/lib/hooks";
-import { triggerExactAttribution } from "@/lib/api/attribution";
+  Search,
+  Filter,
+  ArrowUpDown,
+  AlertTriangle,
+  ChevronDown,
+} from "lucide-react";
+import { mockQueryTraces } from "@/lib/mock-data";
 import {
-  LoadingSkeleton,
-  CardSkeleton,
-  TableSkeleton,
-} from "@/components/primitives/LoadingSkeleton";
-import { ErrorFallback } from "@/components/primitives/ErrorFallback";
-import { PageTransition } from "@/components/primitives/PageTransition";
-import { PageHeader } from "@/components/primitives/PageHeader";
-import { SectionHeader } from "@/components/primitives/SectionHeader";
-import { EmptyState } from "@/components/primitives/EmptyState";
-import { EntityLink } from "@/components/primitives/EntityLink";
-import { MetricCard } from "@/components/primitives/MetricCard";
-import { Search, Zap } from "lucide-react";
-import type {
-  ExactAttributionResult,
-  AttributionScore,
-  Transaction,
-  TopMemoryResponse,
-} from "@/lib/api/types";
-
-export default function AttributionPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="p-8 space-y-6">
-          <div className="h-8 bg-[var(--bg-surface-2)] rounded-md shimmer w-48" />
-          <div className="flex gap-6">
-            <CardSkeleton className="w-[400px]" />
-            <CardSkeleton className="flex-1" />
-          </div>
-        </div>
-      }
-    >
-      <AttributionPageInner />
-    </Suspense>
-  );
-}
-
-function AttributionPageInner() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const selectedTxnId = searchParams.get("selected");
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [exactLoading, setExactLoading] = useState(false);
-  const [exactResult, setExactResult] = useState<ExactAttributionResult | null>(
-    null
-  );
-  const [exactError, setExactError] = useState<string | null>(null);
-
-  const {
-    data: txnData,
-    error: txnError,
-    isLoading: txnLoading,
-    mutate: mutateTxns,
-  } = useTransactions({ limit: 50 });
-
-  const {
-    data: scores,
-    error: scoresError,
-    isLoading: scoresLoading,
-    mutate: mutateScores,
-  } = useAttributionByTransaction(selectedTxnId);
-
-  const {
-    data: topMemories,
-    error: topMemError,
-    isLoading: topMemLoading,
-  } = useTopMemories({ n: 10 });
-
-  const transactions = txnData?.items ?? [];
-
-  const filteredTransactions = useMemo(() => {
-    if (!searchQuery.trim()) return transactions;
-    const q = searchQuery.toLowerCase();
-    return transactions.filter(
-      (txn) =>
-        txn.id.toLowerCase().includes(q) ||
-        txn.query_text.toLowerCase().includes(q) ||
-        txn.agent_id.toLowerCase().includes(q)
-    );
-  }, [transactions, searchQuery]);
-
-  const selectedTransaction = useMemo(
-    () => transactions.find((t) => t.id === selectedTxnId) ?? null,
-    [transactions, selectedTxnId]
-  );
-
-  function selectTransaction(id: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("selected", id);
-    router.push(`/attribution?${params.toString()}`);
-    setExactResult(null);
-    setExactError(null);
-  }
-
-  async function handleRunExact() {
-    if (!selectedTxnId) return;
-    setExactLoading(true);
-    setExactError(null);
-    setExactResult(null);
-    try {
-      const result = await triggerExactAttribution(selectedTxnId);
-      setExactResult(result);
-      mutateScores();
-    } catch (err: unknown) {
-      setExactError(
-        err instanceof Error ? err.message : "Exact attribution failed"
-      );
-    } finally {
-      setExactLoading(false);
-    }
-  }
-
-  function formatTimestamp(iso: string): string {
-    return new Date(iso).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  }
-
-  return (
-    <PageTransition>
-      <div className="p-8 space-y-6">
-        <PageHeader
-          title="Attribution"
-          subtitle="EAS attribution scores for every transaction"
-        />
-
-        {/* Two-column layout */}
-        <div className="flex gap-6" style={{ minHeight: "calc(100vh - 240px)" }}>
-          {/* Left panel: Transaction list */}
-          <div className="w-[400px] shrink-0 card flex flex-col overflow-hidden p-0">
-            {/* Search input */}
-            <div className="p-3 border-b border-[var(--bg-surface-2)]">
-              <div className="relative">
-                <Search
-                  size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-ghost)]"
-                />
-                <input
-                  type="text"
-                  placeholder="Search transactions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input w-full pl-8 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Transaction list */}
-            <div className="flex-1 overflow-y-auto">
-              {txnLoading && (
-                <div className="p-4">
-                  <LoadingSkeleton rows={8} />
-                </div>
-              )}
-
-              {txnError && (
-                <div className="p-4">
-                  <ErrorFallback
-                    error={txnError}
-                    onRetry={() => mutateTxns()}
-                  />
-                </div>
-              )}
-
-              {!txnLoading && !txnError && filteredTransactions.length === 0 && (
-                <div className="p-6">
-                  <EmptyState
-                    title="No transactions found"
-                    description={
-                      searchQuery
-                        ? "Try a different search query"
-                        : "Transactions will appear here once created"
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="divide-y divide-[var(--border-default)]">
-                {filteredTransactions.map((txn) => (
-                  <TransactionCard
-                    key={txn.id}
-                    transaction={txn}
-                    isActive={selectedTxnId === txn.id}
-                    onClick={() => selectTransaction(txn.id)}
-                    formatTimestamp={formatTimestamp}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right panel: Detail view */}
-          <div className="flex-1 min-w-0 flex flex-col gap-6">
-            {!selectedTxnId && (
-              <div className="card flex-1 flex items-center justify-center">
-                <EmptyState
-                  title="Select a transaction to view attribution scores"
-                  description="Click a transaction in the left panel to inspect its EAS attribution breakdown"
-                />
-              </div>
-            )}
-
-            {selectedTxnId && (
-              <>
-                {/* Attribution Scores table */}
-                <div className="card">
-                  <SectionHeader
-                    title="Attribution Scores"
-                    count={scores?.length}
-                  >
-                    <button
-                      onClick={handleRunExact}
-                      disabled={exactLoading}
-                      className="btn btn--primary text-xs"
-                    >
-                      <Zap size={13} />
-                      {exactLoading ? "Running..." : "Run Exact Attribution"}
-                    </button>
-                  </SectionHeader>
-
-                  {scoresLoading && <TableSkeleton rows={5} cols={3} />}
-
-                  {scoresError && (
-                    <ErrorFallback
-                      error={scoresError}
-                      onRetry={() => mutateScores()}
-                    />
-                  )}
-
-                  {!scoresLoading && !scoresError && scores && scores.length > 0 && (
-                    <div className="overflow-x-auto">
-                      <table className="table w-full">
-                        <thead>
-                          <tr>
-                            <th className="text-left text-xs text-[var(--text-tertiary)]">
-                              Source ID
-                            </th>
-                            <th className="text-right text-xs text-[var(--text-tertiary)]">
-                              EAS Score
-                            </th>
-                            <th className="text-right text-xs text-[var(--text-tertiary)]">
-                              Rank
-                            </th>
-                            <th className="text-left text-xs text-[var(--text-tertiary)]">
-                              Method
-                            </th>
-                            <th className="text-right text-xs text-[var(--text-tertiary)]">
-                              Confidence
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {scores
-                            .sort((a, b) => b.score - a.score)
-                            .map((s, idx) => (
-                              <tr key={s.id}>
-                                <td>
-                                  <EntityLink
-                                    type="memory"
-                                    id={s.memory_id}
-                                    truncate={12}
-                                  />
-                                </td>
-                                <td className="text-right">
-                                  <span className="font-mono text-[var(--text-primary)]">
-                                    {s.score.toFixed(4)}
-                                  </span>
-                                </td>
-                                <td className="text-right">
-                                  <span className="font-mono text-[var(--text-secondary)]">
-                                    #{idx + 1}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span
-                                    className={`badge ${
-                                      s.method === "eas"
-                                        ? "badge--info"
-                                        : s.method === "exact"
-                                          ? "badge--warning"
-                                          : s.method === "contextcite"
-                                            ? "badge--neutral"
-                                            : "badge--success"
-                                    }`}
-                                  >
-                                    {s.method}
-                                  </span>
-                                </td>
-                                <td className="text-right">
-                                  <span className="font-mono text-[var(--text-tertiary)]">
-                                    {s.confidence.toFixed(4)}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {!scoresLoading &&
-                    !scoresError &&
-                    scores &&
-                    scores.length === 0 && (
-                      <EmptyState
-                        title="No attribution scores"
-                        description="Run exact attribution to generate scores for this transaction"
-                      />
-                    )}
-                </div>
-
-                {/* Exact Attribution result (if available) */}
-                {exactError && (
-                  <ErrorFallback error={exactError} onRetry={handleRunExact} />
-                )}
-
-                {exactResult && (
-                  <div className="card">
-                    <SectionHeader title="Exact Attribution Result" />
-                    <div className="grid grid-cols-4 gap-4 mb-6">
-                      <MetricCard
-                        label="LDS Score"
-                        value={exactResult.lds.toFixed(4)}
-                      />
-                      <MetricCard
-                        label="Cost"
-                        value={`$${exactResult.cost_usd.toFixed(4)}`}
-                      />
-                      <MetricCard
-                        label="Compute"
-                        value={`${exactResult.compute_ms.toFixed(1)}ms`}
-                      />
-                      <MetricCard
-                        label="Samples"
-                        value={exactResult.num_samples}
-                      />
-                    </div>
-
-                    {/* LDS interpretation */}
-                    <div className="p-3 rounded-lg bg-[var(--bg-surface-2)] text-sm text-[var(--text-secondary)]">
-                      {exactResult.lds > 0.85 ? (
-                        <span className="text-[var(--status-success)]">
-                          LDS &gt; 0.85 -- EAS fast path is trustworthy for this
-                          query type
-                        </span>
-                      ) : exactResult.lds > 0.6 ? (
-                        <span className="text-[var(--status-warning)]">
-                          LDS 0.6-0.85 -- EAS approximation is reasonable but
-                          consider calibration
-                        </span>
-                      ) : (
-                        <span className="text-[var(--status-error)]">
-                          LDS &lt; 0.6 -- EAS diverges significantly, exact
-                          attribution recommended
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom section: Top Memories */}
-        <div className="card">
-          <SectionHeader title="Top Memories" count={topMemories?.length} />
-
-          {topMemLoading && (
-            <div className="flex gap-4 overflow-hidden">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <CardSkeleton key={i} className="w-[240px] shrink-0" />
-              ))}
-            </div>
-          )}
-
-          {topMemError && <ErrorFallback error={topMemError} />}
-
-          {!topMemLoading && !topMemError && topMemories && topMemories.length > 0 && (
-            <div className="flex gap-4 overflow-x-auto pb-2 stagger-children">
-              {topMemories.map((mem, idx) => (
-                <TopMemoryCard
-                  key={mem.memory_id}
-                  memory={mem}
-                  rank={idx + 1}
-                />
-              ))}
-            </div>
-          )}
-
-          {!topMemLoading &&
-            !topMemError &&
-            topMemories &&
-            topMemories.length === 0 && (
-              <EmptyState
-                title="No top memories"
-                description="Top memories will appear once transactions produce attribution scores"
-              />
-            )}
-        </div>
-      </div>
-    </PageTransition>
-  );
-}
-
-/* ── Transaction Card ──────────────────────────────────────────────── */
-
-function TransactionCard({
-  transaction,
-  isActive,
-  onClick,
   formatTimestamp,
+  formatMemoryId,
+  formatCurrency,
+  truncateText,
+} from "@/lib/utils";
+import type { QueryTrace, HallucinationRisk } from "@/lib/types";
+
+// ── Sort types ──────────────────────────────────────────────────────────
+
+type SortKey = "timestamp" | "cost" | "risk";
+type SortDir = "asc" | "desc";
+
+const RISK_ORDER: Record<HallucinationRisk, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+function riskBadge(risk: HallucinationRisk) {
+  switch (risk) {
+    case "high":
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-rose-500/10 text-rose-400 border border-rose-500/20">
+          <AlertTriangle size={10} /> High
+        </span>
+      );
+    case "medium":
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <AlertTriangle size={10} /> Medium
+        </span>
+      );
+    case "low":
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Low
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-zinc-800 text-zinc-500">
+          None
+        </span>
+      );
+  }
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 15;
+
+export default function AttributionListPage() {
+  const router = useRouter();
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [agentFilter, setAgentFilter] = useState<string>("all");
+  const [riskFilter, setRiskFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("timestamp");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // Pagination
+  const [page, setPage] = useState(0);
+
+  // Unique agent IDs
+  const agentIds = useMemo(() => {
+    const ids = new Set(mockQueryTraces.map((t) => t.agentId));
+    return Array.from(ids).sort();
+  }, []);
+
+  // Filtered & sorted traces
+  const filteredTraces = useMemo(() => {
+    let traces = [...mockQueryTraces];
+
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      traces = traces.filter((t) => t.query.toLowerCase().includes(q));
+    }
+
+    // Agent filter
+    if (agentFilter !== "all") {
+      traces = traces.filter((t) => t.agentId === agentFilter);
+    }
+
+    // Risk filter
+    if (riskFilter !== "all") {
+      traces = traces.filter((t) => t.hallucinationRisk === riskFilter);
+    }
+
+    // Sort
+    traces.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "timestamp":
+          cmp = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+          break;
+        case "cost":
+          cmp = a.totalCost - b.totalCost;
+          break;
+        case "risk":
+          cmp = RISK_ORDER[a.hallucinationRisk] - RISK_ORDER[b.hallucinationRisk];
+          break;
+      }
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+
+    return traces;
+  }, [searchQuery, agentFilter, riskFilter, sortKey, sortDir]);
+
+  const totalPages = Math.ceil(filteredTraces.length / PAGE_SIZE);
+  const paginatedTraces = filteredTraces.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+    setPage(0);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-lg font-semibold text-zinc-100">Attribution Explorer</h1>
+        <p className="text-[13px] text-zinc-500 mt-0.5">
+          {mockQueryTraces.length} query traces &middot; Search, filter, and drill into attribution data
+        </p>
+      </div>
+
+      {/* Filters bar */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 flex flex-wrap items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[220px]">
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+          />
+          <input
+            type="text"
+            placeholder="Search query text..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(0);
+            }}
+            className="w-full bg-zinc-900 border border-zinc-700 rounded-md pl-9 pr-3 py-1.5 text-[13px] text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
+          />
+        </div>
+
+        {/* Agent filter */}
+        <div className="relative">
+          <Filter size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <select
+            value={agentFilter}
+            onChange={(e) => {
+              setAgentFilter(e.target.value);
+              setPage(0);
+            }}
+            className="appearance-none bg-zinc-900 border border-zinc-700 rounded-md pl-7 pr-7 py-1.5 text-[12px] text-zinc-300 focus:outline-none focus:border-zinc-500 transition-colors cursor-pointer"
+          >
+            <option value="all">All Agents</option>
+            {agentIds.map((id) => (
+              <option key={id} value={id}>
+                {id}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={12}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+          />
+        </div>
+
+        {/* Risk filter */}
+        <div className="relative">
+          <AlertTriangle size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <select
+            value={riskFilter}
+            onChange={(e) => {
+              setRiskFilter(e.target.value);
+              setPage(0);
+            }}
+            className="appearance-none bg-zinc-900 border border-zinc-700 rounded-md pl-7 pr-7 py-1.5 text-[12px] text-zinc-300 focus:outline-none focus:border-zinc-500 transition-colors cursor-pointer"
+          >
+            <option value="all">All Risk Levels</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="none">None</option>
+          </select>
+          <ChevronDown
+            size={12}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+          />
+        </div>
+
+        {/* Sort controls */}
+        <div className="flex items-center gap-1 text-[11px] text-zinc-500">
+          <ArrowUpDown size={12} />
+          <span>Sort:</span>
+          {(["timestamp", "cost", "risk"] as SortKey[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => toggleSort(key)}
+              className={`px-2 py-1 rounded-md transition-colors ${
+                sortKey === key
+                  ? "bg-zinc-800 text-zinc-200"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {key === "timestamp" ? "Time" : key === "cost" ? "Cost" : "Risk"}
+              {sortKey === key && (
+                <span className="ml-0.5">{sortDir === "desc" ? "\u2193" : "\u2191"}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Count */}
+        <span className="text-[11px] text-zinc-600 ml-auto">
+          {filteredTraces.length} result{filteredTraces.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* Query list */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
+        {/* Column headers */}
+        <div className="grid grid-cols-[80px_1fr_100px_auto_70px_70px_90px_140px] gap-2 px-4 py-2.5 border-b border-zinc-800 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+          <span>Trace</span>
+          <span>Query</span>
+          <span>Agent</span>
+          <span>Time</span>
+          <span className="text-right"># Mem</span>
+          <span className="text-right">Cost</span>
+          <span className="text-center">Risk</span>
+          <span>Top Attribution</span>
+        </div>
+
+        {/* Rows */}
+        {paginatedTraces.length === 0 ? (
+          <div className="px-4 py-8 text-center text-[13px] text-zinc-600">
+            No traces match your filters.
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-800/50">
+            {paginatedTraces.map((trace) => (
+              <TraceRow
+                key={trace.id}
+                trace={trace}
+                onClick={() => router.push(`/attribution/${trace.id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-[12px]">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-3 py-1.5 rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="text-zinc-500">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-3 py-1.5 rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Trace Row ────────────────────────────────────────────────────────────
+
+function TraceRow({
+  trace,
+  onClick,
 }: {
-  transaction: Transaction;
-  isActive: boolean;
+  trace: QueryTrace;
   onClick: () => void;
-  formatTimestamp: (iso: string) => string;
 }) {
-  const preview =
-    transaction.query_text.length > 80
-      ? transaction.query_text.slice(0, 80) + "..."
-      : transaction.query_text;
+  const isHighlighted =
+    trace.hallucinationRisk === "medium" || trace.hallucinationRisk === "high";
+
+  const topMemory = trace.memoriesRetrieved.length > 0
+    ? [...trace.memoriesRetrieved].sort((a, b) => b.attributionScore - a.attributionScore)[0]
+    : null;
 
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-4 py-3 transition-colors border-l-2 ${
-        isActive
-          ? "bg-[var(--accent-muted)] border-l-[var(--accent)]"
-          : "border-l-transparent hover:bg-[var(--bg-surface-2)]"
+      className={`w-full grid grid-cols-[80px_1fr_100px_auto_70px_70px_90px_140px] gap-2 px-4 py-2.5 text-left transition-colors group ${
+        isHighlighted
+          ? "bg-rose-950/10 hover:bg-rose-950/20"
+          : "hover:bg-zinc-800/30"
       }`}
     >
-      <div className="flex items-center gap-2 mb-1.5">
-        <EntityLink type="transaction" id={transaction.id} truncate={8} />
-        <span className="text-[12px] text-[var(--text-ghost)] font-mono">
-          {transaction.agent_id}
-        </span>
-        <span
-          className={`badge text-[11px] ml-auto ${
-            transaction.status === "completed"
-              ? "badge--success"
-              : "badge--warning"
-          }`}
-        >
-          {transaction.status}
-        </span>
-      </div>
-      <p className="text-xs text-[var(--text-tertiary)] leading-relaxed mb-1.5 line-clamp-2">
-        {preview}
-      </p>
-      <div className="text-[12px] text-[var(--text-ghost)] font-mono">
-        {formatTimestamp(transaction.created_at)}
-      </div>
+      {/* Trace ID */}
+      <span className="text-[12px] font-mono text-zinc-500 truncate">
+        {trace.id.toUpperCase()}
+      </span>
+
+      {/* Query */}
+      <span className="text-[13px] text-zinc-300 truncate font-mono group-hover:text-zinc-100 transition-colors">
+        {truncateText(trace.query, 65)}
+      </span>
+
+      {/* Agent */}
+      <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 self-center truncate text-center">
+        {trace.agentId}
+      </span>
+
+      {/* Timestamp */}
+      <span className="text-[11px] font-mono text-zinc-600 self-center whitespace-nowrap">
+        {formatTimestamp(trace.timestamp)}
+      </span>
+
+      {/* # Memories */}
+      <span className="text-[12px] font-mono text-zinc-500 text-right self-center tabular-nums">
+        {trace.memoriesRetrieved.length}
+      </span>
+
+      {/* Cost */}
+      <span className="text-[12px] font-mono text-zinc-500 text-right self-center tabular-nums">
+        {formatCurrency(trace.totalCost)}
+      </span>
+
+      {/* Risk */}
+      <span className="self-center text-center">
+        {riskBadge(trace.hallucinationRisk)}
+      </span>
+
+      {/* Top Attribution */}
+      <span className="text-[11px] font-mono text-zinc-400 self-center truncate">
+        {topMemory
+          ? `${formatMemoryId(topMemory.memoryId)} (${topMemory.attributionScore.toFixed(2)})`
+          : "\u2014"}
+      </span>
     </button>
-  );
-}
-
-/* ── Top Memory Card ───────────────────────────────────────────────── */
-
-function TopMemoryCard({
-  memory,
-  rank,
-}: {
-  memory: TopMemoryResponse;
-  rank: number;
-}) {
-  const tierBadge =
-    memory.tier === "hot"
-      ? "badge--error"
-      : memory.tier === "warm"
-        ? "badge--warning"
-        : "badge--info";
-
-  return (
-    <div className="card w-[240px] shrink-0 p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-[12px] font-mono text-[var(--text-ghost)]">
-          #{rank}
-        </span>
-        <span className={`badge text-[11px] ${tierBadge}`}>{memory.tier}</span>
-      </div>
-      <div>
-        <EntityLink type="memory" id={memory.memory_id} truncate={12} />
-      </div>
-      <p className="text-xs text-[var(--text-tertiary)] line-clamp-2 leading-relaxed">
-        {memory.content.length > 80
-          ? memory.content.slice(0, 80) + "..."
-          : memory.content}
-      </p>
-      <div className="space-y-1 text-[12px]">
-        <div className="flex justify-between">
-          <span className="text-[var(--text-ghost)]">Total Attribution</span>
-          <span className="font-mono text-[var(--text-primary)]">
-            {memory.total_attribution.toFixed(4)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-[var(--text-ghost)]">Mean Attribution</span>
-          <span className="font-mono text-[var(--text-secondary)]">
-            {memory.mean_attribution.toFixed(4)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-[var(--text-ghost)]">Retrievals</span>
-          <span className="font-mono text-[var(--text-secondary)]">
-            {memory.retrieval_count}x
-          </span>
-        </div>
-      </div>
-    </div>
   );
 }

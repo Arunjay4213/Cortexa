@@ -1,641 +1,504 @@
 "use client";
 
-import { useState } from "react";
-import { useSWRConfig } from "swr";
+import { useState, useMemo, useCallback } from "react";
 import {
-  useContradictions,
-  useHealthSnapshots,
-  useTimeSeries,
-  useDashboardOverview,
-  useContaminationScan,
-} from "@/lib/hooks";
-import {
-  detectContradictions,
-  resolveContradiction,
-} from "@/lib/api/health";
-import { scanContamination } from "@/lib/api/grounding";
-import type { ContaminationScanResponse } from "@/lib/api/types";
-
-import { PageTransition } from "@/components/primitives/PageTransition";
-import { PageHeader } from "@/components/primitives/PageHeader";
-import { SectionHeader } from "@/components/primitives/SectionHeader";
-import { MetricCard } from "@/components/primitives/MetricCard";
-import { EmptyState } from "@/components/primitives/EmptyState";
-import { ErrorFallback } from "@/components/primitives/ErrorFallback";
-import {
-  CardSkeleton,
-  TableSkeleton,
-} from "@/components/primitives/LoadingSkeleton";
-import { EntityLink } from "@/components/primitives/EntityLink";
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  ChevronDown,
+  ArrowUpDown,
+  Eye,
+  EyeOff,
+  Activity,
+} from "lucide-react";
+import { mockHealthAlerts, mockMemories, mockDashboardKPIs } from "@/lib/mock-data";
+import { formatTimestamp, formatMemoryId } from "@/lib/utils";
 import { Sparkline } from "@/components/primitives/Sparkline";
+import { CHITrendChart } from "@/components/dashboard/CHITrendChart";
+import { ContradictionModal } from "@/components/dashboard/ContradictionModal";
+import { MemoryDetailPanel } from "@/components/shared/MemoryDetailPanel";
+import type { HealthAlert, AlertSeverity, AlertType } from "@/lib/types";
 
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+// ── Derived stats from mock data ─────────────────────────────────────────
 
-// -- Constants ----------------------------------------------------------------
+const activeMemories = mockMemories.filter((m) => m.status === "active");
+const contradictionCount = mockHealthAlerts.filter(
+  (a) => a.type === "contradiction" && !a.resolved
+).length;
+const staleCount = activeMemories.filter((m) => m.stalenessScore > 0.7).length;
+const coverageGapCount = mockHealthAlerts.filter(
+  (a) => a.type === "coverage_gap" && !a.resolved
+).length;
 
-const METRIC_OPTIONS = [
-  { value: "avg_eas", label: "Avg EAS Score" },
-  { value: "contradiction_rate", label: "Contradiction Rate" },
-  { value: "retrieval_count", label: "Retrieval Count" },
-  { value: "cost", label: "Cost" },
-  { value: "tokens", label: "Tokens" },
-];
+// 30-day CHI sparkline (simplified)
+const chiSparkline = Array.from({ length: 15 }, (_, i) => {
+  const base = 0.82;
+  const noise = Math.sin(i * 0.7) * 0.03 + Math.cos(i * 1.3) * 0.02;
+  return Math.max(0.6, Math.min(0.95, base + noise * (i / 15)));
+});
 
-const SEVERITY_BADGE: Record<string, string> = {
-  semantic: "badge--error",
-  factual: "badge--warning",
-  temporal: "badge--info",
-  logical: "badge--neutral",
+// ── Sort & filter types ─────────────────────────────────────────────────
+
+type SortKey = "severity" | "detected" | "type";
+type SortDir = "asc" | "desc";
+
+const SEVERITY_ORDER: Record<AlertSeverity, number> = {
+  critical: 3,
+  warning: 2,
+  info: 1,
 };
 
-function severityBadgeClass(type: string): string {
-  return SEVERITY_BADGE[type] ?? "badge--neutral";
+function severityIcon(severity: AlertSeverity) {
+  switch (severity) {
+    case "critical":
+      return <AlertCircle size={14} className="text-rose-400" />;
+    case "warning":
+      return <AlertTriangle size={14} className="text-amber-400" />;
+    case "info":
+      return <Info size={14} className="text-blue-400" />;
+  }
 }
 
-// -- Page ---------------------------------------------------------------------
+function typeBadge(type: AlertType) {
+  const styles: Record<AlertType, string> = {
+    contradiction: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    stale: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    drift: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    coverage_gap: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  };
+  const labels: Record<AlertType, string> = {
+    contradiction: "Contradiction",
+    stale: "Stale",
+    drift: "Drift",
+    coverage_gap: "Coverage Gap",
+  };
+  return (
+    <span
+      className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${styles[type]}`}
+    >
+      {labels[type]}
+    </span>
+  );
+}
 
-export default function HealthPage() {
-  const { mutate } = useSWRConfig();
+function actionLabel(type: AlertType): string {
+  switch (type) {
+    case "contradiction":
+      return "Resolve";
+    case "stale":
+      return "Archive";
+    case "drift":
+      return "Re-embed";
+    case "coverage_gap":
+      return "Review";
+  }
+}
 
-  // -- Local state --
-  const [agentFilter, setAgentFilter] = useState("");
-  const [selectedMetric, setSelectedMetric] = useState("avg_eas");
-  const [showAllContradictions, setShowAllContradictions] = useState(false);
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [detectionCount, setDetectionCount] = useState<number | null>(null);
-  const [resolvingIds, setResolvingIds] = useState<Set<string>>(new Set());
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<ContaminationScanResponse | null>(null);
+// ── Page ─────────────────────────────────────────────────────────────────
 
-  // -- Data hooks --
-  const {
-    data: overview,
-    error: overviewError,
-    isLoading: overviewLoading,
-  } = useDashboardOverview();
+export default function HealthMonitorPage() {
+  // Filters
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [showResolved, setShowResolved] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("severity");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  const {
-    data: healthSnapshots,
-    error: healthError,
-    isLoading: healthLoading,
-  } = useHealthSnapshots(agentFilter || null);
+  // Modals
+  const [contradictionAlert, setContradictionAlert] = useState<HealthAlert | null>(null);
+  const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
 
-  const {
-    data: contradictions,
-    error: contradictionsError,
-    isLoading: contradictionsLoading,
-  } = useContradictions(
-    showAllContradictions
-      ? agentFilter ? { agent_id: agentFilter } : undefined
-      : agentFilter ? { agent_id: agentFilter, resolved: false } : { resolved: false }
+  // Filtered & sorted alerts
+  const filteredAlerts = useMemo(() => {
+    let alerts = [...mockHealthAlerts];
+
+    if (!showResolved) {
+      alerts = alerts.filter((a) => !a.resolved);
+    }
+
+    if (severityFilter !== "all") {
+      alerts = alerts.filter((a) => a.severity === severityFilter);
+    }
+
+    if (typeFilter !== "all") {
+      alerts = alerts.filter((a) => a.type === typeFilter);
+    }
+
+    alerts.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "severity":
+          cmp = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
+          break;
+        case "detected":
+          cmp = new Date(a.detectedAt).getTime() - new Date(b.detectedAt).getTime();
+          break;
+        case "type":
+          cmp = a.type.localeCompare(b.type);
+          break;
+      }
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+
+    return alerts;
+  }, [severityFilter, typeFilter, showResolved, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
+
+  const handleAction = useCallback(
+    (alert: HealthAlert) => {
+      if (alert.type === "contradiction") {
+        setContradictionAlert(alert);
+      }
+      // Other types: no-op for now (mock)
+    },
+    []
   );
 
-  const {
-    data: timeSeries,
-    error: timeSeriesError,
-    isLoading: timeSeriesLoading,
-  } = useTimeSeries({
-    metric: selectedMetric,
-    agent_id: agentFilter || undefined,
-    days: 7,
-    bucket: "1h",
-  });
-
-  const { data: contaminationScan } = useContaminationScan(agentFilter || null);
-
-  // -- Derived data --
-  const latestSnapshot =
-    healthSnapshots && healthSnapshots.length > 0
-      ? healthSnapshots[healthSnapshots.length - 1]
-      : null;
-
-  const chiScore = latestSnapshot
-    ? ((1 - latestSnapshot.contradiction_rate) * latestSnapshot.retrieval_efficiency * latestSnapshot.memory_quality * 100).toFixed(1)
-    : overview
-      ? ((1 - overview.overall_waste_rate / 100) * 100).toFixed(1)
-      : "--";
-
-  const contradictionCount =
-    contradictions?.filter((c) => !c.resolved).length ?? 0;
-
-  const driftScore = latestSnapshot
-    ? latestSnapshot.semantic_drift.toFixed(4)
-    : "--";
-
-  const coverageValue = latestSnapshot
-    ? `${(latestSnapshot.retrieval_efficiency * 100).toFixed(1)}%`
-    : overview
-      ? `${(100 - overview.overall_waste_rate).toFixed(1)}%`
-      : "--";
-
-  const stalenessValue = contaminationScan
-    ? `${(contaminationScan.system_contamination_rate * 100).toFixed(1)}%`
-    : "--";
-
-  // Sparkline data from health snapshots
-  const driftSparkline =
-    healthSnapshots && healthSnapshots.length > 1
-      ? healthSnapshots.map((s) => s.semantic_drift)
-      : [];
-
-  const qualitySparkline =
-    healthSnapshots && healthSnapshots.length > 1
-      ? healthSnapshots.map((s) => s.memory_quality)
-      : [];
-
-  // -- Handlers --
-  async function handleRunDetection() {
-    setIsDetecting(true);
-    setDetectionCount(null);
-    try {
-      const result = await detectContradictions(agentFilter || undefined);
-      setDetectionCount(result.detected);
-      mutate((key: string) =>
-        typeof key === "string" && key.startsWith("/health/contradictions")
-      );
-    } catch {
-      // detection failed silently
-    } finally {
-      setIsDetecting(false);
-    }
-  }
-
-  async function handleResolve(id: string) {
-    setResolvingIds((prev) => new Set(prev).add(id));
-    try {
-      await resolveContradiction(id);
-      mutate((key: string) =>
-        typeof key === "string" && key.startsWith("/health/contradictions")
-      );
-    } catch {
-      // resolve failed silently
-    } finally {
-      setResolvingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  }
-
-  async function handleRunScan() {
-    if (!agentFilter) return;
-    setIsScanning(true);
-    try {
-      const result = await scanContamination(agentFilter);
-      setScanResult(result);
-    } catch {
-      // scan failed silently
-    } finally {
-      setIsScanning(false);
-    }
-  }
-
-  // -- Chart data --
-  const chartData =
-    timeSeries?.buckets.map((b) => ({
-      time: new Date(b.timestamp).toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-      value: b.value,
-      count: b.count,
-    })) ?? [];
-
-  const activeScan = scanResult ?? contaminationScan;
-
-  // -- Render -----------------------------------------------------------------
+  const handleMemoryClick = useCallback((memoryId: string) => {
+    setSelectedMemoryId(memoryId);
+  }, []);
 
   return (
-    <PageTransition>
-      <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-secondary)] p-6">
-        {/* Header */}
-        <PageHeader
-          title="Health"
-          subtitle="System health, contradictions, and contamination monitoring"
-        >
-          <input
-            type="text"
-            value={agentFilter}
-            onChange={(e) => setAgentFilter(e.target.value)}
-            placeholder="Filter by agent_id..."
-            className="input input--sm w-48 font-mono"
-          />
-        </PageHeader>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-lg font-semibold text-zinc-100">Health Monitor</h1>
+        <p className="text-[13px] text-zinc-500 mt-0.5">
+          Composite Health Index, contradictions, staleness, and drift monitoring
+        </p>
+      </div>
 
-        {/* Metric Cards Row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 stagger-children">
-          {overviewLoading || healthLoading ? (
-            <>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <CardSkeleton key={i} />
-              ))}
-            </>
-          ) : (
-            <>
-              <MetricCard
-                label="CHI Score"
-                value={chiScore}
-                sparkline={
-                  qualitySparkline.length > 1 ? (
-                    <Sparkline data={qualitySparkline} color="#6366F1" />
-                  ) : undefined
-                }
-              />
-              <MetricCard
-                label="Contradictions"
-                value={contradictionCount}
-                delta={
-                  detectionCount !== null ? detectionCount : undefined
-                }
-                deltaLabel={detectionCount !== null ? "newly detected" : undefined}
-              />
-              <MetricCard
-                label="Drift Score"
-                value={driftScore}
-                sparkline={
-                  driftSparkline.length > 1 ? (
-                    <Sparkline data={driftSparkline} color="#A78BFA" />
-                  ) : undefined
-                }
-              />
-              <MetricCard label="Coverage" value={coverageValue} />
-              <MetricCard label="Staleness" value={stalenessValue} />
-            </>
-          )}
-        </div>
+      {/* Top: Health Overview Cards */}
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+        <HealthCard
+          label="CHI Score"
+          value={mockDashboardKPIs.compositeHealthIndex.toFixed(3)}
+          color="emerald"
+          sparkline={chiSparkline}
+        />
+        <HealthCard
+          label="Contradictions"
+          value={String(contradictionCount)}
+          sub="active"
+          color="rose"
+        />
+        <HealthCard
+          label="Stale Memories"
+          value={String(staleCount)}
+          sub={`of ${activeMemories.length}`}
+          color="amber"
+        />
+        <HealthCard
+          label="Coverage Gaps"
+          value={String(coverageGapCount)}
+          sub="topics"
+          color="blue"
+        />
+      </div>
 
-        {overviewError && (
-          <div className="mb-8">
-            <ErrorFallback
-              error={overviewError}
-              onRetry={() => mutate("/dashboard/overview")}
-            />
+      {/* Middle: CHI Trend Chart */}
+      <CHITrendChart />
+
+      {/* Main: Problem List Table */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-zinc-800">
+          <div className="flex items-center gap-1.5">
+            <Activity size={14} className="text-zinc-500" />
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Health Alerts
+            </span>
           </div>
-        )}
-        {healthError && (
-          <div className="mb-8">
-            <ErrorFallback
-              error={healthError}
-              onRetry={() =>
-                mutate((key: string) =>
-                  typeof key === "string" && key.startsWith("/health/")
-                )
-              }
-            />
-          </div>
-        )}
 
-        {/* Contradiction Detection Section */}
-        <div className="card mb-8">
-          <SectionHeader
-            title="Contradictions"
-            count={contradictions?.length}
-          >
-            <label className="flex items-center gap-2 text-xs text-[var(--text-tertiary)] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={showAllContradictions}
-                onChange={(e) => setShowAllContradictions(e.target.checked)}
-                className="accent-[var(--accent)]"
-              />
-              Show resolved
-            </label>
-            {detectionCount !== null && (
-              <span className="badge badge--success font-mono">
-                {detectionCount} detected
-              </span>
-            )}
-            <button
-              onClick={handleRunDetection}
-              disabled={isDetecting}
-              className="btn btn--primary"
-            >
-              {isDetecting ? "Detecting..." : "Run Detection"}
-            </button>
-          </SectionHeader>
+          <div className="flex-1" />
 
-          {contradictionsLoading ? (
-            <TableSkeleton rows={5} cols={6} />
-          ) : contradictionsError ? (
-            <ErrorFallback
-              error={contradictionsError}
-              onRetry={() =>
-                mutate((key: string) =>
-                  typeof key === "string" &&
-                  key.startsWith("/health/contradictions")
-                )
-              }
-            />
-          ) : contradictions && contradictions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="table table-compact">
-                <thead>
-                  <tr>
-                    <th>Memory 1</th>
-                    <th>Memory 2</th>
-                    <th>Type</th>
-                    <th>Severity</th>
-                    <th>Resolved</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contradictions.map((c) => {
-                    const isResolving = resolvingIds.has(c.id);
-                    return (
-                      <tr key={c.id}>
-                        <td>
-                          <EntityLink type="memory" id={c.memory_id_1} truncate={12} />
-                        </td>
-                        <td>
-                          <EntityLink type="memory" id={c.memory_id_2} truncate={12} />
-                        </td>
-                        <td>
-                          <span className="uppercase font-mono text-xs">
-                            {c.type}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`badge ${severityBadgeClass(c.type)}`}>
-                            <span className="font-mono">
-                              {(c.confidence * 100).toFixed(0)}%
-                            </span>
-                          </span>
-                        </td>
-                        <td>
-                          {c.resolved ? (
-                            <span className="badge badge--success">Resolved</span>
-                          ) : (
-                            <span className="badge badge--error">Unresolved</span>
-                          )}
-                        </td>
-                        <td>
-                          {!c.resolved && (
-                            <button
-                              onClick={() => handleResolve(c.id)}
-                              disabled={isResolving}
-                              className="btn btn--ghost text-xs"
-                            >
-                              {isResolving ? "..." : "Resolve"}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <EmptyState
-              title="No contradictions found"
-              description="Run detection to scan for conflicts between memories."
-            />
-          )}
-        </div>
-
-        {/* Time Series Chart Section */}
-        <div className="card mb-8">
-          <SectionHeader title="Time Series">
+          {/* Severity filter */}
+          <div className="relative">
             <select
-              value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value)}
-              className="input input--sm w-44 font-mono"
+              value={severityFilter}
+              onChange={(e) => setSeverityFilter(e.target.value)}
+              className="appearance-none bg-zinc-900 border border-zinc-700 rounded-md pl-3 pr-7 py-1.5 text-[12px] text-zinc-300 focus:outline-none focus:border-zinc-500 transition-colors cursor-pointer"
             >
-              {METRIC_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
+              <option value="all">All Severity</option>
+              <option value="critical">Critical</option>
+              <option value="warning">Warning</option>
+              <option value="info">Info</option>
             </select>
-            {agentFilter && (
-              <span className="badge badge--info font-mono">
-                {agentFilter}
-              </span>
-            )}
-          </SectionHeader>
+            <ChevronDown
+              size={12}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+            />
+          </div>
 
-          {timeSeriesLoading ? (
-            <TableSkeleton rows={4} cols={6} />
-          ) : timeSeriesError ? (
-            <ErrorFallback
-              error={timeSeriesError}
-              onRetry={() =>
-                mutate((key: string) =>
-                  typeof key === "string" &&
-                  key.startsWith("/dashboard/timeseries")
-                )
-              }
+          {/* Type filter */}
+          <div className="relative">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="appearance-none bg-zinc-900 border border-zinc-700 rounded-md pl-3 pr-7 py-1.5 text-[12px] text-zinc-300 focus:outline-none focus:border-zinc-500 transition-colors cursor-pointer"
+            >
+              <option value="all">All Types</option>
+              <option value="contradiction">Contradiction</option>
+              <option value="stale">Stale</option>
+              <option value="drift">Drift</option>
+              <option value="coverage_gap">Coverage Gap</option>
+            </select>
+            <ChevronDown
+              size={12}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
             />
-          ) : chartData.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="healthAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366F1" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#6366F1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#1C1C1F" strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="time"
-                    tick={{ fontSize: 11, fill: "var(--text-ghost)", fontFamily: "var(--font-mono)" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: "var(--text-ghost)", fontFamily: "var(--font-mono)" }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={50}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#141416",
-                      border: "1px solid var(--border-default)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      borderRadius: "8px",
-                    }}
-                    labelStyle={{ color: "var(--text-tertiary)" }}
-                    itemStyle={{ color: "#6366F1" }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#6366F1"
-                    fill="url(#healthAreaGradient)"
-                    strokeWidth={1.5}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-              {timeSeries && timeSeries.buckets.length > 0 && (
-                <div className="mt-3 flex justify-between text-[12px] font-mono text-[var(--text-ghost)]">
-                  <span>
-                    {new Date(timeSeries.buckets[0].timestamp).toLocaleDateString()}
-                  </span>
-                  <span>
-                    {timeSeries.buckets.length} buckets / {timeSeries.days}d
-                  </span>
-                  <span>
-                    {new Date(
-                      timeSeries.buckets[timeSeries.buckets.length - 1].timestamp
-                    ).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-            </>
-          ) : (
-            <EmptyState
-              title="No time-series data"
-              description="Select a metric and ensure data exists for the current time window."
-            />
-          )}
+          </div>
+
+          {/* Show resolved toggle */}
+          <button
+            onClick={() => setShowResolved((v) => !v)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] transition-colors border ${
+              showResolved
+                ? "border-zinc-600 bg-zinc-800 text-zinc-200"
+                : "border-zinc-700 text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            {showResolved ? <Eye size={12} /> : <EyeOff size={12} />}
+            Resolved
+          </button>
+
+          {/* Sort controls */}
+          <div className="flex items-center gap-1 text-[11px] text-zinc-500">
+            <ArrowUpDown size={12} />
+            {(["severity", "detected", "type"] as SortKey[]).map((key) => (
+              <button
+                key={key}
+                onClick={() => toggleSort(key)}
+                className={`px-2 py-1 rounded-md transition-colors capitalize ${
+                  sortKey === key
+                    ? "bg-zinc-800 text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {key === "detected" ? "Date" : key}
+                {sortKey === key && (
+                  <span className="ml-0.5">{sortDir === "desc" ? "\u2193" : "\u2191"}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <span className="text-[11px] text-zinc-600">
+            {filteredAlerts.length} alert{filteredAlerts.length !== 1 ? "s" : ""}
+          </span>
         </div>
 
-        {/* Contamination Overview Section */}
-        <div className="card mb-8">
-          <SectionHeader title="Contamination Overview">
-            <button
-              onClick={handleRunScan}
-              disabled={!agentFilter || isScanning}
-              className="btn btn--primary"
-            >
-              {isScanning ? "Scanning..." : "Run Scan"}
-            </button>
-          </SectionHeader>
-
-          {activeScan ? (
-            <div className="space-y-6">
-              {/* Summary metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: "Trusted", count: activeScan.trusted, badge: "badge--success" },
-                  { label: "Uncertain", count: activeScan.uncertain, badge: "badge--warning" },
-                  { label: "Suspect", count: activeScan.suspect, badge: "badge--error" },
-                  { label: "Contaminated", count: activeScan.contaminated, badge: "badge--error" },
-                ].map((r) => (
-                  <div key={r.label} className="bg-[var(--bg-surface-2)] rounded-lg p-4">
-                    <div className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-                      {r.label}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold font-mono text-[var(--text-primary)]">
-                        {r.count}
-                      </span>
-                      <span className={`badge ${r.badge}`}>
-                        {activeScan.total_memories > 0
-                          ? ((r.count / activeScan.total_memories) * 100).toFixed(1)
-                          : "0"}
-                        %
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-[var(--bg-surface-3)] rounded-full mt-3 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[var(--accent)]"
-                        style={{
-                          width: `${
-                            activeScan.total_memories > 0
-                              ? (r.count / activeScan.total_memories) * 100
-                              : 0
-                          }%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Scan metadata */}
-              <div className="flex items-center gap-4 text-xs text-[var(--text-ghost)]">
-                <span>
-                  <span className="font-mono">{activeScan.total_memories}</span> memories scanned
-                </span>
-                <span>
-                  <span className="font-mono">{activeScan.compute_time_ms.toFixed(0)}</span>ms compute
-                </span>
-                <span>
-                  System contamination rate:{" "}
-                  <span className="font-mono">
-                    {(activeScan.system_contamination_rate * 100).toFixed(2)}%
-                  </span>
-                </span>
-              </div>
-
-              {/* Flagged memories table */}
-              {activeScan.flags && activeScan.flags.length > 0 && (
-                <div>
-                  <SectionHeader title="Flagged Memories" count={activeScan.flags.length} />
-                  <div className="overflow-x-auto">
-                    <table className="table table-compact">
-                      <thead>
-                        <tr>
-                          <th>Memory ID</th>
-                          <th>Grounding Score</th>
-                          <th>Risk Level</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {activeScan.flags.slice(0, 10).map((flag) => {
-                          const riskBadge =
-                            flag.risk_level.toLowerCase() === "trusted"
-                              ? "badge--success"
-                              : flag.risk_level.toLowerCase() === "uncertain"
-                                ? "badge--warning"
-                                : "badge--error";
-                          return (
-                            <tr key={flag.memory_id}>
-                              <td>
-                                <EntityLink type="memory" id={flag.memory_id} truncate={12} />
-                              </td>
-                              <td>
-                                <span className="font-mono">
-                                  {(flag.grounding_score * 100).toFixed(1)}%
-                                </span>
-                              </td>
-                              <td>
-                                <span className={`badge ${riskBadge}`}>
-                                  {flag.risk_level}
-                                </span>
-                              </td>
-                              <td className="text-[var(--text-tertiary)] uppercase text-xs">
-                                {flag.recommended_action}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-[10px] font-medium uppercase tracking-wider text-zinc-600 border-b border-zinc-800">
+                <th className="text-left px-4 py-2.5 w-8" />
+                <th className="text-left px-2 py-2.5">Type</th>
+                <th className="text-left px-2 py-2.5">Memory IDs</th>
+                <th className="text-left px-2 py-2.5">Description</th>
+                <th className="text-left px-2 py-2.5 w-20">Detected</th>
+                <th className="text-center px-2 py-2.5 w-24">Status</th>
+                <th className="text-center px-2 py-2.5 w-24">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/50">
+              {filteredAlerts.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-[13px] text-zinc-600">
+                    No alerts match your filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredAlerts.map((alert) => (
+                  <AlertRow
+                    key={alert.id}
+                    alert={alert}
+                    onAction={() => handleAction(alert)}
+                    onMemoryClick={handleMemoryClick}
+                  />
+                ))
               )}
-            </div>
-          ) : (
-            <EmptyState
-              title="No contamination data"
-              description={
-                agentFilter
-                  ? "Click Run Scan to assess memory contamination risk."
-                  : "Enter an agent ID above to scan for contamination."
-              }
-            />
-          )}
+            </tbody>
+          </table>
         </div>
       </div>
-    </PageTransition>
+
+      {/* Contradiction Modal */}
+      <ContradictionModal
+        alert={contradictionAlert}
+        onClose={() => setContradictionAlert(null)}
+      />
+
+      {/* Memory Detail Panel */}
+      <MemoryDetailPanel
+        memoryId={selectedMemoryId}
+        onClose={() => setSelectedMemoryId(null)}
+      />
+    </div>
+  );
+}
+
+// ── Health Overview Card ─────────────────────────────────────────────────
+
+function HealthCard({
+  label,
+  value,
+  sub,
+  color,
+  sparkline,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  color: "emerald" | "rose" | "amber" | "blue";
+  sparkline?: number[];
+}) {
+  const borderColors: Record<string, string> = {
+    emerald: "border-l-emerald-500",
+    rose: "border-l-rose-500",
+    amber: "border-l-amber-500",
+    blue: "border-l-blue-500",
+  };
+
+  const valueColors: Record<string, string> = {
+    emerald: "text-emerald-400",
+    rose: "text-rose-400",
+    amber: "text-amber-400",
+    blue: "text-blue-400",
+  };
+
+  const sparkColors: Record<string, string> = {
+    emerald: "#10b981",
+    rose: "#f43f5e",
+    amber: "#f59e0b",
+    blue: "#3b82f6",
+  };
+
+  return (
+    <div
+      className={`min-w-[220px] h-24 bg-zinc-950 border border-zinc-800 border-l-[3px] rounded-lg
+        px-4 py-3 flex flex-col justify-between shrink-0 ${borderColors[color]}`}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium leading-none">
+          {label}
+        </span>
+        {sparkline && (
+          <Sparkline data={sparkline} color={sparkColors[color]} width={60} height={16} />
+        )}
+      </div>
+      <div className="flex items-end gap-2">
+        <span className={`text-2xl font-mono font-medium leading-none tabular-nums ${valueColors[color]}`}>
+          {value}
+        </span>
+        {sub && (
+          <span className="text-[11px] font-mono text-zinc-500 leading-none mb-0.5">
+            {sub}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Alert Row ────────────────────────────────────────────────────────────
+
+function AlertRow({
+  alert,
+  onAction,
+  onMemoryClick,
+}: {
+  alert: HealthAlert;
+  onAction: () => void;
+  onMemoryClick: (id: string) => void;
+}) {
+  const isCritical = alert.severity === "critical" && !alert.resolved;
+
+  return (
+    <tr className={isCritical ? "bg-rose-950/10" : ""}>
+      {/* Severity icon */}
+      <td className="px-4 py-2.5">
+        {severityIcon(alert.severity)}
+      </td>
+
+      {/* Type badge */}
+      <td className="px-2 py-2.5">
+        {typeBadge(alert.type)}
+      </td>
+
+      {/* Memory IDs */}
+      <td className="px-2 py-2.5">
+        <div className="flex flex-wrap gap-1">
+          {alert.memoryIds.length > 0 ? (
+            alert.memoryIds.slice(0, 4).map((id) => (
+              <button
+                key={id}
+                onClick={() => onMemoryClick(id)}
+                className="text-[11px] font-mono text-zinc-400 hover:text-zinc-200 transition-colors px-1.5 py-0.5 rounded bg-zinc-800/50 hover:bg-zinc-800"
+              >
+                {formatMemoryId(id)}
+              </button>
+            ))
+          ) : (
+            <span className="text-[11px] text-zinc-600">&mdash;</span>
+          )}
+          {alert.memoryIds.length > 4 && (
+            <span className="text-[10px] text-zinc-600">
+              +{alert.memoryIds.length - 4}
+            </span>
+          )}
+        </div>
+      </td>
+
+      {/* Description */}
+      <td className="px-2 py-2.5">
+        <p className="text-[12px] text-zinc-400 leading-relaxed max-w-[400px]">
+          {alert.description.length > 140
+            ? alert.description.slice(0, 140) + "\u2026"
+            : alert.description}
+        </p>
+      </td>
+
+      {/* Detected */}
+      <td className="px-2 py-2.5">
+        <span className="text-[11px] font-mono text-zinc-600 whitespace-nowrap">
+          {formatTimestamp(alert.detectedAt)}
+        </span>
+      </td>
+
+      {/* Status */}
+      <td className="px-2 py-2.5 text-center">
+        {alert.resolved ? (
+          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Resolved
+          </span>
+        ) : (
+          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+            Unresolved
+          </span>
+        )}
+      </td>
+
+      {/* Action */}
+      <td className="px-2 py-2.5 text-center">
+        {!alert.resolved && (
+          <button
+            onClick={onAction}
+            className="px-3 py-1 rounded-md border border-zinc-700 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 hover:bg-zinc-800/50 transition-all"
+          >
+            {actionLabel(alert.type)}
+          </button>
+        )}
+      </td>
+    </tr>
   );
 }
