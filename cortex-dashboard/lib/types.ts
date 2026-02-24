@@ -1,11 +1,18 @@
 /**
  * Dashboard-specific types for the CortexOS observability UI.
  *
- * These are presentation-layer interfaces shaped for the Bloomberg Terminal
+ * These are presentation-layer interfaces shaped for the Grafana-style
  * dashboard. They differ from lib/api/types.ts (which mirrors backend Pydantic
  * models) — the dashboard types carry pre-computed health, financial, and
  * attribution data ready for direct rendering.
  */
+
+// ── Time Series ────────────────────────────────────────────────────────
+
+export interface TimeSeriesPoint {
+  timestamp: string;
+  value: number;
+}
 
 // ── Memory ──────────────────────────────────────────────────────────────
 
@@ -61,6 +68,7 @@ export interface QueryTrace {
   agentId: string;
   timestamp: string;
   totalCost: number;
+  latencyMs: number;
   memoriesRetrieved: RetrievedMemory[];
   hallucinationRisk: HallucinationRisk;
   statementAttribution?: StatementAttribution[];
@@ -130,14 +138,29 @@ export type GDPRStatus = 'compliant' | 'pending_deletions' | 'overdue';
 
 export interface DashboardKPIs {
   compositeHealthIndex: number;
+  chiHistory: TimeSeriesPoint[];              // 30 days
   memoryROI: number;
   activeMemories: number;
+  totalMemories: number;
   attributionConfidence: number;
   hallucinationRate: number;
+  hallucinationHistory: TimeSeriesPoint[];    // 30 days
   tokenWasteRate: number;
+  tokenWasteHistory: TimeSeriesPoint[];       // 30 days
   gdprStatus: GDPRStatus;
+  pendingDeletions: number;
   queriesToday: number;
   queriesPerSecond: number;
+  queryVolumeHistory: TimeSeriesPoint[];      // 24 hours, per-hour
+  costToday: number;
+  costHistory: TimeSeriesPoint[];             // 30 days
+  memoriesByHealth: {
+    healthy: number;
+    stale: number;
+    contradictory: number;
+    drifted: number;
+    archived: number;
+  };
 }
 
 // ── Lifecycle / Budget Optimizer ────────────────────────────────────────

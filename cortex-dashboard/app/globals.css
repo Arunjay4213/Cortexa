@@ -2,69 +2,133 @@
 
 /* Map Tailwind font utilities to our custom fonts from next/font */
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-roboto-mono), 'Roboto Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Grafana palette exposed to Tailwind */
+  --color-grafana-green: #73bf69;
+  --color-grafana-red: #f2495c;
+  --color-grafana-yellow: #ff9830;
+  --color-grafana-blue: #5794f2;
+  --color-grafana-purple: #b877d9;
+  --color-grafana-cyan: #8ab8ff;
+  --color-grafana-orange: #ff9830;
+
+  --color-panel-bg: #181b1f;
+  --color-panel-border: #2c3235;
+  --color-dashboard-bg: #111217;
 }
 
 /* =============================================================================
-   CORTEXOS DESIGN SYSTEM — Warp OZ
-   Near-black backgrounds, indigo accent, Inter font, spacious, elegant
+   CORTEXOS / CORTEXA — Grafana Dark Theme Design System
+   Matches Grafana 10.x dark theme: near-black canvas, muted panels, thin borders,
+   Inter font, Roboto Mono for data, signature green/red/amber accent palette.
    ============================================================================= */
 
 :root {
+  /* ── Grafana Backgrounds ────────────────────────────────────────────── */
+  --dashboard-bg:   #111217;
+  --panel-bg:       #181b1f;
+  --panel-bg-hover: #1f2229;
+  --panel-header:   transparent;
+
+  /* ── Grafana Borders ────────────────────────────────────────────────── */
+  --panel-border: #2c3235;
+  --divider:      #2c3235;
+
+  /* ── Grafana Text ───────────────────────────────────────────────────── */
+  --grafana-text-primary:   #d8d9da;
+  --grafana-text-secondary: #8e8e8e;
+  --grafana-text-muted:     #6e7681;
+  --grafana-text-disabled:  #464c54;
+
+  /* ── Grafana Accent / Data Colors ───────────────────────────────────── */
+  --grafana-green:  #73bf69;
+  --grafana-red:    #f2495c;
+  --grafana-yellow: #ff9830;
+  --grafana-blue:   #5794f2;
+  --grafana-purple: #b877d9;
+  --grafana-cyan:   #8ab8ff;
+  --grafana-orange: #ff9830;
+
+  /* ── Graph Grid ─────────────────────────────────────────────────────── */
+  --grid-line:  #2c3235;
+  --axis-text:  #6e7681;
+
+  /* ── Interactive ────────────────────────────────────────────────────── */
+  --link:        #6e9fff;
+  --hover-bg:    #1f2229;
+  --selected-bg: #264653;
+
+  /* ── Stat Panel Backgrounds ─────────────────────────────────────────── */
+  --stat-green-bg:  rgba(115, 191, 105, 0.15);
+  --stat-red-bg:    rgba(242, 73, 92, 0.15);
+  --stat-yellow-bg: rgba(255, 152, 48, 0.15);
+  --stat-blue-bg:   rgba(87, 148, 242, 0.15);
+
+  /* ── Panel Styling ──────────────────────────────────────────────────── */
+  --panel-radius: 2px;
+  --panel-gap:    8px;
+  --panel-padding: 16px;
+
+  /* =========================================================================
+     Legacy variable aliases — mapped to Grafana tokens so existing components
+     continue working without modification. New code should prefer Grafana names.
+     ========================================================================= */
+
   /* Background Layers */
-  --bg-base: #0C0C0E;
-  --bg-surface-1: #141416;
-  --bg-surface-2: #1C1C1F;
-  --bg-surface-3: #242428;
+  --bg-base:      var(--dashboard-bg);
+  --bg-surface-1: var(--panel-bg);
+  --bg-surface-2: var(--panel-bg-hover);
+  --bg-surface-3: #262a30;
 
   /* Text Hierarchy */
-  --text-primary: #F0F0F2;
-  --text-secondary: #9898A0;
-  --text-tertiary: #5C5C66;
-  --text-ghost: #38383F;
+  --text-primary:   var(--grafana-text-primary);
+  --text-secondary: var(--grafana-text-secondary);
+  --text-tertiary:  var(--grafana-text-muted);
+  --text-ghost:     var(--grafana-text-disabled);
 
-  /* Accent — indigo, used sparingly */
-  --accent: #6366F1;
-  --accent-hover: #818CF8;
-  --accent-muted: rgba(99, 102, 241, 0.12);
+  /* Accent — now Grafana blue */
+  --accent:       var(--grafana-blue);
+  --accent-hover: var(--link);
+  --accent-muted: rgba(87, 148, 242, 0.12);
 
-  /* Status Colors (muted, not neon) */
-  --status-success: #34D399;
-  --status-warning: #FBBF24;
-  --status-error: #F87171;
-  --status-info: #6366F1;
+  /* Status Colors — Grafana palette */
+  --status-success: var(--grafana-green);
+  --status-warning: var(--grafana-yellow);
+  --status-error:   var(--grafana-red);
+  --status-info:    var(--grafana-blue);
 
   /* Borders */
-  --border-default: #1E1E22;
-  --border-hover: #2A2A30;
-  --border-active: #3A3A42;
+  --border-default: var(--panel-border);
+  --border-hover:   #3c4347;
+  --border-active:  #4c5357;
 
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* Radii — Grafana uses very small radius */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
 
-  /* Glass */
-  --glass-bg: rgba(20, 20, 22, 0.8);
-  --glass-blur: 16px;
+  /* Glass — disabled for Grafana aesthetic */
+  --glass-bg:   rgba(24, 27, 31, 0.9);
+  --glass-blur: 8px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 48px -8px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px -4px rgba(99, 102, 241, 0.15);
+  /* Shadows — Grafana panels have NO drop shadows */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-glow: none;
 
-  /* Easing — spring-based for premium feel */
+  /* Easing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth:   cubic-bezier(0.25, 0.1, 0.25, 1);
 
   /* Sidebar */
-  --sidebar-width: 240px;
-  --sidebar-collapsed: 64px;
+  --sidebar-width:     240px;
+  --sidebar-collapsed: 48px;
 }
 
 /* =============================================================================
@@ -81,14 +145,15 @@ html,
 body {
   height: 100%;
   overflow-x: hidden;
-  background: var(--bg-base);
-  color: var(--text-secondary);
-  line-height: 1.6;
+  background: var(--dashboard-bg);
+  color: var(--grafana-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Tabular numbers for metrics */
+/* Tabular numbers for metrics — Grafana uses this everywhere */
 .metric,
 .number,
 [data-metric] {
@@ -97,68 +162,92 @@ body {
 }
 
 /* =============================================================================
-   Typography Scale
-   h1=28px/700, h2=20px/600, h3=16px/600, body=14px/400, caption=12px/500, micro=11px/400
+   Typography — Grafana Scale
+   Panel title: 14px/500, description: 12px, stat value: 32px+/500,
+   table header: 12px uppercase, table cell: 13px, axis: 11px
    ============================================================================= */
 
 h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-}
-
-h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.015em;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--grafana-text-primary);
+  letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
-h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
+h2 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--grafana-text-primary);
   line-height: 1.4;
 }
 
-h4 {
+h3 {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 500;
+  color: var(--grafana-text-primary);
+  line-height: 1.5;
+}
+
+h4 {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--grafana-text-primary);
   line-height: 1.5;
 }
 
 p, body {
   font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
+  line-height: 1.5;
+  color: var(--grafana-text-secondary);
 }
 
 .caption {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--text-tertiary);
+  color: var(--grafana-text-muted);
 }
 
 .micro {
   font-size: 0.6875rem;
   font-weight: 400;
-  color: var(--text-ghost);
+  color: var(--grafana-text-disabled);
 }
 
 /* =============================================================================
-   Card & Panel System
+   Grafana Panel System
+   Panels: thin 1px border, 2px radius, no shadows, 16px padding,
+   title inside at top-left, 8px gap between panels.
    ============================================================================= */
 
+.grafana-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+}
+
+.grafana-panel__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--grafana-text-primary);
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.grafana-panel__description {
+  font-size: 0.75rem;
+  color: var(--grafana-text-secondary);
+  margin-bottom: 12px;
+}
+
+/* Legacy .card class — now maps to Grafana panel style */
 .card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  transition: border-color 0.25s var(--ease-out-expo), box-shadow 0.25s var(--ease-out-expo), transform 0.25s var(--ease-out-expo);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  transition: border-color 0.15s ease;
 }
 
 .card:hover {
@@ -171,23 +260,20 @@ p, body {
 
 .card-interactive:hover {
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-glow);
+  background: var(--panel-bg-hover);
 }
 
 .card-interactive:active {
-  transform: translateY(0px);
-  box-shadow: var(--shadow-sm);
+  background: var(--panel-bg);
 }
 
 .card-elevated {
-  background: var(--bg-surface-2);
+  background: var(--panel-bg-hover);
   border: 1px solid var(--border-hover);
-  box-shadow: var(--shadow-md);
 }
 
 /* =============================================================================
-   Glass Utility
+   Glass Utility (subtle for Grafana aesthetic)
    ============================================================================= */
 
 .glass {
@@ -197,25 +283,62 @@ p, body {
 }
 
 /* =============================================================================
-   Metric Display Components
+   Grafana Stat Panels
+   Large number with colored background tint.
    ============================================================================= */
 
-.metric-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
+.grafana-stat {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  transition: border-color 0.25s var(--ease-out-expo), box-shadow 0.25s var(--ease-out-expo), transform 0.25s var(--ease-out-expo);
+  gap: 8px;
+}
+
+.grafana-stat__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--grafana-text-muted);
+}
+
+.grafana-stat__value {
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--grafana-text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono), monospace;
+}
+
+.grafana-stat__sparkline {
+  height: 32px;
+  margin-top: 4px;
+}
+
+.grafana-stat--green { background: var(--stat-green-bg); }
+.grafana-stat--red   { background: var(--stat-red-bg); }
+.grafana-stat--yellow { background: var(--stat-yellow-bg); }
+.grafana-stat--blue  { background: var(--stat-blue-bg); }
+
+/* Legacy .metric-card — mapped to Grafana stat panel */
+.metric-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s ease;
   cursor: default;
 }
 
 .metric-card:hover {
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
 .metric-card__label {
@@ -223,94 +346,94 @@ p, body {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-tertiary);
+  color: var(--grafana-text-muted);
 }
 
 .metric-card__value {
   font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-weight: 500;
+  color: var(--grafana-text-primary);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .metric-card__delta {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 6px;
 }
 
 .metric-card__delta--up {
-  color: var(--status-success);
+  color: var(--grafana-green);
 }
 
 .metric-card__delta--down {
-  color: var(--status-error);
+  color: var(--grafana-red);
 }
 
 /* =============================================================================
-   Status Badges
+   Status Badges — Grafana style (subtle, no pill radius)
    ============================================================================= */
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
+  gap: 6px;
+  padding: 2px 8px;
   font-size: 0.6875rem;
   font-weight: 500;
-  border-radius: 9999px;
+  border-radius: var(--panel-radius);
   white-space: nowrap;
 }
 
 .badge--success {
-  background: rgba(52, 211, 153, 0.1);
-  color: var(--status-success);
-  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: var(--stat-green-bg);
+  color: var(--grafana-green);
+  border: 1px solid rgba(115, 191, 105, 0.25);
 }
 
 .badge--warning {
-  background: rgba(251, 191, 36, 0.1);
-  color: var(--status-warning);
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  background: var(--stat-yellow-bg);
+  color: var(--grafana-yellow);
+  border: 1px solid rgba(255, 152, 48, 0.25);
 }
 
 .badge--error {
-  background: rgba(248, 113, 113, 0.1);
-  color: var(--status-error);
-  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: var(--stat-red-bg);
+  color: var(--grafana-red);
+  border: 1px solid rgba(242, 73, 92, 0.25);
 }
 
 .badge--info {
-  background: var(--accent-muted);
-  color: var(--accent);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: var(--stat-blue-bg);
+  color: var(--grafana-blue);
+  border: 1px solid rgba(87, 148, 242, 0.25);
 }
 
 .badge--neutral {
-  background: var(--bg-surface-2);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
+  background: var(--panel-bg-hover);
+  color: var(--grafana-text-secondary);
+  border: 1px solid var(--panel-border);
 }
 
 /* =============================================================================
-   Buttons
+   Buttons — Grafana style
    ============================================================================= */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 8px;
+  padding: 6px 12px;
   font-size: 0.8125rem;
   font-weight: 500;
-  border-radius: var(--radius-md);
+  border-radius: var(--panel-radius);
   border: none;
   cursor: pointer;
-  transition: all 0.2s var(--ease-out-expo);
+  transition: background 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
 }
 
@@ -319,24 +442,19 @@ p, body {
   cursor: not-allowed;
 }
 
-.btn:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
 .btn--primary {
-  background: var(--accent);
+  background: var(--grafana-blue);
   color: #ffffff;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  box-shadow: 0 0 16px -2px rgba(99, 102, 241, 0.3);
+  background: #6da3f5;
 }
 
 .btn--secondary {
-  background: var(--bg-surface-2);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
+  background: var(--panel-bg-hover);
+  color: var(--grafana-text-primary);
+  border: 1px solid var(--panel-border);
 }
 
 .btn--secondary:hover:not(:disabled) {
@@ -346,22 +464,22 @@ p, body {
 
 .btn--ghost {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--grafana-text-secondary);
 }
 
 .btn--ghost:hover:not(:disabled) {
-  background: var(--bg-surface-2);
-  color: var(--text-primary);
+  background: var(--panel-bg-hover);
+  color: var(--grafana-text-primary);
 }
 
 .btn--danger {
-  background: rgba(248, 113, 113, 0.1);
-  color: var(--status-error);
-  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: var(--stat-red-bg);
+  color: var(--grafana-red);
+  border: 1px solid rgba(242, 73, 92, 0.25);
 }
 
 .btn--danger:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.2);
+  background: rgba(242, 73, 92, 0.25);
 }
 
 /* =============================================================================
@@ -370,32 +488,31 @@ p, body {
 
 .input {
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 6px 10px;
   font-size: 0.8125rem;
-  color: var(--text-primary);
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  color: var(--grafana-text-primary);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  transition: border-color 0.15s ease;
 }
 
 .input::placeholder {
-  color: var(--text-ghost);
+  color: var(--grafana-text-disabled);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-muted);
+  border-color: var(--grafana-blue);
 }
 
 .input--sm {
-  padding: 0.375rem 0.625rem;
+  padding: 4px 8px;
   font-size: 0.75rem;
 }
 
 /* =============================================================================
-   Tables
+   Tables — Grafana style
    ============================================================================= */
 
 .table {
@@ -405,51 +522,51 @@ p, body {
 }
 
 .table thead {
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .table th {
   text-align: left;
-  padding: 0.75rem 1rem;
+  padding: 8px 12px;
   font-size: 0.6875rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-tertiary);
+  color: var(--grafana-text-muted);
 }
 
 .table tbody tr {
-  border-bottom: 1px solid var(--border-default);
-  transition: background 0.15s ease;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.1s ease;
 }
 
 .table tbody tr:hover {
-  background: var(--bg-surface-2);
+  background: var(--panel-bg-hover);
 }
 
 .table td {
-  padding: 0.75rem 1rem;
-  color: var(--text-secondary);
+  padding: 8px 12px;
+  color: var(--grafana-text-secondary);
   font-size: 0.8125rem;
 }
 
 .table td:first-child {
-  color: var(--text-primary);
+  color: var(--grafana-text-primary);
   font-weight: 500;
 }
 
 .table-compact td {
-  padding: 0.5rem 0.75rem;
+  padding: 4px 8px;
   font-size: 0.75rem;
 }
 
 .table-compact th {
-  padding: 0.5rem 0.75rem;
+  padding: 4px 8px;
   font-size: 0.6875rem;
 }
 
 /* =============================================================================
-   Scrollbars
+   Scrollbars — thin, Grafana-subtle
    ============================================================================= */
 
 ::-webkit-scrollbar {
@@ -475,7 +592,7 @@ p, body {
    ============================================================================= */
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -499,17 +616,17 @@ p, body {
 }
 
 @keyframes slide-in-up {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(16px); }
+  from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
 }
 
@@ -524,32 +641,32 @@ p, body {
 }
 
 @keyframes stagger-in {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fadeIn { animation: fadeIn 0.4s var(--ease-out-expo); }
-.animate-fade-in { animation: fade-in 0.3s var(--ease-out-expo); }
+.animate-fadeIn { animation: fadeIn 0.3s var(--ease-out-expo); }
+.animate-fade-in { animation: fade-in 0.2s var(--ease-out-expo); }
 .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
 .animate-spin { animation: spin 1s linear infinite; }
-.animate-slide-in-up { animation: slide-in-up 0.5s var(--ease-out-expo); }
-.animate-slide-in-right { animation: slide-in-right 0.4s var(--ease-out-expo); }
-.animate-scale-in { animation: scale-in 0.3s var(--ease-spring); }
+.animate-slide-in-up { animation: slide-in-up 0.3s var(--ease-out-expo); }
+.animate-slide-in-right { animation: slide-in-right 0.3s var(--ease-out-expo); }
+.animate-scale-in { animation: scale-in 0.2s var(--ease-spring); }
 .animate-live-pulse { animation: live-pulse 2s ease-in-out infinite; }
 
-/* Stagger children: apply .stagger-children to parent, each child auto-delays */
+/* Stagger children */
 .stagger-children > * {
-  animation: stagger-in 0.5s var(--ease-out-expo) both;
+  animation: stagger-in 0.3s var(--ease-out-expo) both;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 280ms; }
 
 .shimmer {
   position: relative;
@@ -560,32 +677,32 @@ p, body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
   animation: shimmer 2s infinite;
 }
 
 /* =============================================================================
-   Utility Classes
+   Utility Classes — Grafana palette
    ============================================================================= */
 
-.text-success { color: var(--status-success); }
-.text-warning { color: var(--status-warning); }
-.text-error { color: var(--status-error); }
-.text-info { color: var(--status-info); }
-.text-accent { color: var(--accent); }
+.text-success { color: var(--grafana-green); }
+.text-warning { color: var(--grafana-yellow); }
+.text-error   { color: var(--grafana-red); }
+.text-info    { color: var(--grafana-blue); }
+.text-accent  { color: var(--grafana-blue); }
 
-.bg-success { background: var(--status-success); }
-.bg-warning { background: var(--status-warning); }
-.bg-error { background: var(--status-error); }
-.bg-info { background: var(--status-info); }
-.bg-accent { background: var(--accent); }
+.bg-success { background: var(--grafana-green); }
+.bg-warning { background: var(--grafana-yellow); }
+.bg-error   { background: var(--grafana-red); }
+.bg-info    { background: var(--grafana-blue); }
+.bg-accent  { background: var(--grafana-blue); }
 
 /* =============================================================================
    Focus States (Accessibility)
    ============================================================================= */
 
 *:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--grafana-blue);
   outline-offset: 2px;
 }
 
@@ -598,23 +715,28 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--grafana-blue);
   outline-offset: 2px;
 }
 
 /* =============================================================================
-   Responsive Grid System
+   Grafana Grid System — 8px gap, auto-fit
    ============================================================================= */
+
+.grafana-grid {
+  display: grid;
+  gap: var(--panel-gap);
+}
 
 .grid-auto {
   display: grid;
-  gap: 1.5rem;
+  gap: var(--panel-gap);
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-.grid-2 { display: grid; gap: 1.5rem; grid-template-columns: repeat(2, 1fr); }
-.grid-3 { display: grid; gap: 1.5rem; grid-template-columns: repeat(3, 1fr); }
-.grid-4 { display: grid; gap: 1.5rem; grid-template-columns: repeat(4, 1fr); }
+.grid-2 { display: grid; gap: var(--panel-gap); grid-template-columns: repeat(2, 1fr); }
+.grid-3 { display: grid; gap: var(--panel-gap); grid-template-columns: repeat(3, 1fr); }
+.grid-4 { display: grid; gap: var(--panel-gap); grid-template-columns: repeat(4, 1fr); }
 
 @media (max-width: 1024px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -644,87 +766,87 @@ textarea:focus-visible {
 .page-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--panel-padding);
 }
 
 /* =============================================================================
-   Recharts Styling
+   Recharts / Chart Styling — Grafana grid lines and axes
    ============================================================================= */
 
 .recharts-cartesian-grid line {
-  stroke: var(--border-default);
-  stroke-dasharray: 3 3;
+  stroke: var(--grid-line);
+  stroke-dasharray: none;
 }
 
 .recharts-text {
-  fill: var(--text-tertiary);
+  fill: var(--axis-text);
   font-size: 11px;
+  font-family: var(--font-mono), monospace;
 }
 
 .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: var(--bg-surface-1) !important;
-  border: 1px solid var(--border-default) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-lg) !important;
+  background: var(--panel-bg) !important;
+  border: 1px solid var(--panel-border) !important;
+  border-radius: var(--panel-radius) !important;
 }
 
 /* =============================================================================
-   Callout / Alert Banners
+   Callout / Alert Banners — Grafana style
    ============================================================================= */
 
 .callout {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius-lg);
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--panel-radius);
   font-size: 0.8125rem;
   line-height: 1.5;
 }
 
 .callout--warning {
-  background: rgba(251, 191, 36, 0.06);
-  border: 1px solid rgba(251, 191, 36, 0.15);
-  color: var(--status-warning);
+  background: var(--stat-yellow-bg);
+  border: 1px solid rgba(255, 152, 48, 0.25);
+  color: var(--grafana-yellow);
 }
 
 .callout--error {
-  background: rgba(248, 113, 113, 0.06);
-  border: 1px solid rgba(248, 113, 113, 0.15);
-  color: var(--status-error);
+  background: var(--stat-red-bg);
+  border: 1px solid rgba(242, 73, 92, 0.25);
+  color: var(--grafana-red);
 }
 
 .callout--info {
-  background: var(--accent-muted);
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  color: var(--accent-hover);
+  background: var(--stat-blue-bg);
+  border: 1px solid rgba(87, 148, 242, 0.25);
+  color: var(--grafana-blue);
 }
 
 .callout--success {
-  background: rgba(52, 211, 153, 0.06);
-  border: 1px solid rgba(52, 211, 153, 0.15);
-  color: var(--status-success);
+  background: var(--stat-green-bg);
+  border: 1px solid rgba(115, 191, 105, 0.25);
+  color: var(--grafana-green);
 }
 
 /* =============================================================================
-   Live Indicator (pulsing dot)
+   Live Indicator (pulsing dot) — Grafana green
    ============================================================================= */
 
 .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--status-success);
+  background: var(--grafana-green);
   animation: live-pulse 2s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .live-dot--error {
-  background: var(--status-error);
+  background: var(--grafana-red);
 }
 
 /* =============================================================================
-   Background Grain (subtle texture for depth)
+   Background Grain — very subtle for Grafana feel
    ============================================================================= */
 
 .grain::before {
@@ -733,7 +855,7 @@ textarea:focus-visible {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.015;
+  opacity: 0.008;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;

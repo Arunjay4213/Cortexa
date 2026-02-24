@@ -3,31 +3,35 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import * as d3 from "d3";
 import { mockProvenanceNodes, mockProvenanceEdges } from "@/lib/mock-data";
-import { formatTimestamp } from "@/lib/utils";
-import type { ProvenanceNode, ProvenanceEdge, ProvenanceNodeType, ProvenanceEdgeType } from "@/lib/types";
+import type {
+  ProvenanceNode,
+  ProvenanceEdge,
+  ProvenanceNodeType,
+  ProvenanceEdgeType,
+} from "@/lib/types";
 
-// ── Styling maps ────────────────────────────────────────────────────────
+// ── Grafana-palette styling maps ─────────────────────────────────────────
 
 const NODE_COLORS: Record<ProvenanceNodeType, string> = {
-  interaction: "#3b82f6",  // blue-500
-  memory: "#10b981",      // emerald-500
-  summary: "#8b5cf6",     // violet-500
-  embedding: "#52525b",   // zinc-600
-  response: "#e4e4e7",    // zinc-200
+  interaction: "#5794f2",
+  memory: "#73bf69",
+  summary: "#b877d9",
+  embedding: "#464c54",
+  response: "#d8d9da",
 };
 
 const NODE_SIZES: Record<ProvenanceNodeType, number> = {
-  interaction: 6,
-  memory: 5,
-  summary: 4,
-  embedding: 3,
-  response: 5,
+  interaction: 8,
+  memory: 7,
+  summary: 6,
+  embedding: 4,
+  response: 7,
 };
 
 const EDGE_COLORS: Record<ProvenanceEdgeType, string> = {
-  creation: "#10b981",
-  attribution: "#3b82f6",
-  derivation: "#52525b",
+  creation: "#73bf69",
+  attribution: "#5794f2",
+  derivation: "#464c54",
 };
 
 const EDGE_DASHES: Record<ProvenanceEdgeType, string> = {
@@ -80,11 +84,9 @@ export function ProvenanceGraph({
   const highlightedNodeIds = useMemo(() => {
     if (!highlightUserId) return null;
     const ids = new Set<string>();
-    // All nodes directly owned by the user
     for (const n of mockProvenanceNodes) {
       if (n.userId === highlightUserId) ids.add(n.id);
     }
-    // Walk edges to find reachable nodes (BFS)
     let frontier = new Set(ids);
     for (let depth = 0; depth < 4; depth++) {
       const next = new Set<string>();
@@ -107,15 +109,14 @@ export function ProvenanceGraph({
     for (const n of mockProvenanceNodes) {
       if (n.userId === deletingUserId) ids.add(n.id);
     }
-    // Walk edges for cascade
     let frontier = new Set(ids);
     for (let depth = 0; depth < 4; depth++) {
       const next = new Set<string>();
       for (const e of mockProvenanceEdges) {
         if (frontier.has(e.source) && !ids.has(e.target)) {
-          // Only cascade if target has no OTHER inbound from non-deleted nodes
           const hasOtherSource = mockProvenanceEdges.some(
-            (oe) => oe.target === e.target && !ids.has(oe.source) && oe.id !== e.id
+            (oe) =>
+              oe.target === e.target && !ids.has(oe.source) && oe.id !== e.id
           );
           if (!hasOtherSource) {
             ids.add(e.target);
@@ -143,13 +144,30 @@ export function ProvenanceGraph({
       const src = nodeMap.get(e.source);
       const tgt = nodeMap.get(e.target);
       if (src && tgt) {
-        edges.push({ id: e.id, source: src, target: tgt, type: e.type, weight: e.weight });
+        edges.push({
+          id: e.id,
+          source: src,
+          target: tgt,
+          type: e.type,
+          weight: e.weight,
+        });
       }
     }
 
-    const sim = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(edges).id((d) => (d as SimNode).id).distance(25).strength(0.3))
-      .force("charge", d3.forceManyBody().strength(-30).distanceMax(150))
+    const sim = d3
+      .forceSimulation(nodes)
+      .force(
+        "link",
+        d3
+          .forceLink(edges)
+          .id((d) => (d as SimNode).id)
+          .distance(25)
+          .strength(0.3)
+      )
+      .force(
+        "charge",
+        d3.forceManyBody().strength(-30).distanceMax(150)
+      )
       .force("center", d3.forceCenter(0, 0))
       .force("collision", d3.forceCollide().radius(8))
       .force("x", d3.forceX().strength(0.02))
@@ -157,7 +175,6 @@ export function ProvenanceGraph({
       .alphaDecay(0.02)
       .stop();
 
-    // Run simulation to near-completion
     for (let i = 0; i < 250; i++) sim.tick();
 
     setSimNodes([...nodes]);
@@ -172,7 +189,8 @@ export function ProvenanceGraph({
     const svg = d3.select(svgRef.current);
     const g = d3.select(gRef.current);
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.3, 4])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
@@ -180,7 +198,6 @@ export function ProvenanceGraph({
 
     svg.call(zoom);
 
-    // Initial zoom to fit
     const bounds = gRef.current.getBBox();
     if (bounds.width > 0) {
       const svgRect = svgRef.current.getBoundingClientRect();
@@ -189,9 +206,14 @@ export function ProvenanceGraph({
         svgRect.height / (bounds.height + 60),
         1.5
       );
-      const tx = svgRect.width / 2 - (bounds.x + bounds.width / 2) * scale;
-      const ty = svgRect.height / 2 - (bounds.y + bounds.height / 2) * scale;
-      svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+      const tx =
+        svgRect.width / 2 - (bounds.x + bounds.width / 2) * scale;
+      const ty =
+        svgRect.height / 2 - (bounds.y + bounds.height / 2) * scale;
+      svg.call(
+        zoom.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
     }
 
     return () => {
@@ -201,7 +223,8 @@ export function ProvenanceGraph({
 
   const handleNodeClick = useCallback(
     (node: SimNode) => {
-      const original = mockProvenanceNodes.find((n) => n.id === node.id) ?? null;
+      const original =
+        mockProvenanceNodes.find((n) => n.id === node.id) ?? null;
       onSelectNode(original);
     },
     [onSelectNode]
@@ -209,7 +232,10 @@ export function ProvenanceGraph({
 
   if (!initialized) {
     return (
-      <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[13px]">
+      <div
+        className="w-full h-full flex items-center justify-center text-[13px]"
+        style={{ color: "var(--grafana-text-muted)" }}
+      >
         Computing graph layout...
       </div>
     );
@@ -218,8 +244,8 @@ export function ProvenanceGraph({
   return (
     <svg
       ref={svgRef}
-      className="w-full h-full bg-zinc-950"
-      style={{ cursor: "grab" }}
+      className="w-full h-full"
+      style={{ background: "var(--panel-bg)", cursor: "grab" }}
     >
       <g ref={gRef}>
         {/* Edges */}
@@ -234,7 +260,8 @@ export function ProvenanceGraph({
             highlightedNodeIds.has(edge.target.id);
           const isDeleting =
             deletingNodeIds &&
-            (deletingNodeIds.has(edge.source.id) || deletingNodeIds.has(edge.target.id));
+            (deletingNodeIds.has(edge.source.id) ||
+              deletingNodeIds.has(edge.target.id));
           const isDimmed = highlightedNodeIds && !isHighlighted;
 
           return (
@@ -247,8 +274,14 @@ export function ProvenanceGraph({
               stroke={EDGE_COLORS[edge.type]}
               strokeWidth={isHighlighted ? 1.5 : 0.6}
               strokeDasharray={EDGE_DASHES[edge.type]}
-              opacity={isDeleting ? 0.1 : isDimmed ? 0.08 : isHighlighted ? 0.7 : 0.2}
-              style={isDeleting ? { transition: "opacity 1.5s ease" } : undefined}
+              opacity={
+                isDeleting ? 0.1 : isDimmed ? 0.08 : isHighlighted ? 0.7 : 0.2
+              }
+              style={
+                isDeleting
+                  ? { transition: "opacity 1.5s ease" }
+                  : undefined
+              }
             />
           );
         })}
@@ -258,15 +291,18 @@ export function ProvenanceGraph({
           if (!visibleTypes.has(node.type)) return null;
 
           const isSelected = selectedNodeId === node.id;
-          const isHighlighted = highlightedNodeIds ? highlightedNodeIds.has(node.id) : false;
+          const isHighlighted = highlightedNodeIds
+            ? highlightedNodeIds.has(node.id)
+            : false;
           const isDimmed = highlightedNodeIds && !isHighlighted;
-          const isDeleting = deletingNodeIds ? deletingNodeIds.has(node.id) : false;
+          const isDeleting = deletingNodeIds
+            ? deletingNodeIds.has(node.id)
+            : false;
           const r = NODE_SIZES[node.type];
           let fill = NODE_COLORS[node.type];
 
-          // Flagged memory nodes (in deletion set)
           if (node.type === "memory" && deletingNodeIds?.has(node.id)) {
-            fill = "#f43f5e"; // rose-500
+            fill = "#f2495c";
           }
 
           return (
@@ -280,12 +316,11 @@ export function ProvenanceGraph({
                 transition: isDeleting ? "opacity 1.5s ease" : undefined,
               }}
             >
-              {/* Glow ring for highlighted/selected */}
               {(isSelected || (isHighlighted && highlightedNodeIds)) && (
                 <circle
                   r={r + 3}
                   fill="none"
-                  stroke={isSelected ? "#f59e0b" : fill}
+                  stroke={isSelected ? "#ff9830" : fill}
                   strokeWidth={1.5}
                   opacity={0.5}
                 />
@@ -314,23 +349,35 @@ export function ProvenanceGraphLegend() {
     { type: "response", label: "Response" },
   ];
 
-  const edgeTypes: { type: ProvenanceEdgeType; label: string; dash: string }[] = [
+  const edgeTypes: {
+    type: ProvenanceEdgeType;
+    label: string;
+    dash: string;
+  }[] = [
     { type: "creation", label: "Creation", dash: "" },
     { type: "attribution", label: "Attribution", dash: "4 3" },
     { type: "derivation", label: "Derivation", dash: "2 2" },
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-zinc-500">
+    <div
+      className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px]"
+      style={{ color: "var(--grafana-text-muted)" }}
+    >
       {nodeTypes.map(({ type, label }) => (
         <div key={type} className="flex items-center gap-1.5">
           <svg width={10} height={10}>
-            <circle cx={5} cy={5} r={NODE_SIZES[type]} fill={NODE_COLORS[type]} />
+            <circle
+              cx={5}
+              cy={5}
+              r={NODE_SIZES[type]}
+              fill={NODE_COLORS[type]}
+            />
           </svg>
           <span>{label}</span>
         </div>
       ))}
-      <span className="text-zinc-700">|</span>
+      <span style={{ color: "var(--panel-border)" }}>|</span>
       {edgeTypes.map(({ type, label, dash }) => (
         <div key={type} className="flex items-center gap-1.5">
           <svg width={20} height={10}>

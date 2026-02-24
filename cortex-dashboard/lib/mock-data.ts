@@ -17,6 +17,9 @@
  *
  * 4. **GDPR cascade** — A deletion request triggers a provenance-graph walk that
  *    touches 47 downstream nodes.
+ *
+ * 5. **CHI dip** — ~5 days ago contradictions spiked, causing CHI to dip from
+ *    0.72 to 0.58. Partial recovery to 0.67 as some contradictions were resolved.
  */
 
 import type {
@@ -27,6 +30,7 @@ import type {
   ProvenanceNode,
   ProvenanceEdge,
   DashboardKPIs,
+  TimeSeriesPoint,
   BudgetStats,
   OptimizationRecommendation,
   ArchivedMemoryEntry,
@@ -45,6 +49,53 @@ let _nodeId = 0;
 const nid = () => `pn-${++_nodeId}`;
 let _edgeId = 0;
 const eid = () => `pe-${++_edgeId}`;
+
+/**
+ * Generate a 30-day time series with a configurable dip.
+ * baseline: average value, noise: random variation amplitude,
+ * dipDay: day (0=today, 29=oldest) where dip occurs, dipMagnitude: how much it dips.
+ */
+function generateTimeSeries30d(
+  baseline: number,
+  noise: number,
+  dipDay?: number,
+  dipMagnitude?: number,
+): TimeSeriesPoint[] {
+  const points: TimeSeriesPoint[] = [];
+  for (let i = 29; i >= 0; i--) {
+    let value = baseline + (Math.sin(i * 0.7) * noise * 0.5) + ((i * 17 + 7) % 11 - 5) * noise * 0.1;
+    // Apply dip around dipDay (gaussian-ish shape)
+    if (dipDay !== undefined && dipMagnitude !== undefined) {
+      const dist = Math.abs(i - dipDay);
+      if (dist <= 3) {
+        value -= dipMagnitude * Math.exp(-dist * dist * 0.5);
+      }
+    }
+    value = Math.max(0, Math.round(value * 1000) / 1000);
+    points.push({ timestamp: iso(i), value });
+  }
+  return points;
+}
+
+/**
+ * Generate a 24-hour time series (per-hour).
+ */
+function generateTimeSeries24h(baseline: number, noise: number): TimeSeriesPoint[] {
+  const points: TimeSeriesPoint[] = [];
+  for (let h = 23; h >= 0; h--) {
+    // Simulate daily pattern: lower at night (hours 0-6), peak at 10-14
+    let hourFactor = 1.0;
+    if (h < 6) hourFactor = 0.3;
+    else if (h < 9) hourFactor = 0.6 + (h - 6) * 0.13;
+    else if (h < 14) hourFactor = 1.0 + (h - 9) * 0.04;
+    else if (h < 18) hourFactor = 0.95 - (h - 14) * 0.05;
+    else hourFactor = 0.7 - (h - 18) * 0.08;
+
+    const value = Math.max(0, Math.round((baseline * hourFactor + ((h * 13 + 5) % 7 - 3) * noise) * 10) / 10);
+    points.push({ timestamp: iso(0, h), value });
+  }
+  return points;
+}
 
 // ── Memories (60) ──────────────────────────────────────────────────────
 
@@ -588,7 +639,6 @@ export const mockMemories: Memory[] = [
   },
 
   // ── Negative-ROI tail (23 memories) ──
-  // These are stale, rarely retrieved, or low-value raw memories
   {
     id: 'mem-050',
     content: 'User mentioned liking the color blue in onboarding survey',
@@ -1166,6 +1216,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(0, 1),
     totalCost: 0.0042,
+    latencyMs: 234,
     memoriesRetrieved: [
       { memoryId: 'mem-047', content: 'User subscription renews monthly on the 15th at $29.99/mo', attributionScore: 0.82, scoreType: 'eas', healthStatus: 'stale' },
       { memoryId: 'mem-001', content: 'User is enterprise admin with 47 team members on Business plan', attributionScore: 0.45, scoreType: 'eas', healthStatus: 'ok' },
@@ -1205,6 +1256,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(0, 3),
     totalCost: 0.0038,
+    latencyMs: 189,
     memoriesRetrieved: [
       { memoryId: 'mem-012', content: 'User prefers email notifications for billing and account updates', attributionScore: 0.78, scoreType: 'calibrated', healthStatus: 'contradictory' },
       { memoryId: 'mem-038', content: 'User opted out of all notifications on Jan 20, 2026', attributionScore: 0.65, scoreType: 'calibrated', healthStatus: 'contradictory' },
@@ -1230,6 +1282,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(0, 4),
     totalCost: 0.0035,
+    latencyMs: 142,
     memoriesRetrieved: [
       { memoryId: 'mem-001', content: 'User is enterprise admin with 47 team members on Business plan', attributionScore: 0.95, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-082', content: 'Agent fleet: 5 active agents', attributionScore: 0.15, scoreType: 'eas', healthStatus: 'ok' },
@@ -1243,6 +1296,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(0, 5),
     totalCost: 0.0031,
+    latencyMs: 118,
     memoriesRetrieved: [
       { memoryId: 'mem-005', content: 'Data residency requirement: US-West-2 only. No EU storage permitted.', attributionScore: 0.97, scoreType: 'contextcite', healthStatus: 'ok' },
     ],
@@ -1255,6 +1309,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'sales-assist',
     timestamp: iso(0, 6),
     totalCost: 0.0039,
+    latencyMs: 167,
     memoriesRetrieved: [
       { memoryId: 'mem-011', content: 'Integration stack: Salesforce (primary CRM), Slack (notifications), Datadog (monitoring)', attributionScore: 0.94, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-010', content: 'User has completed 3 support tickets about API rate limits', attributionScore: 0.12, scoreType: 'eas', healthStatus: 'ok' },
@@ -1268,6 +1323,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(0, 8),
     totalCost: 0.0033,
+    latencyMs: 131,
     memoriesRetrieved: [
       { memoryId: 'mem-042', content: 'Preferred LLM provider: Anthropic Claude. Fallback: GPT-4o.', attributionScore: 0.96, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1280,6 +1336,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(1, 2),
     totalCost: 0.0036,
+    latencyMs: 155,
     memoriesRetrieved: [
       { memoryId: 'mem-044', content: 'Support tier: Priority. SLA: 4-hour response, 24-hour resolution.', attributionScore: 0.93, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-001', content: 'User is enterprise admin with 47 team members on Business plan', attributionScore: 0.20, scoreType: 'eas', healthStatus: 'ok' },
@@ -1295,6 +1352,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'analytics-agent',
     timestamp: iso(1, 5),
     totalCost: 0.0041,
+    latencyMs: 203,
     memoriesRetrieved: [
       { memoryId: 'mem-021', content: 'Deployment pipeline uses Jenkins with manual approval gates', attributionScore: 0.74, scoreType: 'eas', healthStatus: 'drifted' },
       { memoryId: 'mem-020', content: 'Team uses Python 3.9 with FastAPI for all microservices', attributionScore: 0.30, scoreType: 'eas', healthStatus: 'drifted' },
@@ -1308,6 +1366,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(2, 3),
     totalCost: 0.0029,
+    latencyMs: 124,
     memoriesRetrieved: [
       { memoryId: 'mem-022', content: 'Database: PostgreSQL 13 on RDS with read replicas in us-east-1', attributionScore: 0.88, scoreType: 'eas', healthStatus: 'drifted' },
     ],
@@ -1322,6 +1381,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(2, 6),
     totalCost: 0.0032,
+    latencyMs: 138,
     memoriesRetrieved: [
       { memoryId: 'mem-045', content: 'Compliance framework: SOC 2 Type II. Annual audit in March.', attributionScore: 0.95, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1334,6 +1394,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(3),
     totalCost: 0.0044,
+    latencyMs: 178,
     memoriesRetrieved: [
       { memoryId: 'mem-041', content: 'Custom dashboard layout: 3-column grid with KPI row at top', attributionScore: 0.87, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-015', content: 'User prefers dark mode UI and compact table layouts. Font size preference: 14px.', attributionScore: 0.82, scoreType: 'calibrated', healthStatus: 'ok' },
@@ -1347,6 +1408,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(3, 4),
     totalCost: 0.0037,
+    latencyMs: 145,
     memoriesRetrieved: [
       { memoryId: 'mem-082', content: 'Agent fleet: 5 active agents — cs-bot, sales-assist, analytics-agent, ops-monitor, onboard-guide', attributionScore: 0.96, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1359,6 +1421,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(4, 1),
     totalCost: 0.0030,
+    latencyMs: 129,
     memoriesRetrieved: [
       { memoryId: 'mem-081', content: 'Custom retention policy: keep all memories for 180 days, then auto-archive', attributionScore: 0.94, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1371,6 +1434,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(4, 6),
     totalCost: 0.0028,
+    latencyMs: 112,
     memoriesRetrieved: [
       { memoryId: 'mem-083', content: 'Average query latency target: <200ms p95. Currently measuring at 187ms.', attributionScore: 0.92, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1385,6 +1449,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(5, 2),
     totalCost: 0.0040,
+    latencyMs: 192,
     memoriesRetrieved: [
       { memoryId: 'mem-003', content: 'Account created on 2025-02-18. Timezone: America/Los_Angeles.', attributionScore: 0.90, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-066', content: 'Trial conversion date: 2025-03-04. Upgraded from Free to Business plan.', attributionScore: 0.72, scoreType: 'eas', healthStatus: 'ok' },
@@ -1399,6 +1464,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(5, 8),
     totalCost: 0.0034,
+    latencyMs: 148,
     memoriesRetrieved: [
       { memoryId: 'mem-046', content: 'Feature request: real-time collaboration on shared dashboards (submitted Jan 2026)', attributionScore: 0.91, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1411,6 +1477,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(6, 1),
     totalCost: 0.0029,
+    latencyMs: 115,
     memoriesRetrieved: [
       { memoryId: 'mem-004', content: 'Billing address: 100 Innovation Way, Suite 500, San Francisco CA 94105', attributionScore: 0.97, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1423,6 +1490,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(6, 5),
     totalCost: 0.0031,
+    latencyMs: 127,
     memoriesRetrieved: [
       { memoryId: 'mem-043', content: 'Monthly data export scheduled for 1st of each month at 06:00 UTC', attributionScore: 0.95, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1437,6 +1505,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'analytics-agent',
     timestamp: iso(7, 3),
     totalCost: 0.0035,
+    latencyMs: 163,
     memoriesRetrieved: [
       { memoryId: 'mem-020', content: 'Team uses Python 3.9 with FastAPI for all microservices', attributionScore: 0.85, scoreType: 'eas', healthStatus: 'drifted' },
     ],
@@ -1451,6 +1520,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(8, 2),
     totalCost: 0.0033,
+    latencyMs: 139,
     memoriesRetrieved: [
       { memoryId: 'mem-080', content: 'User prefers weekly digest of agent performance metrics over daily alerts', attributionScore: 0.93, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1463,6 +1533,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'ops-monitor',
     timestamp: iso(9, 1),
     totalCost: 0.0030,
+    latencyMs: 121,
     memoriesRetrieved: [
       { memoryId: 'mem-040', content: 'User requested API key rotation every 90 days per security policy', attributionScore: 0.91, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1475,6 +1546,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(10, 4),
     totalCost: 0.0041,
+    latencyMs: 184,
     memoriesRetrieved: [
       { memoryId: 'mem-010', content: 'User has completed 3 support tickets about API rate limits. Prefers async webhooks over polling.', attributionScore: 0.89, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-044', content: 'Support tier: Priority. SLA: 4-hour response, 24-hour resolution.', attributionScore: 0.25, scoreType: 'eas', healthStatus: 'ok' },
@@ -1488,6 +1560,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'sales-assist',
     timestamp: iso(11, 2),
     totalCost: 0.0048,
+    latencyMs: 217,
     memoriesRetrieved: [
       { memoryId: 'mem-016', content: 'Last 5 queries focused on churn prediction models and retention analytics', attributionScore: 0.81, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-198', content: 'User cancelled subscription on Feb 1, 2026. Reason: switching to competitor.', attributionScore: 0.77, scoreType: 'calibrated', healthStatus: 'ok' },
@@ -1504,6 +1577,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(12, 1),
     totalCost: 0.0052,
+    latencyMs: 267,
     memoriesRetrieved: [
       { memoryId: 'mem-001', content: 'User is enterprise admin with 47 team members on Business plan', attributionScore: 0.88, scoreType: 'calibrated', healthStatus: 'ok' },
       { memoryId: 'mem-047', content: 'User subscription renews monthly on the 15th at $29.99/mo', attributionScore: 0.72, scoreType: 'eas', healthStatus: 'stale' },
@@ -1537,6 +1611,7 @@ export const mockQueryTraces: QueryTrace[] = [
     agentId: 'cs-bot',
     timestamp: iso(13, 3),
     totalCost: 0.0030,
+    latencyMs: 108,
     memoriesRetrieved: [
       { memoryId: 'mem-002', content: 'Primary contact email: admin@acmecorp.com. MFA enabled via Okta SSO.', attributionScore: 0.96, scoreType: 'calibrated', healthStatus: 'ok' },
     ],
@@ -1547,7 +1622,6 @@ export const mockQueryTraces: QueryTrace[] = [
 // ── Health Alerts (12) ─────────────────────────────────────────────────
 
 export const mockHealthAlerts: HealthAlert[] = [
-  // Critical: the subscription hallucination
   {
     id: 'ha-001',
     severity: 'critical',
@@ -1557,7 +1631,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(0, 2),
     resolved: false,
   },
-  // Critical: notification contradiction
   {
     id: 'ha-002',
     severity: 'critical',
@@ -1567,7 +1640,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(1),
     resolved: false,
   },
-  // Warning: drifted tech stack
   {
     id: 'ha-003',
     severity: 'warning',
@@ -1577,7 +1649,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(3),
     resolved: false,
   },
-  // Warning: coverage gap
   {
     id: 'ha-004',
     severity: 'warning',
@@ -1587,7 +1658,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(5),
     resolved: false,
   },
-  // Info: stale archived memories
   {
     id: 'ha-005',
     severity: 'info',
@@ -1597,7 +1667,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(7),
     resolved: false,
   },
-  // Warning: negative ROI cluster
   {
     id: 'ha-006',
     severity: 'warning',
@@ -1607,7 +1676,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(2),
     resolved: false,
   },
-  // Resolved: previous contradiction
   {
     id: 'ha-007',
     severity: 'critical',
@@ -1617,7 +1685,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(30),
     resolved: true,
   },
-  // Resolved: drift alert
   {
     id: 'ha-008',
     severity: 'warning',
@@ -1627,7 +1694,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(20),
     resolved: true,
   },
-  // Info: consolidation opportunity
   {
     id: 'ha-009',
     severity: 'info',
@@ -1637,7 +1703,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(10),
     resolved: false,
   },
-  // Warning: subscription state inconsistency
   {
     id: 'ha-010',
     severity: 'warning',
@@ -1647,7 +1712,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(0, 5),
     resolved: false,
   },
-  // Resolved stale alert
   {
     id: 'ha-011',
     severity: 'info',
@@ -1657,7 +1721,6 @@ export const mockHealthAlerts: HealthAlert[] = [
     detectedAt: iso(15),
     resolved: true,
   },
-  // Info: PII in pending deletion
   {
     id: 'ha-012',
     severity: 'info',
@@ -1772,21 +1835,19 @@ export const mockOptimizationRecommendations: OptimizationRecommendation[] = [
 ];
 
 export const mockArchivedMemories: ArchivedMemoryEntry[] = [
-  // From existing archived mockMemories (mem-025 through mem-028)
   { memoryId: 'mem-025', content: 'Previous billing address: 742 Evergreen Terrace, Springfield IL 62704', originalStatus: 'active', archivedAt: iso(45), reason: 'auto-archive', tokenCount: 18 },
   { memoryId: 'mem-026', content: 'Old API key: sk-proj-xxxx (rotated 2025-08-15)', originalStatus: 'active', archivedAt: iso(42), reason: 'auto-archive', tokenCount: 14 },
   { memoryId: 'mem-027', content: 'Beta feature flag: dark-mode-v2 was enabled, now GA', originalStatus: 'active', archivedAt: iso(38), reason: 'auto-archive', tokenCount: 12 },
   { memoryId: 'mem-028', content: 'Onboarding flow: user skipped tutorial on first login', originalStatus: 'active', archivedAt: iso(35), reason: 'manual', tokenCount: 15 },
-  // Additional archived entries
   { memoryId: 'mem-033', content: 'User preferred weekly digest emails (changed to daily Jan 2026)', originalStatus: 'active', archivedAt: iso(30), reason: 'auto-archive', tokenCount: 16 },
   { memoryId: 'mem-034', content: 'Trial period extended by 7 days per support ticket #4412', originalStatus: 'active', archivedAt: iso(28), reason: 'manual', tokenCount: 14 },
   { memoryId: 'mem-035', content: 'Old workspace name: "Acme Corp Dev" (renamed to "Acme Engineering")', originalStatus: 'active', archivedAt: iso(25), reason: 'auto-archive', tokenCount: 13 },
   { memoryId: 'mem-036', content: 'Deprecated: user used v1 REST API exclusively (migrated to v2 GraphQL)', originalStatus: 'active', archivedAt: iso(22), reason: 'auto-archive', tokenCount: 17 },
   { memoryId: 'mem-037', content: 'Consolidated from mem-059 + mem-061: Language preferences and timezone settings', originalStatus: 'active', archivedAt: iso(18), reason: 'consolidation', tokenCount: 22 },
   { memoryId: 'mem-039', content: 'Consolidated from mem-010 + mem-011: Integration stack and API preferences', originalStatus: 'active', archivedAt: iso(15), reason: 'consolidation', tokenCount: 24 },
-  { memoryId: 'mem-040', content: 'Previous SSO provider: Okta (migrated to Azure AD)', originalStatus: 'active', archivedAt: iso(12), reason: 'manual', tokenCount: 11 },
-  { memoryId: 'mem-041', content: 'Consolidated from mem-015 + mem-016: UI preferences and query patterns', originalStatus: 'active', archivedAt: iso(8), reason: 'consolidation', tokenCount: 20 },
-  { memoryId: 'mem-042', content: 'User was on Standard plan before upgrading to Enterprise (2025-11-01)', originalStatus: 'active', archivedAt: iso(5), reason: 'consolidation', tokenCount: 15 },
+  { memoryId: 'mem-040a', content: 'Previous SSO provider: Okta (migrated to Azure AD)', originalStatus: 'active', archivedAt: iso(12), reason: 'manual', tokenCount: 11 },
+  { memoryId: 'mem-041a', content: 'Consolidated from mem-015 + mem-016: UI preferences and query patterns', originalStatus: 'active', archivedAt: iso(8), reason: 'consolidation', tokenCount: 20 },
+  { memoryId: 'mem-042a', content: 'User was on Standard plan before upgrading to Enterprise (2025-11-01)', originalStatus: 'active', archivedAt: iso(5), reason: 'consolidation', tokenCount: 15 },
 ];
 
 // ── Provenance Graph (~150 nodes, ~300 edges) ──────────────────────────
@@ -1864,7 +1925,6 @@ function buildProvenanceGraph(): { nodes: ProvenanceNode[]; edges: ProvenanceEdg
 
   // Edges: interactions -> memories (creation)
   for (let i = 0; i < 30; i++) {
-    // Each interaction creates 2 memories
     const m1 = i * 2;
     const m2 = i * 2 + 1;
     if (m1 < memoryNodeIds.length) {
@@ -1877,10 +1937,9 @@ function buildProvenanceGraph(): { nodes: ProvenanceNode[]; edges: ProvenanceEdg
 
   // Edges: memories -> summaries (derivation)
   for (let i = 0; i < 20; i++) {
-    // Each summary derives from 3 memories
     for (let j = 0; j < 3; j++) {
       const mIdx = (i * 3 + j) % memoryNodeIds.length;
-      edges.push({ id: eid(), source: memoryNodeIds[mIdx], target: summaryIds[i], type: 'derivation', weight: 0.7 + Math.random() * 0.3 });
+      edges.push({ id: eid(), source: memoryNodeIds[mIdx], target: summaryIds[i], type: 'derivation', weight: 0.7 + ((i * 3 + j) % 4) * 0.075 });
     }
   }
 
@@ -1888,7 +1947,6 @@ function buildProvenanceGraph(): { nodes: ProvenanceNode[]; edges: ProvenanceEdg
   for (let i = 0; i < 25; i++) {
     const mIdx = (i * 2) % memoryNodeIds.length;
     edges.push({ id: eid(), source: memoryNodeIds[mIdx], target: embeddingIds[i], type: 'derivation', weight: 1.0 });
-    // Some embeddings also from summaries
     if (i < 15) {
       edges.push({ id: eid(), source: summaryIds[i % summaryIds.length], target: embeddingIds[i], type: 'derivation', weight: 0.8 });
     }
@@ -1896,13 +1954,11 @@ function buildProvenanceGraph(): { nodes: ProvenanceNode[]; edges: ProvenanceEdg
 
   // Edges: memories/embeddings -> responses (attribution)
   for (let i = 0; i < 18; i++) {
-    // Each response attributed to 3-5 memories
     const count = 3 + (i % 3);
     for (let j = 0; j < count; j++) {
       const mIdx = (i * 4 + j) % memoryNodeIds.length;
-      edges.push({ id: eid(), source: memoryNodeIds[mIdx], target: responseIds[i], type: 'attribution', weight: 0.3 + Math.random() * 0.6 });
+      edges.push({ id: eid(), source: memoryNodeIds[mIdx], target: responseIds[i], type: 'attribution', weight: 0.3 + ((i * 4 + j) % 7) * 0.085 });
     }
-    // Also from embeddings
     const eIdx = i % embeddingIds.length;
     edges.push({ id: eid(), source: embeddingIds[eIdx], target: responseIds[i], type: 'attribution', weight: 0.5 });
   }
@@ -1942,24 +1998,67 @@ const { nodes: provenanceNodes, edges: provenanceEdges } = buildProvenanceGraph(
 export const mockProvenanceNodes: ProvenanceNode[] = provenanceNodes;
 export const mockProvenanceEdges: ProvenanceEdge[] = provenanceEdges;
 
+// ── Time Series Data ──────────────────────────────────────────────────
+
+// CHI: baseline ~0.72, dip to ~0.58 around 5 days ago, recovering to ~0.67
+const chiHistory = generateTimeSeries30d(0.72, 0.03, 5, 0.14);
+
+// Hallucination rate: baseline ~0.12, spike ~5 days ago correlating with CHI dip
+const hallucinationHistory = generateTimeSeries30d(0.12, 0.02, 5, -0.08);
+
+// Token waste: baseline ~0.18, gradual improvement trend
+const tokenWasteHistory: TimeSeriesPoint[] = [];
+for (let i = 29; i >= 0; i--) {
+  const trend = 0.22 - (29 - i) * 0.0013; // slowly improving from 0.22 to ~0.18
+  const noise = ((i * 13 + 7) % 9 - 4) * 0.005;
+  tokenWasteHistory.push({ timestamp: iso(i), value: Math.max(0, Math.round((trend + noise) * 1000) / 1000) });
+}
+
+// Cost: baseline ~$42/day, slight upward trend
+const costHistory = generateTimeSeries30d(42, 3);
+
+// Query volume: 24-hour with business-hours pattern
+const queryVolumeHistory = generateTimeSeries24h(52, 5);
+
 // ── Dashboard KPIs ─────────────────────────────────────────────────────
-// Computed to be consistent with the underlying mock data.
 
 const activeMemories = mockMemories.filter(m => m.status === 'active');
+const archivedMemories = mockMemories.filter(m => m.status === 'archived');
 const avgHealth = activeMemories.reduce((s, m) => s + m.healthScore, 0) / activeMemories.length;
 const totalRevenue = activeMemories.reduce((s, m) => s + m.revenuePerDay, 0);
 const totalCost = activeMemories.reduce((s, m) => s + m.costPerDay, 0);
 const negativeRoiCount = activeMemories.filter(m => m.roi < 0).length;
 const highHallucinationTraces = mockQueryTraces.filter(t => t.hallucinationRisk === 'high' || t.hallucinationRisk === 'medium').length;
 
+// Categorize memories by health status
+const healthyCount = activeMemories.filter(m => m.healthScore >= 0.7 && m.contradictionsWith.length === 0 && m.driftScore < 0.3).length;
+const staleCount = activeMemories.filter(m => m.stalenessScore >= 0.7).length;
+const contradictoryCount = activeMemories.filter(m => m.contradictionsWith.length > 0).length;
+const driftedCount = activeMemories.filter(m => m.driftScore >= 0.5 && m.contradictionsWith.length === 0).length;
+
 export const mockDashboardKPIs: DashboardKPIs = {
   compositeHealthIndex: Math.round(avgHealth * 100) / 100,
+  chiHistory,
   memoryROI: Math.round((totalRevenue / totalCost) * 100) / 100,
   activeMemories: activeMemories.length,
+  totalMemories: mockMemories.length,
   attributionConfidence: 0.847,
   hallucinationRate: Math.round((highHallucinationTraces / mockQueryTraces.length) * 100) / 100,
+  hallucinationHistory,
   tokenWasteRate: Math.round((negativeRoiCount / activeMemories.length) * 100) / 100,
+  tokenWasteHistory,
   gdprStatus: 'pending_deletions',
+  pendingDeletions: mockDeletionRequests.filter(d => d.status === 'pending' || d.status === 'processing').length,
   queriesToday: 1247,
   queriesPerSecond: 14.4,
+  queryVolumeHistory,
+  costToday: 42.18,
+  costHistory,
+  memoriesByHealth: {
+    healthy: healthyCount,
+    stale: staleCount,
+    contradictory: contradictoryCount,
+    drifted: driftedCount,
+    archived: archivedMemories.length,
+  },
 };

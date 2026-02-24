@@ -13,8 +13,6 @@ import {
   Shield,
   Database,
   Target,
-  Zap,
-  FileText,
   Archive,
   Trash2,
   Download,
@@ -33,7 +31,7 @@ interface CommandResult {
   icon: React.ReactNode;
   label: string;
   detail?: string;
-  badge?: { text: string; color: string };
+  badge?: { text: string; bg: string; fg: string };
   href?: string;
   memoryId?: string;
 }
@@ -47,29 +45,29 @@ interface CommandPaletteProps {
 // ── Static entries ────────────────────────────────────────────────────────
 
 const PAGE_ENTRIES: CommandResult[] = [
-  { id: "p-overview", category: "Pages", icon: <Home size={15} />, label: "Command Center", href: "/overview" },
+  { id: "p-overview", category: "Pages", icon: <Home size={15} />, label: "Command Center", href: "/" },
   { id: "p-attribution", category: "Pages", icon: <Search size={15} />, label: "Attribution Explorer", href: "/attribution" },
   { id: "p-leaderboard", category: "Pages", icon: <BarChart3 size={15} />, label: "Memory Leaderboard", href: "/attribution/leaderboard" },
   { id: "p-health", category: "Pages", icon: <Activity size={15} />, label: "Health Monitor", href: "/health" },
   { id: "p-lifecycle", category: "Pages", icon: <Layers size={15} />, label: "Budget Optimizer", href: "/lifecycle" },
   { id: "p-compliance", category: "Pages", icon: <Network size={15} />, label: "Provenance Graph", href: "/compliance" },
-  { id: "p-audit", category: "Pages", icon: <Shield size={15} />, label: "Audit Trail", href: "/compliance/audit" },
+  { id: "p-audit", category: "Pages", icon: <Shield size={15} />, label: "Audit Trail", href: "/compliance" },
 ];
 
 const ACTION_ENTRIES: CommandResult[] = [
   { id: "a-archive", category: "Actions", icon: <Archive size={15} />, label: "Archive memory...", detail: "Move a memory to cold storage", href: "/lifecycle" },
   { id: "a-compliance", category: "Actions", icon: <Shield size={15} />, label: "Run compliance check", detail: "Scan for GDPR violations", href: "/compliance" },
   { id: "a-deletion", category: "Actions", icon: <Trash2 size={15} />, label: "New deletion request", detail: "Initiate SISA-compliant erasure", href: "/compliance" },
-  { id: "a-export", category: "Actions", icon: <Download size={15} />, label: "Export audit trail", detail: "Download compliance report as JSON", href: "/compliance/audit" },
+  { id: "a-export", category: "Actions", icon: <Download size={15} />, label: "Export audit trail", detail: "Download compliance report as JSON", href: "/compliance" },
 ];
 
 // ── Status badge config ──────────────────────────────────────────────────
 
-const STATUS_BADGE: Record<MemoryStatus, { text: string; color: string }> = {
-  active: { text: "active", color: "bg-emerald-500/15 text-emerald-400" },
-  archived: { text: "archived", color: "bg-zinc-500/15 text-zinc-400" },
-  deleted: { text: "deleted", color: "bg-rose-500/15 text-rose-400" },
-  pending_deletion: { text: "pending", color: "bg-amber-500/15 text-amber-400" },
+const STATUS_BADGE: Record<MemoryStatus, { text: string; bg: string; fg: string }> = {
+  active:           { text: "active",  bg: "var(--stat-green-bg)",  fg: "var(--grafana-green)" },
+  archived:         { text: "archived", bg: "var(--panel-bg-hover)", fg: "var(--grafana-text-muted)" },
+  deleted:          { text: "deleted",  bg: "var(--panel-bg-hover)", fg: "var(--grafana-text-disabled)" },
+  pending_deletion: { text: "pending",  bg: "var(--stat-yellow-bg)", fg: "var(--grafana-yellow)" },
 };
 
 // ── Fuzzy match ──────────────────────────────────────────────────────────
@@ -90,7 +88,7 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
   const listRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Build memory entries
+  // Build memory entries from mock data
   const memoryEntries = useMemo<CommandResult[]>(() => {
     return mockMemories.map((m) => ({
       id: `mem-${m.id}`,
@@ -102,7 +100,7 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
     }));
   }, []);
 
-  // Build trace entries
+  // Build trace entries from mock data
   const traceEntries = useMemo<CommandResult[]>(() => {
     return mockQueryTraces.map((t) => ({
       id: `trace-${t.id}`,
@@ -114,23 +112,21 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
     }));
   }, []);
 
-  // Filtered results by category with limits
+  // Filter & group results
   const grouped = useMemo(() => {
     const groups: { category: ResultCategory; items: CommandResult[] }[] = [];
 
-    const matchPages = PAGE_ENTRIES.filter(
-      (e) => fuzzyMatch(query, e.label)
-    );
+    const matchPages = PAGE_ENTRIES.filter((e) => fuzzyMatch(query, e.label));
     if (matchPages.length > 0) groups.push({ category: "Pages", items: matchPages });
 
-    const matchMem = memoryEntries.filter(
-      (e) => fuzzyMatch(query, e.label) || (e.memoryId && fuzzyMatch(query, e.memoryId))
-    ).slice(0, 5);
+    const matchMem = memoryEntries
+      .filter((e) => fuzzyMatch(query, e.label) || (e.memoryId && fuzzyMatch(query, e.memoryId)))
+      .slice(0, 5);
     if (matchMem.length > 0) groups.push({ category: "Memories", items: matchMem });
 
-    const matchTraces = traceEntries.filter(
-      (e) => fuzzyMatch(query, e.label) || (e.detail && fuzzyMatch(query, e.detail))
-    ).slice(0, 5);
+    const matchTraces = traceEntries
+      .filter((e) => fuzzyMatch(query, e.label) || (e.detail && fuzzyMatch(query, e.detail)))
+      .slice(0, 5);
     if (matchTraces.length > 0) groups.push({ category: "Traces", items: matchTraces });
 
     const matchActions = ACTION_ENTRIES.filter(
@@ -177,7 +173,7 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
     [onClose, onSelectMemory, router]
   );
 
-  // Keyboard handler for the palette
+  // Keyboard handler
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -214,7 +210,7 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.12 }}
           className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]"
           onClick={onClose}
           role="dialog"
@@ -222,30 +218,56 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
           aria-label="Command palette"
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.7)" }} />
 
           {/* Panel */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -8 }}
+            initial={{ opacity: 0, scale: 0.97, y: -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -8 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
+            exit={{ opacity: 0, scale: 0.97, y: -6 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="relative w-full max-w-xl overflow-hidden"
+            style={{
+              background: "#181b1f",
+              border: "1px solid #2c3235",
+              borderRadius: 2,
+            }}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleKeyDown}
           >
             {/* Search input */}
-            <div className="border-b border-zinc-800 px-5 py-4 flex items-center gap-3">
-              <Search size={18} strokeWidth={1.5} className="text-zinc-500 shrink-0" />
+            <div
+              className="px-4 py-3 flex items-center gap-3"
+              style={{ borderBottom: "1px solid #2c3235" }}
+            >
+              <Search
+                size={16}
+                strokeWidth={1.5}
+                className="shrink-0"
+                style={{ color: "#6e7681" }}
+              />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search memories, traces, pages..."
-                className="flex-1 bg-transparent text-lg font-mono text-zinc-100 placeholder:text-zinc-600 outline-none focus:ring-0"
+                className="flex-1 bg-transparent text-[15px] outline-none focus:ring-0"
+                style={{
+                  color: "#d8d9da",
+                  fontFamily: "var(--font-roboto-mono), monospace",
+                }}
+                aria-label="Search commands"
               />
-              <kbd className="hidden sm:inline-block text-[11px] text-zinc-600 bg-zinc-900 border border-zinc-700 rounded px-1.5 py-0.5 font-mono">
+              <kbd
+                className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5"
+                style={{
+                  background: "#0b0c0e",
+                  border: "1px solid #2c3235",
+                  borderRadius: 2,
+                  color: "#6e7681",
+                }}
+              >
                 ESC
               </kbd>
             </div>
@@ -253,7 +275,10 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
             {/* Results */}
             <div ref={listRef} className="max-h-[360px] overflow-y-auto">
               {grouped.length === 0 && (
-                <div className="px-5 py-10 text-center text-zinc-600 text-[13px]">
+                <div
+                  className="px-5 py-10 text-center text-[13px]"
+                  style={{ color: "#6e7681" }}
+                >
                   No results for &ldquo;{query}&rdquo;
                 </div>
               )}
@@ -261,8 +286,14 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
               {grouped.map((group) => (
                 <div key={group.category}>
                   {/* Category header */}
-                  <div className="px-5 py-1.5 bg-zinc-900/50 sticky top-0">
-                    <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">
+                  <div
+                    className="px-4 py-1.5 sticky top-0"
+                    style={{ background: "#111217" }}
+                  >
+                    <span
+                      className="text-[11px] font-medium uppercase tracking-widest"
+                      style={{ color: "#6e7681" }}
+                    >
                       {group.category}
                     </span>
                   </div>
@@ -276,28 +307,50 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
                       <button
                         key={item.id}
                         data-index={idx}
-                        className={`w-full text-left px-5 py-2.5 flex items-center gap-3 transition-colors cursor-pointer ${
-                          isActive
-                            ? "bg-zinc-800"
-                            : "hover:bg-zinc-800/40"
-                        }`}
+                        className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors duration-75 cursor-pointer"
+                        style={{
+                          background: isActive ? "#264653" : "transparent",
+                        }}
                         onClick={() => selectItem(item)}
-                        onMouseEnter={() => setSelectedIndex(idx)}
+                        onMouseEnter={(e) => {
+                          setSelectedIndex(idx);
+                          if (!isActive)
+                            e.currentTarget.style.background = "rgba(38,70,83,0.5)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (idx !== selectedIndex)
+                            e.currentTarget.style.background = "transparent";
+                        }}
                         role="option"
                         aria-selected={isActive}
                       >
                         {/* Icon */}
-                        <span className={`shrink-0 ${isActive ? "text-emerald-400" : "text-zinc-500"}`}>
+                        <span
+                          className="shrink-0"
+                          style={{
+                            color: isActive
+                              ? "var(--grafana-green)"
+                              : "#6e7681",
+                          }}
+                        >
                           {item.icon}
                         </span>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <span className={`text-[13px] ${isActive ? "text-zinc-100" : "text-zinc-300"} truncate block`}>
+                          <span
+                            className="text-[13px] truncate block"
+                            style={{
+                              color: isActive ? "#d8d9da" : "#b4b7b9",
+                            }}
+                          >
                             {item.label}
                           </span>
                           {item.detail && (
-                            <span className="text-[11px] text-zinc-600 truncate block mt-0.5">
+                            <span
+                              className="text-[11px] truncate block mt-0.5"
+                              style={{ color: "#6e7681" }}
+                            >
                               {item.detail}
                             </span>
                           )}
@@ -305,14 +358,29 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
 
                         {/* Badge */}
                         {item.badge && (
-                          <span className={`shrink-0 px-1.5 py-0.5 text-[9px] font-mono rounded ${item.badge.color}`}>
+                          <span
+                            className="shrink-0 px-1.5 py-0.5 text-[9px] font-mono font-medium uppercase"
+                            style={{
+                              background: item.badge.bg,
+                              color: item.badge.fg,
+                              borderRadius: 2,
+                            }}
+                          >
                             {item.badge.text}
                           </span>
                         )}
 
-                        {/* Shortcut hint for pages */}
-                        {item.category === "Pages" && isActive && (
-                          <kbd className="shrink-0 text-[10px] text-zinc-600 bg-zinc-900 border border-zinc-700 rounded px-1.5 py-0.5 font-mono">
+                        {/* Enter hint for active item */}
+                        {isActive && (
+                          <kbd
+                            className="shrink-0 text-[10px] font-mono px-1.5 py-0.5"
+                            style={{
+                              background: "#0b0c0e",
+                              border: "1px solid #2c3235",
+                              borderRadius: 2,
+                              color: "#6e7681",
+                            }}
+                          >
                             ↵
                           </kbd>
                         )}
@@ -324,18 +392,51 @@ export function CommandPalette({ open, onClose, onSelectMemory }: CommandPalette
             </div>
 
             {/* Footer */}
-            <div className="border-t border-zinc-800 px-5 py-2.5 flex items-center justify-between text-[11px] text-zinc-600">
+            <div
+              className="px-4 py-2.5 flex items-center justify-between text-[11px]"
+              style={{
+                borderTop: "1px solid #2c3235",
+                color: "#6e7681",
+              }}
+            >
               <div className="flex items-center gap-4">
                 <span>
-                  <kbd className="bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 mr-1 font-mono text-[10px]">↑↓</kbd>
+                  <kbd
+                    className="font-mono text-[10px] px-1 py-0.5 mr-1"
+                    style={{
+                      background: "#0b0c0e",
+                      border: "1px solid #2c3235",
+                      borderRadius: 2,
+                    }}
+                  >
+                    ↑↓
+                  </kbd>
                   Navigate
                 </span>
                 <span>
-                  <kbd className="bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 mr-1 font-mono text-[10px]">↵</kbd>
-                  Select
+                  <kbd
+                    className="font-mono text-[10px] px-1 py-0.5 mr-1"
+                    style={{
+                      background: "#0b0c0e",
+                      border: "1px solid #2c3235",
+                      borderRadius: 2,
+                    }}
+                  >
+                    ↵
+                  </kbd>
+                  Open
                 </span>
                 <span>
-                  <kbd className="bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 mr-1 font-mono text-[10px]">esc</kbd>
+                  <kbd
+                    className="font-mono text-[10px] px-1 py-0.5 mr-1"
+                    style={{
+                      background: "#0b0c0e",
+                      border: "1px solid #2c3235",
+                      borderRadius: 2,
+                    }}
+                  >
+                    esc
+                  </kbd>
                   Close
                 </span>
               </div>

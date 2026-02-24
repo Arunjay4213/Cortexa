@@ -3,18 +3,19 @@
 import { useState, useMemo, useCallback } from "react";
 import {
   Search,
-  ArrowUpDown,
-  TrendingDown,
   RotateCcw,
-  Zap,
-  Database,
-  DollarSign,
-  Sparkles,
+  TrendingDown,
+  TrendingUp,
+  Minus,
   ChevronDown,
+  Eye,
+  Play,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
-import { OptimizationList } from "@/components/dashboard/OptimizationList";
-import { Modal } from "@/components/primitives/Modal";
-import { useToast } from "@/components/primitives/Toast";
+import { StatPanel } from "@/components/dashboard/StatPanel";
+import { GrafanaPanel } from "@/components/dashboard/GrafanaPanel";
 import {
   mockBudgetStats,
   mockOptimizationRecommendations,
@@ -26,60 +27,53 @@ import {
   formatTimestamp,
   formatMemoryId,
   truncateText,
-  classForHealth,
-  classForROI,
 } from "@/lib/utils";
-import type { OptimizationRecommendation, ArchiveReason } from "@/lib/types";
+import type {
+  OptimizationRecommendation,
+  ArchiveReason,
+  ImpactDirection,
+} from "@/lib/types";
 
-// ── Constants ─────────────────────────────────────────────────────────────
+// ── Derived stats ────────────────────────────────────────────────────────
+
+const utilPct = Math.round(
+  (mockBudgetStats.usedTokens / mockBudgetStats.budgetTokens) * 100
+);
+const archivedCount = mockArchivedMemories.filter(
+  (m) => m.reason !== "consolidation"
+).length;
+const consolidatedCount = mockArchivedMemories.filter(
+  (m) => m.reason === "consolidation"
+).length;
+
+// ── Sort types ───────────────────────────────────────────────────────────
 
 type SortField = "date" | "reason" | "tokens";
 
-const REASON_LABELS: Record<ArchiveReason, { label: string; color: string }> = {
-  "auto-archive": { label: "Auto", color: "bg-zinc-500/10 text-zinc-400" },
-  manual: { label: "Manual", color: "bg-blue-500/10 text-blue-400" },
-  consolidation: { label: "Consolidated", color: "bg-violet-500/10 text-violet-400" },
-};
-
-// ── Page ──────────────────────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────────
 
 export default function LifecyclePage() {
-  const { addToast } = useToast();
-
-  // Preview modal state
-  const [previewRec, setPreviewRec] = useState<OptimizationRecommendation | null>(null);
+  // Preview state
+  const [previewRecId, setPreviewRecId] = useState<string | null>(null);
 
   // Archive manager state
   const [searchQuery, setSearchQuery] = useState("");
-  const [reasonFilter, setReasonFilter] = useState<ArchiveReason | "all">("all");
+  const [reasonFilter, setReasonFilter] = useState<ArchiveReason | "all">(
+    "all"
+  );
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortAsc, setSortAsc] = useState(false);
 
-  // Budget utilization
-  const utilPct = Math.round((mockBudgetStats.usedTokens / mockBudgetStats.budgetTokens) * 100);
-
-  // Handle apply recommendation
-  const handleApply = useCallback(
-    (rec: OptimizationRecommendation) => {
-      addToast({
-        type: "info",
-        message: `Applied: ${rec.title}`,
-        detail: `${rec.memoryIds.length} memories affected. Estimated savings: ${formatCurrency(Math.abs(rec.savingsPerMonth))}/mo`,
-      });
+  // Toggle sort
+  const toggleSort = useCallback(
+    (field: SortField) => {
+      if (sortField === field) setSortAsc((a) => !a);
+      else {
+        setSortField(field);
+        setSortAsc(false);
+      }
     },
-    [addToast]
-  );
-
-  // Handle restore archived memory
-  const handleRestore = useCallback(
-    (memoryId: string) => {
-      addToast({
-        type: "info",
-        message: `Restored ${formatMemoryId(memoryId)}`,
-        detail: "Memory moved back to active status. Re-embedding will start within 30s.",
-      });
-    },
-    [addToast]
+    [sortField]
   );
 
   // Filtered + sorted archived memories
@@ -101,173 +95,114 @@ export default function LifecyclePage() {
 
     items.sort((a, b) => {
       let cmp = 0;
-      if (sortField === "date") {
-        cmp = new Date(a.archivedAt).getTime() - new Date(b.archivedAt).getTime();
-      } else if (sortField === "reason") {
+      if (sortField === "date")
+        cmp =
+          new Date(a.archivedAt).getTime() -
+          new Date(b.archivedAt).getTime();
+      else if (sortField === "reason")
         cmp = a.reason.localeCompare(b.reason);
-      } else if (sortField === "tokens") {
-        cmp = a.tokenCount - b.tokenCount;
-      }
+      else if (sortField === "tokens") cmp = a.tokenCount - b.tokenCount;
       return sortAsc ? cmp : -cmp;
     });
 
     return items;
   }, [searchQuery, reasonFilter, sortField, sortAsc]);
 
-  // Stats
-  const archivedCount = mockArchivedMemories.filter((m) => m.reason !== "consolidation").length;
-  const consolidatedCount = mockArchivedMemories.filter((m) => m.reason === "consolidation").length;
-
-  // Toggle sort
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortAsc(!sortAsc);
-    } else {
-      setSortField(field);
-      setSortAsc(false);
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      {/* ── Page Header ──────────────────────────────────────────── */}
-      <div>
-        <h2 className="text-sm font-bold text-zinc-200 tracking-wide">
-          Lifecycle & Budget Optimizer
-        </h2>
-        <p className="text-[11px] text-zinc-600 mt-0.5">
-          Token budget monitoring · Optimization recommendations · Archive management
-        </p>
-      </div>
-
-      {/* ── Token Budget Dashboard ───────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Card 1: Budget Utilization */}
-        <div className="bg-zinc-950 border border-zinc-800 border-l-[3px] border-l-blue-500 rounded-lg px-5 py-4">
-          <div className="flex items-center gap-2 mb-2.5">
-            <Database size={14} className="text-blue-400" />
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
-              Budget Utilization
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-xl font-mono font-bold text-zinc-100">
-              {(mockBudgetStats.usedTokens / 1000).toFixed(0)}k
-            </span>
-            <span className="text-[12px] text-zinc-500 font-mono">
-              / {(mockBudgetStats.budgetTokens / 1000).toFixed(0)}k tokens
-            </span>
-            <span className={`text-[12px] font-mono font-medium ${
-              utilPct > 85 ? "text-rose-400" : utilPct > 70 ? "text-amber-400" : "text-emerald-400"
-            }`}>
-              ({utilPct}%)
-            </span>
-          </div>
-          {/* Progress bar */}
-          <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${
-                utilPct > 85 ? "bg-rose-500" : utilPct > 70 ? "bg-amber-500" : "bg-emerald-500"
-              }`}
-              style={{ width: `${utilPct}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5 text-[10px] text-zinc-600 font-mono">
-            <span>0</span>
-            <span>{(mockBudgetStats.budgetTokens / 1000).toFixed(0)}k</span>
-          </div>
-        </div>
-
-        {/* Card 2: Monthly Cost */}
-        <div className="bg-zinc-950 border border-zinc-800 border-l-[3px] border-l-amber-500 rounded-lg px-5 py-4">
-          <div className="flex items-center gap-2 mb-2.5">
-            <DollarSign size={14} className="text-amber-400" />
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
-              Monthly Cost
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-xl font-mono font-bold text-zinc-100">
-              {formatCurrency(mockBudgetStats.monthlySpend)}
-            </span>
-            <span className="text-[12px] text-zinc-500">/mo</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            <TrendingDown size={12} className="text-emerald-400" />
-            <span className="text-emerald-400 font-mono">-3.2%</span>
-            <span className="text-zinc-600">vs last month</span>
-          </div>
-          <p className="text-[10px] text-zinc-600 mt-2">
-            At current retrieval rate of 14.4 qps
-          </p>
-        </div>
-
-        {/* Card 3: Projected Savings */}
-        <div className="bg-zinc-950 border border-zinc-800 border-l-[3px] border-l-emerald-500 rounded-lg px-5 py-4">
-          <div className="flex items-center gap-2 mb-2.5">
-            <Sparkles size={14} className="text-emerald-400" />
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
-              Projected Savings
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-xl font-mono font-bold text-emerald-400">
-              {formatCurrency(mockBudgetStats.projectedSavings)}
-            </span>
-            <span className="text-[12px] text-zinc-500">/mo</span>
-          </div>
-          <p className="text-[11px] text-zinc-500">
-            If all recommendations below are applied
-          </p>
-          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-600">
-            <Zap size={10} className="text-emerald-500" />
-            <span>
-              {mockOptimizationRecommendations.length} actions available
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Optimization Recommendations ─────────────────────────── */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Zap size={14} className="text-amber-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-            Optimization Recommendations
-          </span>
-          <span className="text-[10px] font-mono text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">
-            {mockOptimizationRecommendations.length}
-          </span>
-        </div>
-        <OptimizationList
-          recommendations={mockOptimizationRecommendations}
-          onPreview={setPreviewRec}
-          onApply={handleApply}
+    <div className="flex flex-col" style={{ gap: "var(--panel-gap)" }}>
+      {/* ── ROW 1: Three stat panels ───────────────────────────── */}
+      <div
+        className="grid grid-cols-1 md:grid-cols-3"
+        style={{ gap: "var(--panel-gap)" }}
+      >
+        <StatPanel
+          label="Token Budget"
+          value={`${utilPct}%`}
+          color={utilPct > 80 ? "red" : utilPct > 60 ? "yellow" : "green"}
+          sub={`${(mockBudgetStats.usedTokens / 1000).toFixed(0)}k / ${(mockBudgetStats.budgetTokens / 1000).toFixed(0)}k tokens`}
+        />
+        <StatPanel
+          label="Monthly Cost"
+          value={`$${mockBudgetStats.monthlySpend.toLocaleString()}/mo`}
+          color="red"
+        />
+        <StatPanel
+          label="Potential Savings"
+          value={`$${mockBudgetStats.projectedSavings}/mo`}
+          color="green"
         />
       </div>
 
-      {/* ── Archive Manager ──────────────────────────────────────── */}
-      <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-zinc-800">
-          <div className="flex items-center gap-1.5">
-            <Database size={14} className="text-zinc-500" />
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-              Archive Manager
-            </span>
-          </div>
+      {/* ── ROW 2: Optimization Recommendations ────────────────── */}
+      <GrafanaPanel
+        title="Optimization Recommendations"
+        headerRight={
+          <span
+            className="text-[10px] font-mono"
+            style={{ color: "var(--grafana-text-muted)" }}
+          >
+            {mockOptimizationRecommendations.length} actions available
+          </span>
+        }
+        noPadding
+      >
+        <div className="flex flex-col">
+          {mockOptimizationRecommendations.map((rec, idx) => (
+            <RecommendationRow
+              key={rec.id}
+              rec={rec}
+              isLast={
+                idx === mockOptimizationRecommendations.length - 1
+              }
+              previewOpen={previewRecId === rec.id}
+              onTogglePreview={() =>
+                setPreviewRecId(
+                  previewRecId === rec.id ? null : rec.id
+                )
+              }
+            />
+          ))}
+        </div>
+      </GrafanaPanel>
 
-          <div className="flex-1" />
-
+      {/* ── ROW 3: Archive Manager ─────────────────────────────── */}
+      <GrafanaPanel
+        title="Archive Manager"
+        headerRight={
+          <span
+            className="text-[10px] font-mono"
+            style={{ color: "var(--grafana-text-muted)" }}
+          >
+            {archivedCount} archived &middot; {consolidatedCount}{" "}
+            consolidated
+          </span>
+        }
+        noPadding
+      >
+        {/* Filter bar */}
+        <div
+          className="flex flex-wrap items-center gap-3 px-4 py-2.5"
+          style={{ borderBottom: "1px solid var(--panel-border)" }}
+        >
           {/* Search */}
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <Search
+              size={13}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ color: "var(--grafana-text-muted)" }}
+            />
             <input
               type="text"
               placeholder="Search archived..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-[12px] font-mono bg-zinc-900 border border-zinc-700 rounded-md text-zinc-300 placeholder:text-zinc-600 w-[160px] focus:outline-none focus:border-zinc-500"
+              className="pl-8 pr-3 py-1.5 text-[12px] font-mono w-[160px] focus:outline-none transition-colors"
+              style={{
+                background: "#0b0c0e",
+                border: "1px solid var(--panel-border)",
+                borderRadius: "2px",
+                color: "var(--grafana-text-secondary)",
+              }}
             />
           </div>
 
@@ -275,20 +210,39 @@ export default function LifecyclePage() {
           <div className="relative">
             <select
               value={reasonFilter}
-              onChange={(e) => setReasonFilter(e.target.value as ArchiveReason | "all")}
-              className="appearance-none bg-zinc-900 border border-zinc-700 rounded-md pl-3 pr-7 py-1.5 text-[12px] text-zinc-300 focus:outline-none focus:border-zinc-500"
+              onChange={(e) =>
+                setReasonFilter(
+                  e.target.value as ArchiveReason | "all"
+                )
+              }
+              className="appearance-none pl-3 pr-7 py-1.5 text-[12px] font-mono cursor-pointer focus:outline-none transition-colors"
+              style={{
+                background: "#0b0c0e",
+                border: "1px solid var(--panel-border)",
+                borderRadius: "2px",
+                color: "var(--grafana-text-secondary)",
+              }}
             >
-              <option value="all">All reasons</option>
+              <option value="all">All Reasons</option>
               <option value="auto-archive">Auto-archive</option>
               <option value="manual">Manual</option>
               <option value="consolidation">Consolidation</option>
             </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+            <ChevronDown
+              size={12}
+              className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ color: "var(--grafana-text-muted)" }}
+            />
           </div>
 
-          {/* Stats */}
-          <span className="text-[11px] text-zinc-600">
-            {archivedCount} archived · {consolidatedCount} consolidated
+          <div className="flex-1" />
+
+          <span
+            className="text-[11px] font-mono"
+            style={{ color: "var(--grafana-text-muted)" }}
+          >
+            Showing {filteredArchived.length} of{" "}
+            {mockArchivedMemories.length}
           </span>
         </div>
 
@@ -296,177 +250,493 @@ export default function LifecyclePage() {
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-[10px] font-medium uppercase tracking-wider text-zinc-600 border-b border-zinc-800">
-                <th className="px-4 py-2.5 text-left w-[90px]">Memory ID</th>
-                <th className="px-4 py-2.5 text-left">Content</th>
-                <th className="px-4 py-2.5 text-left w-[110px]">Status</th>
+              <tr
+                style={{
+                  borderBottom: "1px solid var(--panel-border)",
+                }}
+              >
                 <th
-                  className="px-4 py-2.5 text-left w-[120px] cursor-pointer hover:text-zinc-400 transition-colors"
-                  onClick={() => toggleSort("date")}
+                  className="text-left px-4 py-2.5 text-[10px] uppercase tracking-wider font-medium w-[80px]"
+                  style={{ color: "var(--grafana-text-muted)" }}
                 >
-                  <span className="flex items-center gap-1">
-                    Archived
-                    <ArrowUpDown size={10} className={sortField === "date" ? "text-zinc-400" : ""} />
-                  </span>
+                  ID
                 </th>
                 <th
-                  className="px-4 py-2.5 text-left w-[100px] cursor-pointer hover:text-zinc-400 transition-colors"
-                  onClick={() => toggleSort("reason")}
+                  className="text-left px-2 py-2.5 text-[10px] uppercase tracking-wider font-medium"
+                  style={{ color: "var(--grafana-text-muted)" }}
                 >
-                  <span className="flex items-center gap-1">
-                    Reason
-                    <ArrowUpDown size={10} className={sortField === "reason" ? "text-zinc-400" : ""} />
-                  </span>
+                  Content
                 </th>
                 <th
-                  className="px-4 py-2.5 text-right w-[70px] cursor-pointer hover:text-zinc-400 transition-colors"
-                  onClick={() => toggleSort("tokens")}
+                  className="text-left px-2 py-2.5 text-[10px] uppercase tracking-wider font-medium w-[110px]"
+                  style={{ color: "var(--grafana-text-muted)" }}
                 >
-                  <span className="flex items-center gap-1 justify-end">
-                    Tokens
-                    <ArrowUpDown size={10} className={sortField === "tokens" ? "text-zinc-400" : ""} />
-                  </span>
+                  Prev Status
                 </th>
-                <th className="px-4 py-2.5 text-right w-[80px]">Action</th>
+                <SortTh
+                  label="Archived"
+                  field="date"
+                  currentField={sortField}
+                  asc={sortAsc}
+                  onSort={toggleSort}
+                  width="w-[100px]"
+                />
+                <SortTh
+                  label="Reason"
+                  field="reason"
+                  currentField={sortField}
+                  asc={sortAsc}
+                  onSort={toggleSort}
+                  width="w-[110px]"
+                />
+                <SortTh
+                  label="Tokens"
+                  field="tokens"
+                  currentField={sortField}
+                  asc={sortAsc}
+                  onSort={toggleSort}
+                  width="w-[70px]"
+                  align="right"
+                />
+                <th
+                  className="text-right px-4 py-2.5 text-[10px] uppercase tracking-wider font-medium w-[80px]"
+                  style={{ color: "var(--grafana-text-muted)" }}
+                >
+                  Action
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/50">
-              {filteredArchived.map((entry) => {
-                const reasonCfg = REASON_LABELS[entry.reason];
-                return (
+            <tbody>
+              {filteredArchived.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-[13px]"
+                    style={{
+                      color: "var(--grafana-text-muted)",
+                    }}
+                  >
+                    No archived memories match your filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredArchived.map((entry) => (
                   <tr
                     key={entry.memoryId}
-                    className="hover:bg-zinc-800/20 transition-colors"
+                    style={{
+                      borderBottom:
+                        "1px solid var(--panel-border)",
+                    }}
+                    className="transition-colors"
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "var(--panel-bg-hover)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background =
+                        "transparent")
+                    }
                   >
-                    <td className="px-4 py-2.5 font-mono text-zinc-300 font-medium">
+                    <td
+                      className="px-4 py-2.5 font-mono font-medium"
+                      style={{
+                        color: "var(--grafana-text-primary)",
+                      }}
+                    >
                       {formatMemoryId(entry.memoryId)}
                     </td>
-                    <td className="px-4 py-2.5 text-zinc-400 max-w-[300px]">
+                    <td
+                      className="px-2 py-2.5 max-w-[300px]"
+                      style={{
+                        color: "var(--grafana-text-secondary)",
+                      }}
+                    >
                       <span className="truncate block">
                         {truncateText(entry.content, 70)}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-zinc-500">{entry.originalStatus}</span>
-                      <span className="text-zinc-700 mx-1">→</span>
-                      <span className="text-zinc-400">archived</span>
-                    </td>
-                    <td className="px-4 py-2.5 font-mono text-zinc-500">
-                      {formatTimestamp(entry.archivedAt)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${reasonCfg.color}`}>
-                        {reasonCfg.label}
+                    <td className="px-2 py-2.5">
+                      <span
+                        style={{
+                          color: "var(--grafana-text-muted)",
+                        }}
+                      >
+                        {entry.originalStatus}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono text-zinc-500">
+                    <td
+                      className="px-2 py-2.5 font-mono"
+                      style={{
+                        color: "var(--grafana-text-muted)",
+                      }}
+                    >
+                      {formatTimestamp(entry.archivedAt)}
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <ReasonBadge reason={entry.reason} />
+                    </td>
+                    <td
+                      className="px-2 py-2.5 text-right font-mono tabular-nums"
+                      style={{
+                        color: "var(--grafana-text-muted)",
+                      }}
+                    >
                       {entry.tokenCount}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <button
-                        onClick={() => handleRestore(entry.memoryId)}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium bg-zinc-800 border border-zinc-700 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium rounded-sm transition-colors"
+                        style={{
+                          background: "transparent",
+                          border: "1px solid var(--panel-border)",
+                          color: "var(--grafana-text-primary)",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "var(--panel-bg-hover)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background =
+                            "transparent")
+                        }
                       >
                         <RotateCcw size={10} />
                         Restore
                       </button>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
-
-          {filteredArchived.length === 0 && (
-            <div className="px-4 py-8 text-center text-[12px] text-zinc-600">
-              No archived memories match your filters.
-            </div>
-          )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-zinc-800 text-[10px] text-zinc-600">
+        <div
+          className="flex items-center gap-4 px-4 py-2.5 text-[10px]"
+          style={{
+            borderTop: "1px solid var(--panel-border)",
+            color: "var(--grafana-text-muted)",
+          }}
+        >
           <span>
-            Showing {filteredArchived.length} of {mockArchivedMemories.length} entries
-          </span>
-          <span className="text-zinc-700">·</span>
-          <span>
-            Total tokens freed: {mockArchivedMemories.reduce((sum, m) => sum + m.tokenCount, 0)}
+            Total tokens freed:{" "}
+            {mockArchivedMemories
+              .reduce((sum, m) => sum + m.tokenCount, 0)
+              .toLocaleString()}
           </span>
         </div>
-      </div>
-
-      {/* ── Preview Modal ────────────────────────────────────────── */}
-      <Modal
-        open={!!previewRec}
-        onClose={() => setPreviewRec(null)}
-        title={previewRec?.title ?? "Preview"}
-        wide
-      >
-        {previewRec && <PreviewModalContent rec={previewRec} />}
-      </Modal>
+      </GrafanaPanel>
     </div>
   );
 }
 
-// ── Preview Modal Content ─────────────────────────────────────────────────
+// ── Recommendation Row ───────────────────────────────────────────────────
 
-function PreviewModalContent({ rec }: { rec: OptimizationRecommendation }) {
-  const memories = useMemo(() => {
+function RecommendationRow({
+  rec,
+  isLast,
+  previewOpen,
+  onTogglePreview,
+}: {
+  rec: OptimizationRecommendation;
+  isLast: boolean;
+  previewOpen: boolean;
+  onTogglePreview: () => void;
+}) {
+  const impactColor: Record<ImpactDirection, string> = {
+    positive: "var(--grafana-green)",
+    negative: "var(--grafana-red)",
+    neutral: "var(--grafana-text-muted)",
+  };
+
+  const ImpactIcon =
+    rec.impactDirection === "positive"
+      ? TrendingUp
+      : rec.impactDirection === "negative"
+        ? TrendingDown
+        : Minus;
+
+  const previewMemories = useMemo(() => {
+    if (!previewOpen) return [];
     return rec.memoryIds
       .map((id) => mockMemories.find((m) => m.id === id))
       .filter(Boolean) as (typeof mockMemories)[number][];
-  }, [rec.memoryIds]);
+  }, [rec.memoryIds, previewOpen]);
 
   return (
-    <div className="space-y-4">
-      <p className="text-[12px] text-zinc-400 leading-relaxed">
-        {rec.description}
-      </p>
+    <div
+      style={{
+        borderBottom: isLast
+          ? undefined
+          : "1px solid var(--panel-border)",
+      }}
+    >
+      <div className="flex items-center gap-4 px-4 py-3">
+        {/* Priority badge */}
+        <span
+          className="w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-mono font-bold shrink-0"
+          style={{
+            background: "rgba(87,148,242,0.15)",
+            color: "#5794f2",
+          }}
+        >
+          {rec.priority}
+        </span>
 
-      <div className="flex items-center gap-4 text-[11px]">
-        <span className="text-zinc-500">
-          Affected: <span className="text-zinc-300 font-mono">{rec.memoryIds.length} memories</span>
-        </span>
-        <span className="text-zinc-500">
-          Savings: <span className="text-emerald-400 font-mono">
-            {rec.savingsPerMonth >= 0 ? formatCurrency(rec.savingsPerMonth) : `+${formatCurrency(Math.abs(rec.savingsPerMonth))}`}/mo
-          </span>
-        </span>
+        {/* Title + impact */}
+        <div className="flex-1 min-w-0">
+          <div
+            className="text-[14px] font-medium"
+            style={{ color: "#d8d9da" }}
+          >
+            {rec.title}
+          </div>
+          <div
+            className="flex items-center gap-3 mt-0.5 text-[12px]"
+            style={{ color: "#8e8e8e" }}
+          >
+            <span className="flex items-center gap-1">
+              <ImpactIcon
+                size={12}
+                style={{
+                  color: impactColor[rec.impactDirection],
+                }}
+              />
+              Impact: {rec.impactLabel}
+            </span>
+            <span>
+              Savings:{" "}
+              <span
+                className="font-mono"
+                style={{
+                  color:
+                    rec.savingsPerMonth >= 0
+                      ? "#73bf69"
+                      : "var(--grafana-yellow)",
+                }}
+              >
+                {rec.savingsPerMonth >= 0
+                  ? `$${rec.savingsPerMonth}`
+                  : `+$${Math.abs(rec.savingsPerMonth)}`}
+                /mo
+              </span>
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={onTogglePreview}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-sm transition-colors"
+            style={{
+              background: "transparent",
+              border: "1px solid #2c3235",
+              color: "#d8d9da",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background =
+                "var(--panel-bg-hover)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
+          >
+            <Eye size={12} />
+            Preview
+          </button>
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-sm transition-colors"
+            style={{
+              background: "#73bf69",
+              border: "1px solid #73bf69",
+              color: "#0b0c0e",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "#5fa857")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "#73bf69")
+            }
+          >
+            <Play size={12} />
+            Apply
+          </button>
+        </div>
       </div>
 
-      {/* Memory list */}
-      <div className="max-h-[360px] overflow-y-auto border border-zinc-800 rounded-lg divide-y divide-zinc-800/50">
-        {memories.map((mem) => (
-          <div key={mem.id} className="px-4 py-2.5 flex items-start gap-4">
-            <div className="shrink-0 w-[70px]">
-              <span className="text-[12px] font-mono text-zinc-300 font-medium">
-                {formatMemoryId(mem.id)}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-zinc-400 truncate">
-                {truncateText(mem.content, 80)}
-              </p>
-            </div>
-            <div className="shrink-0 flex items-center gap-3 text-[11px] font-mono">
-              <span className={classForROI(mem.roi)}>
-                ROI: {mem.roi.toFixed(1)}
-              </span>
-              <span className={classForHealth(mem.healthScore)}>
-                {mem.healthScore.toFixed(2)}
-              </span>
-            </div>
+      {/* Preview expansion */}
+      {previewOpen && previewMemories.length > 0 && (
+        <div
+          className="px-4 pb-3"
+          style={{ marginLeft: 40 }}
+        >
+          <div
+            className="rounded-sm overflow-hidden"
+            style={{
+              border: "1px solid var(--panel-border)",
+            }}
+          >
+            {previewMemories.map((mem, i) => (
+              <div
+                key={mem.id}
+                className="flex items-center gap-3 px-3 py-2 text-[11px]"
+                style={{
+                  borderBottom:
+                    i < previewMemories.length - 1
+                      ? "1px solid var(--panel-border)"
+                      : undefined,
+                  background: "#0b0c0e",
+                }}
+              >
+                <span
+                  className="font-mono font-medium shrink-0 w-[50px]"
+                  style={{ color: "#6e9fff" }}
+                >
+                  {formatMemoryId(mem.id)}
+                </span>
+                <span
+                  className="flex-1 truncate"
+                  style={{
+                    color: "var(--grafana-text-secondary)",
+                  }}
+                >
+                  {truncateText(mem.content, 60)}
+                </span>
+                <span
+                  className="font-mono shrink-0"
+                  style={{
+                    color:
+                      mem.roi < 0
+                        ? "var(--grafana-red)"
+                        : "var(--grafana-green)",
+                  }}
+                >
+                  ROI: {mem.roi.toFixed(1)}x
+                </span>
+                <span
+                  className="font-mono shrink-0"
+                  style={{
+                    color:
+                      mem.healthScore >= 0.7
+                        ? "var(--grafana-green)"
+                        : mem.healthScore >= 0.4
+                          ? "var(--grafana-yellow)"
+                          : "var(--grafana-red)",
+                  }}
+                >
+                  {mem.healthScore.toFixed(2)}
+                </span>
+              </div>
+            ))}
+            {rec.memoryIds.length > previewMemories.length && (
+              <div
+                className="px-3 py-2 text-[10px]"
+                style={{
+                  background: "#0b0c0e",
+                  color: "var(--grafana-text-muted)",
+                }}
+              >
+                +{rec.memoryIds.length - previewMemories.length}{" "}
+                memories not shown (archived or deleted)
+              </div>
+            )}
           </div>
-        ))}
-
-        {/* Show IDs not found in mockMemories */}
-        {rec.memoryIds.length > memories.length && (
-          <div className="px-4 py-2.5 text-[11px] text-zinc-600">
-            + {rec.memoryIds.length - memories.length} memories not shown (archived or deleted)
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// ── Reason Badge ─────────────────────────────────────────────────────────
+
+function ReasonBadge({ reason }: { reason: ArchiveReason }) {
+  const map: Record<
+    ArchiveReason,
+    { bg: string; color: string; border: string; label: string }
+  > = {
+    "auto-archive": {
+      bg: "var(--panel-bg-hover)",
+      color: "var(--grafana-text-muted)",
+      border: "var(--panel-border)",
+      label: "Auto",
+    },
+    manual: {
+      bg: "rgba(87,148,242,0.10)",
+      color: "#5794f2",
+      border: "rgba(87,148,242,0.20)",
+      label: "Manual",
+    },
+    consolidation: {
+      bg: "rgba(184,119,217,0.10)",
+      color: "#b877d9",
+      border: "rgba(184,119,217,0.20)",
+      label: "Consolidated",
+    },
+  };
+  const s = map[reason];
+  return (
+    <span
+      className="inline-flex px-1.5 py-0.5 text-[10px] font-mono rounded-sm"
+      style={{
+        background: s.bg,
+        color: s.color,
+        border: `1px solid ${s.border}`,
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+// ── Sort Header ──────────────────────────────────────────────────────────
+
+function SortTh({
+  label,
+  field,
+  currentField,
+  asc,
+  onSort,
+  width,
+  align = "left",
+}: {
+  label: string;
+  field: SortField;
+  currentField: SortField;
+  asc: boolean;
+  onSort: (f: SortField) => void;
+  width?: string;
+  align?: "left" | "right";
+}) {
+  const active = field === currentField;
+  return (
+    <th
+      className={`px-2 py-2.5 text-[10px] uppercase tracking-wider font-medium cursor-pointer select-none ${width ?? ""} text-${align}`}
+      style={{
+        color: active
+          ? "var(--grafana-text-primary)"
+          : "var(--grafana-text-muted)",
+      }}
+      onClick={() => onSort(field)}
+    >
+      <span
+        className={`inline-flex items-center gap-1 ${align === "right" ? "justify-end" : ""}`}
+      >
+        {label}
+        {active ? (
+          asc ? (
+            <ArrowUp size={9} />
+          ) : (
+            <ArrowDown size={9} />
+          )
+        ) : (
+          <ArrowUpDown
+            size={9}
+            style={{ color: "var(--grafana-text-disabled)" }}
+          />
+        )}
+      </span>
+    </th>
   );
 }
