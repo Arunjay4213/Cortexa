@@ -28,6 +28,7 @@ from cortex.models import (
     TimeSeriesResponse,
     TopMemoryResponse,
 )
+from cortex.api.transactions import _row_to_txn
 
 router = APIRouter(tags=["dashboard"])
 
@@ -311,3 +312,159 @@ async def get_cost_summary(
         ))
 
     return results
+
+
+# ── CLI-oriented endpoints ─────────────────────────────────────────────────
+
+
+@router.get("/dashboard/stats")
+async def get_stats(db: AsyncSession = Depends(get_session)):
+    """Lightweight stats summary for the CLI."""
+    total_mem = (
+        await db.execute(
+            select(func.count()).select_from(memories).where(memories.c.deleted_at.is_(None))
+        )
+    ).scalar() or 0
+
+    total_txn = (
+        await db.execute(select(func.count()).select_from(transactions))
+    ).scalar() or 0
+
+    total_attr = (
+        await db.execute(select(func.count()).select_from(attribution_scores))
+    ).scalar() or 0
+
+    agent_count = (
+        await db.execute(
+            select(func.count(distinct(memories.c.agent_id))).where(memories.c.deleted_at.is_(None))
+        )
+    ).scalar() or 0
+
+    # Average hallucination index: use CAMA confidence (confidence = 1 - hallucination_index)
+    cama_rows = (
+        await db.execute(
+            select(attribution_scores.c.confidence).where(
+                attribution_scores.c.method == "cama"
+            )
+        )
+    ).all()
+    if cama_rows:
+        avg_hi = 1.0 - (sum(r[0] for r in cama_rows) / len(cama_rows))
+    else:
+        avg_hi = 0.0
+
+    # Most active agent by transaction count
+    most_active_row = (
+        await db.execute(
+            select(transactions.c.agent_id, func.count().label("cnt"))
+            .group_by(transactions.c.agent_id)
+            .order_by(func.count().desc())
+            .limit(1)
+        )
+    ).first()
+    most_active = most_active_row[0] if most_active_row else None
+
+    return {
+        "total_memories": total_mem,
+        "total_agents": agent_count,
+        "total_transactions": total_txn,
+        "total_attributions": total_attr,
+        "avg_hallucination_index": round(avg_hi, 4),
+        "most_active_agent": most_active,
+    }
+
+
+@router.get("/dashboard/hallucinations")
+async def get_hallucinations(
+    agent_id: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_session),
+):
+    """Recent transactions with CAMA data, showing hallucination rates.
+
+    Returns transaction-level summaries; claim-level detail requires
+    calling POST /attribution/{txn_id}/cama (which re-runs CAMA).
+    The CLI uses this to list transactions sorted by worst hallucination rate.
+    """
+    # Find transactions that have CAMA scores (method=cama in attribution_scores)
+    q = (
+        select(
+            attribution_scores.c.transaction_id,
+            func.avg(attribution_scores.c.confidence).label("avg_confidence"),
+            func.count().label("score_count"),
+        )
+        .where(attribution_scores.c.method == "cama")
+        .group_by(attribution_scores.c.transaction_id)
+        .order_by(func.avg(attribution_scores.c.confidence).asc())  # worst first
+        .limit(limit)
+    )
+
+    score_rows = (await db.execute(q)).all()
+    if not score_rows:
+        return []
+
+    txn_ids = [r[0] for r in score_rows]
+    confidence_map = {r[0]: r[1] for r in score_rows}
+
+    # Load transaction details
+    txn_rows = (
+        await db.execute(
+            select(transactions).where(transactions.c.id.in_(txn_ids))
+        )
+    ).all()
+    txn_map = {r.id: r for r in txn_rows}
+
+    # Optionally filter by agent
+    results = []
+    for txn_id in txn_ids:
+        txn = txn_map.get(txn_id)
+        if not txn:
+            continue
+        if agent_id and txn.agent_id != agent_id:
+            continue
+        conf = confidence_map.get(txn_id, 1.0)
+        results.append({
+            "transaction_id": txn_id,
+            "agent_id": txn.agent_id,
+            "query": (txn.query_text or "")[:120],
+            "hallucination_index": round(1.0 - conf, 4),
+            "created_at": txn.created_at.isoformat() if txn.created_at else None,
+        })
+
+    return results
+
+
+@router.get("/dashboard/dead-memories")
+async def get_dead_memories(
+    min_recalls: int = Query(3, ge=1),
+    max_attribution: float = Query(0.1, ge=0.0, le=1.0),
+    db: AsyncSession = Depends(get_session),
+):
+    """Memories frequently recalled but never scoring above threshold.
+
+    These are dead weight: consuming context tokens but never contributing.
+    """
+    q = (
+        select(memory_profiles, memories.c.content, memories.c.agent_id)
+        .join(memories, memory_profiles.c.memory_id == memories.c.id)
+        .where(
+            memories.c.deleted_at.is_(None),
+            memory_profiles.c.retrieval_count >= min_recalls,
+            memory_profiles.c.mean_attribution <= max_attribution,
+        )
+        .order_by(memory_profiles.c.retrieval_count.desc())
+        .limit(50)
+    )
+
+    rows = (await db.execute(q)).all()
+    return [
+        {
+            "memory_id": r.memory_id,
+            "agent_id": r.agent_id,
+            "content": (r.content or "")[:120],
+            "retrieval_count": r.retrieval_count,
+            "mean_attribution": round(r.mean_attribution, 4),
+            "total_attribution": round(r.total_attribution, 4),
+        }
+        for r in rows
+    ]

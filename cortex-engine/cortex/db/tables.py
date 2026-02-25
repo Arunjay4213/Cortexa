@@ -195,3 +195,27 @@ memory_branches = Table(
     Column("description", String, nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)),
 )
+
+users = Table(
+    "users",
+    metadata,
+    Column("id", String, primary_key=True),
+    Column("email", Text, nullable=False, unique=True),
+    Column("name", Text, nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)),
+)
+
+api_keys = Table(
+    "api_keys",
+    metadata,
+    Column("id", String, primary_key=True),
+    Column("key_hash", Text, nullable=False, unique=True, index=True),  # SHA-256, never plaintext
+    Column("key_prefix", Text, nullable=False),  # first 12 chars for display
+    Column("user_id", String, nullable=False, index=True),
+    Column("agent_id", Text, nullable=True),  # NULL = all agents, set = scoped to one agent
+    Column("name", Text, nullable=False),
+    Column("rate_limit_rpm", Integer, nullable=False, default=60),
+    Column("created_at", DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)),
+    Column("last_used_at", DateTime(timezone=True), nullable=True),
+    Column("revoked_at", DateTime(timezone=True), nullable=True),
+)

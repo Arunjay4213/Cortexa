@@ -186,8 +186,6 @@ def compute_eas(
         sim_mr = _cosine_similarities(M, r)  # (k,)
         sim_mr = np.maximum(sim_mr, 0.0)
 
-        print(f"[RESPONSE_ONLY] sim_mr range: [{np.min(sim_mr):.4f}, {np.max(sim_mr):.4f}]")
-
         total = sim_mr.sum()
         if total > 1e-8:
             scores = sim_mr / total
@@ -196,7 +194,6 @@ def compute_eas(
             scores = np.ones(k) / k
             low_confidence = True
 
-        print(f"[RESPONSE_ONLY] final scores: {scores}")
         raw = sim_mr
 
     elif method == "response_weighted":
@@ -238,13 +235,12 @@ def compute_eas(
         raw = sim_mr * sim_mq  # element-wise product  (k,)
 
         total = raw.sum()
-        if total > 0:
+        if total > 1e-8:
             scores = raw / total
             low_confidence = False
         else:
-            # All similarities are zero — no memory relates to both query and response.
-            # Return zeros instead of pretending every memory is equally relevant.
-            scores = np.zeros(k)
+            # All similarities are zero — return uniform distribution
+            scores = np.ones(k) / k
             low_confidence = True
 
     elapsed_ms = (time.perf_counter() - t0) * 1000

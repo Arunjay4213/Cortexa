@@ -101,9 +101,9 @@ class TestComputeEAS:
         assert result["scores"][0] == pytest.approx(1.0, abs=1e-6)
         assert result["scores"][1] == pytest.approx(0.0, abs=1e-6)
 
-    def test_all_orthogonal_returns_zeros_not_uniform(self):
-        """When no memory relates to query+response (cosine method), scores should be zero
-        (not a misleading uniform distribution)."""
+    def test_all_orthogonal_returns_uniform(self):
+        """When no memory relates to query+response (cosine method), scores should be
+        uniform (safe fallback to avoid ZeroDivisionError)."""
         # All memories orthogonal to both query and response
         q = _norm(np.array([1.0, 0.0, 0.0, 0.0]))
         r = _norm(np.array([0.0, 1.0, 0.0, 0.0]))
@@ -111,7 +111,7 @@ class TestComputeEAS:
         m2 = _norm(np.array([0.0, 0.0, 0.0, 1.0]))
 
         result = compute_eas([m1, m2], q, r, method="cosine")
-        assert result["scores"].sum() == 0.0
+        assert pytest.approx(result["scores"].sum(), abs=1e-9) == 1.0
         assert result["low_confidence"] is True
 
     def test_normal_case_is_high_confidence(self):

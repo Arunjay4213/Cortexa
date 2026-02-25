@@ -1,55 +1,38 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
 *.so
 *.egg-info/
+*.egg
 dist/
 build/
-*.egg
+.Python
 
 # Virtual environments
 .venv/
 venv/
 ENV/
+env/
 
-# Testing
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Cache
+.cache/
 .pytest_cache/
 htmlcov/
 .coverage
 
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-
-# Env
-.env
-.env.*
-
-# Test databases
+# Databases
 *.db
-*_test.db
-
-# Temporary test files
-test_*.py
-debug_*.py
-e2e_test_output.txt
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-
-# Virtual environments
-venv/
-.venv/
-ENV/
-env/
+*.sqlite3
 
 # IDE
 .vscode/

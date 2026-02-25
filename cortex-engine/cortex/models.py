@@ -29,6 +29,7 @@ class AttributionMethod(str, Enum):
     exact = "exact"
     contextcite = "contextcite"
     amortized = "amortized"
+    cama = "cama"
 
 
 # ── Memory ─────────────────────────────────────────────────────────────

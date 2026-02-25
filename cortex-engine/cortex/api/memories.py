@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from cortex.attribution import embed, embed_single
 from cortex.api.websocket import manager
+from cortex.auth import ApiKeyRecord, require_api_key, resolve_agent_id
 from cortex.database import get_session
 from cortex.db.tables import memories, memory_profiles
 from cortex.models import (
@@ -45,20 +46,26 @@ def _row_to_memory(row) -> MemoryUnit:
 @router.post("/memories", response_model=MemoryUnit, status_code=201)
 async def create_memory(
     body: MemoryCreate,
+    key: ApiKeyRecord = Depends(require_api_key),
     db: AsyncSession = Depends(get_session),
 ):
     try:
+        # Strip null bytes — PostgreSQL UTF-8 rejects \x00 characters
+        content = body.content.replace("\x00", "")
         mem_id = str(uuid.uuid4())
-        embedding = embed_single(body.content)
-        tokens = len(body.content.split())  # rough token estimate
+        embedding = embed_single(content)
+        tokens = len(content.split())  # rough token estimate
+
+        # Scoped key forces the agent_id regardless of what caller sends
+        effective_agent_id = resolve_agent_id(body.agent_id, key)
 
         await db.execute(
             memories.insert().values(
                 id=mem_id,
-                content=body.content,
+                content=content,
                 embedding=embedding,
                 tokens=tokens,
-                agent_id=body.agent_id,
+                agent_id=effective_agent_id,
                 tier=body.tier.value,
                 criticality=body.criticality,
                 metadata_=body.metadata,
@@ -67,7 +74,7 @@ async def create_memory(
             )
         )
         await db.commit()
-        await manager.broadcast("dashboard", {"type": "memory_update", "agent_id": body.agent_id, "memory_id": mem_id})
+        await manager.broadcast("dashboard", {"type": "memory_update", "agent_id": effective_agent_id, "memory_id": mem_id})
 
         row = (await db.execute(select(memories).where(memories.c.id == mem_id))).first()
         return _row_to_memory(row)
@@ -89,18 +96,21 @@ async def search_memories(
     q: str = Query(..., description="Search query text"),
     agent_id: str | None = None,
     top_k: int = Query(10, ge=1, le=100),
+    key: ApiKeyRecord = Depends(require_api_key),
     db: AsyncSession = Depends(get_session),
 ):
     """Semantic search: embed query, cosine similarity against all memory embeddings, top-k."""
     query_embedding = np.array(embed_single(q))
+
+    effective_agent_id = resolve_agent_id(agent_id, key)
 
     # Fetch all non-deleted memories with embeddings
     mem_q = select(memories).where(
         memories.c.deleted_at.is_(None),
         memories.c.embedding.isnot(None),
     )
-    if agent_id:
-        mem_q = mem_q.where(memories.c.agent_id == agent_id)
+    if effective_agent_id:
+        mem_q = mem_q.where(memories.c.agent_id == effective_agent_id)
 
     rows = (await db.execute(mem_q)).all()
     if not rows:
@@ -141,14 +151,17 @@ async def list_memories(
     order: str = Query("desc", description="Sort order: asc or desc"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
+    key: ApiKeyRecord = Depends(require_api_key),
     db: AsyncSession = Depends(get_session),
 ):
+    effective_agent_id = resolve_agent_id(agent_id, key)
+
     q = select(memories).where(memories.c.deleted_at.is_(None))
     count_q = select(func.count()).select_from(memories).where(memories.c.deleted_at.is_(None))
 
-    if agent_id:
-        q = q.where(memories.c.agent_id == agent_id)
-        count_q = count_q.where(memories.c.agent_id == agent_id)
+    if effective_agent_id:
+        q = q.where(memories.c.agent_id == effective_agent_id)
+        count_q = count_q.where(memories.c.agent_id == effective_agent_id)
     if tier:
         q = q.where(memories.c.tier == tier)
         count_q = count_q.where(memories.c.tier == tier)

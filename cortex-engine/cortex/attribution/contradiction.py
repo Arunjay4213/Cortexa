@@ -28,10 +28,23 @@ if TYPE_CHECKING:
 
 @lru_cache(maxsize=1)
 def _load_nli_model():
-    """Lazy-load the cross-encoder NLI model (~140MB, CPU, ~10ms/pair)."""
+    """Lazy-load the cross-encoder NLI model (~140MB, CPU, ~10ms/pair).
+
+    Returns (model, label_names) where label_names[i] is the lowercase
+    label for logit index i (read from model config, not hardcoded).
+    """
     from sentence_transformers import CrossEncoder
 
-    return CrossEncoder("cross-encoder/nli-deberta-v3-small")
+    model = CrossEncoder("cross-encoder/nli-deberta-v3-small")
+    # Read label names from the underlying model config
+    try:
+        id2label = model.model.config.id2label
+        label_names = [id2label[i].lower() for i in range(len(id2label))]
+    except Exception:
+        # Fallback for cross-encoder/nli-deberta-v3-small:
+        # 0=contradiction, 1=entailment, 2=neutral
+        label_names = ["contradiction", "entailment", "neutral"]
+    return model, label_names
 
 
 def _find_candidate_pairs(
@@ -68,20 +81,15 @@ def _classify_nli(text_a: str, text_b: str) -> dict[str, float]:
     """Run NLI classification on a text pair.
 
     Returns {entailment, neutral, contradiction} probabilities.
-    Label mapping for cross-encoder/nli-deberta-v3-small:
-      0=contradiction, 1=entailment, 2=neutral
+    Label indices read from model.config.id2label (not hardcoded).
     """
-    model = _load_nli_model()
+    model, label_names = _load_nli_model()
     scores = model.predict([(text_a, text_b)])
 
-    # scores is array of shape (1, 3) — [contradiction, entailment, neutral]
     probs = _softmax(scores[0])
 
-    return {
-        "contradiction": float(probs[0]),
-        "entailment": float(probs[1]),
-        "neutral": float(probs[2]),
-    }
+    # Build dict using dynamically-read label names (already lowercase)
+    return {label_names[i]: float(probs[i]) for i in range(len(label_names))}
 
 
 def _softmax(x: np.ndarray) -> np.ndarray:

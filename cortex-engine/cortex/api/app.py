@@ -1,28 +1,39 @@
-"""FastAPI application factory with CORS and lifespan."""
+"""FastAPI application factory with CORS, auth, and lifespan."""
 
 from contextlib import asynccontextmanager
 import traceback
 import sys
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
+from cortex.auth import add_rate_limit_headers, require_api_key
 from cortex.config import settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import logging
+    log = logging.getLogger("cortex")
+
+    # Models load lazily on first request (via @lru_cache in
+    # cortex.attribution and cortex.attribution.entailment).
+    # Do NOT preload here — Railway free tier has 512MB RAM.
+    log.info("CortexOS Engine starting (models will load on first request)")
+
     # Startup: attempt to load calibrator from DB pairs (best-effort)
     try:
         from cortex.attribution.calibrator import refresh_calibrator_on_startup
         await refresh_calibrator_on_startup()
     except Exception:
         pass  # Non-blocking — calibrator is optional
+
     yield
+
     # Shutdown: dispose DB engine
     from cortex.database import engine
-
     await engine.dispose()
 
 
@@ -40,6 +51,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(BaseHTTPMiddleware, dispatch=add_rate_limit_headers)
 
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
@@ -64,18 +76,24 @@ def create_app() -> FastAPI:
     from cortex.api.snapshots import router as snapshots_router
     from cortex.api.counterfactual import router as counterfactual_router
     from cortex.api.grounding import router as grounding_router
+    from cortex.api.api_keys import router as api_keys_router
 
-    app.include_router(memories_router, prefix="/api/v1")
-    app.include_router(transactions_router, prefix="/api/v1")
-    app.include_router(attribution_router, prefix="/api/v1")
-    app.include_router(health_router, prefix="/api/v1")
-    app.include_router(dashboard_router, prefix="/api/v1")
-    app.include_router(agents_router, prefix="/api/v1")
-    app.include_router(websocket_router, prefix="/api/v1")
-    app.include_router(lifecycle_router, prefix="/api/v1")
-    app.include_router(snapshots_router, prefix="/api/v1")
-    app.include_router(counterfactual_router, prefix="/api/v1")
-    app.include_router(grounding_router, prefix="/api/v1")
+    # All /api/v1/* routes require a valid API key (except /healthz below)
+    _auth = [Depends(require_api_key)]
+
+    app.include_router(memories_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(transactions_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(attribution_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(health_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(dashboard_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(agents_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(websocket_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(lifecycle_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(snapshots_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(counterfactual_router, prefix="/api/v1", dependencies=_auth)
+    app.include_router(grounding_router, prefix="/api/v1", dependencies=_auth)
+    # Admin endpoints use their own admin-secret dependency (no api-key required)
+    app.include_router(api_keys_router)
 
     @app.get("/healthz")
     async def healthz():
