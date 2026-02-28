@@ -1,1 +1,0 @@
-# CortexOS stress test suite

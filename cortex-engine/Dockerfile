@@ -1,9 +1,18 @@
+# Stage 1: Download pre-exported ONNX model (no torch needed)
+FROM python:3.11-slim AS model-builder
+WORKDIR /build
+COPY scripts/download_model.py scripts/
+RUN python scripts/download_model.py
+
+# Stage 2: Production image
 FROM python:3.11-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y build-essential libpq-dev curl && rm -rf /var/lib/apt/lists/*
-COPY requirements-prod.txt requirements.txt
+RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+COPY --from=model-builder /build/models/ /app/models/
+COPY app/ /app/app/
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 ENV PYTHONUNBUFFERED=1
-CMD ["python", "-c", "import os, sys; sys.stdout.reconfigure(line_buffering=True); port=int(os.environ.get('PORT','8000')); print(f'Starting CortexOS on port {port}', flush=True); import uvicorn; uvicorn.run('cortex.api.app:app', host='0.0.0.0', port=port, log_level='info')"]
+CMD ["sh", "entrypoint.sh"]

@@ -1,6 +1,27 @@
 # CortexOS Python SDK
 
-The official Python SDK for [CortexOS](https://cortexos.ai) — persistent memory and EAS attribution for LLM agents.
+The official Python SDK for [Cortexa](https://cortexa.ink) — hallucination detection and verification for LLM agents.
+
+## Quickstart
+
+```bash
+pip install cortexos
+```
+
+```python
+import cortexos
+
+cortexos.configure(api_key="your-key")
+
+result = cortexos.check(
+    response="The return window is 30 days",
+    sources=["Return policy: 30-day window for all items."]
+)
+print(f"Hallucination Index: {result.hallucination_index}")
+# → Hallucination Index: 0.0
+```
+
+Get an API key at [cortexa.ink](https://cortexa.ink)
 
 ## Installation
 
@@ -99,7 +120,7 @@ asyncio.run(main())
 cx = Cortex(
     agent_id="my-agent",
     api_key="sk-...",           # Optional if server has no auth
-    base_url="http://localhost:8000",
+    base_url="https://api.cortexa.ink",
     timeout=30.0,               # Per-request timeout (seconds)
     max_retries=3,              # Retries on 429/502/503/504
 )

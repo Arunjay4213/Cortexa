@@ -1,0 +1,3125 @@
+{
+  "type": "stress_test",
+  "timestamp": "20260225_170118",
+  "threshold": 0.7,
+  "metrics": {
+    "total_queries": 25,
+    "successful": 8,
+    "failed": 17,
+    "avg_hi_normal": 0.3982,
+    "adversarial_total": 3,
+    "adversarial_caught": 3,
+    "adversarial_catch_rate": 1.0,
+    "false_positive_rate": 0.399,
+    "total_claims": 319,
+    "verdict_counts": {
+      "UNSUPPORTED": 115,
+      "GROUNDED": 185,
+      "NUM_MISMATCH": 19
+    },
+    "avg_latency_ms": 50597.0,
+    "min_latency_ms": 43832.1,
+    "max_latency_ms": 57200.2,
+    "verdict": "FAIL"
+  },
+  "results": [
+    {
+      "query_idx": 0,
+      "query": "Find me a 50-acre solar site in the Texas Panhandle",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 2 returned no packet",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Find me a 50-acre solar site in the Texas Panhandle",
+        "started_at": 1772060478.2438452,
+        "phase1_session_id": "c41f3760-f29f-4065-a519-ed842b42312d",
+        "phase1_elapsed": 22.78597354888916,
+        "num_sites": 5,
+        "top_site": "Castro County Site A",
+        "phase2_session_id": "db0e6bcd-ee21-4fb4-a196-03afe450e0a8",
+        "error": "Phase 2 returned no packet"
+      }
+    },
+    {
+      "query_idx": 2,
+      "query": "Solar project near Shamrock, TX with low permitting risk",
+      "adversarial": true,
+      "corruption_desc": "Changed P50 IRR from 7.9% to 16.2%",
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Solar project near Shamrock, TX with low permitting risk",
+        "started_at": 1772060478.260092,
+        "phase1_session_id": "337e1f97-a17e-438b-a6d5-a62bcabd9c2e",
+        "phase1_elapsed": 22.771144151687622,
+        "num_sites": 5,
+        "top_site": "Hemphill County Site B",
+        "phase2_session_id": "2fb9ba45-d892-4850-8b99-37a6c976beb7",
+        "terralink_latency_ms": 29120,
+        "total_elapsed": 51.89694881439209
+      },
+      "response_text_original": "Site: Hemphill County Site B in Hemphill County, TX. Satellite score: 82. Solar irradiance: 5.3 kWh/m2/day. Slope: 1.7 degrees. Land cover: Cropland. Land: Owner Higgins Land Trust LLC, parcel TX-Gray-118-445, 612 acres, last sale $295/acre (2015), zoning A-1 Agricultural. Yield: P50 175800 MWh/yr, P90 154400 MWh/yr, variance 12.2%, capacity factor P50 0.239, degradation 0.5%/yr. Grid: Nearest substation Xcel Energy Gray Sub at 2.3 mi, 115kV, interconnection cost $890K \u2013 $1.2M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP not required, setback 300ft, risk level low, timeline 3\u20136 months. Financials: Project size 122.4 MW AC (146.9 MW DC), capex $131.8M, annual opex $2,142,000/yr, P50 IRR 7.9%, P90 IRR 6.4%, IRA credit $65.4M (30% base + 10% EC adder + 10% domestic content), P50 revenue $6.2M/yr, NPV $-0.8M (P50, 8% discount), payback Year 11. Community: Score 68, IRA energy community: yes, rating Good.",
+      "num_sources": 7,
+      "response_text_corrupted": "Site: Hemphill County Site B in Hemphill County, TX. Satellite score: 82. Solar irradiance: 5.3 kWh/m2/day. Slope: 1.7 degrees. Land cover: Cropland. Land: Owner Higgins Land Trust LLC, parcel TX-Gray-118-445, 612 acres, last sale $295/acre (2015), zoning A-1 Agricultural. Yield: P50 175800 MWh/yr, P90 154400 MWh/yr, variance 12.2%, capacity factor P50 0.239, degradation 0.5%/yr. Grid: Nearest substation Xcel Energy Gray Sub at 2.3 mi, 115kV, interconnection cost $890K \u2013 $1.2M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP not required, setback 300ft, risk level low, timeline 3\u20136 months. Financials: Project size 122.4 MW AC (146.9 MW DC), capex $131.8M, annual opex $2,142,000/yr, P50 IRR 16.2%, P90 IRR 6.4%, IRA credit $65.4M (30% base + 10% EC adder + 10% domestic content), P50 revenue $6.2M/yr, NPV $-0.8M (P50, 8% discount), payback Year 11. Community: Score 68, IRA energy community: yes, rating Good.",
+      "status": "OK",
+      "hallucination_index": 0.4359,
+      "total_claims": 39,
+      "grounded_count": 22,
+      "hallucinated_count": 17,
+      "opinion_count": 0,
+      "cortex_latency_ms": 43832.1,
+      "claims": [
+        {
+          "text": "Hemphill County Site B is located in Hemphill County, TX.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.55)",
+          "source_quote": null,
+          "confidence": 0.5467635989189148
+        },
+        {
+          "text": "The satellite score is 82.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site TX-002 \u2014 Hemphill County Site B: satellite_score=82, solar_irradiance=5",
+          "confidence": 0.9965742826461792
+        },
+        {
+          "text": "The solar irradiance is 5.3 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.010283113457262516
+        },
+        {
+          "text": "The slope is 1.7 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.022229664027690887
+        },
+        {
+          "text": "The land cover is Cropland.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7 degrees, slope_rating=Excellent, land_cover=Cropland, protected_area=None within 3",
+          "confidence": 0.9961643218994141
+        },
+        {
+          "text": "The land is owned by Higgins Land Trust LLC.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979678988456726
+        },
+        {
+          "text": "The parcel number is TX-Gray-118-445.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979265928268433
+        },
+        {
+          "text": "The land area is 612 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9955097436904907
+        },
+        {
+          "text": "The last sale price was $295/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9974648952484131
+        },
+        {
+          "text": "The last sale occurred in 2015.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9952059388160706
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.997984766960144
+        },
+        {
+          "text": "The yield P50 is 175800 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=175800, p90_mwh_yr=154400, variance_pct=12",
+          "confidence": 0.997542142868042
+        },
+        {
+          "text": "The yield P90 is 154400 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=175800, p90_mwh_yr=154400, variance_pct=12",
+          "confidence": 0.9957937002182007
+        },
+        {
+          "text": "The variance is 12.2%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'12.2%'} not found in sources. Sources contain: {'12.2'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.239.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.04575558751821518
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is Xcel Energy Gray Sub.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.011689795181155205
+        },
+        {
+          "text": "The distance to the nearest substation is 2.3 mi.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.0066990358754992485
+        },
+        {
+          "text": "The substation voltage is 115kV.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.011926235631108284
+        },
+        {
+          "text": "The interconnection cost is between $890K and $1.2M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.37)",
+          "source_quote": null,
+          "confidence": 0.37027961015701294
+        },
+        {
+          "text": "The queue region is SPP.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2M, cost_low=890000, cost_high=1200000, queue_region=SPP, queue_status=Moderate queue \u2014 SPP active review",
+          "confidence": 0.9975850582122803
+        },
+        {
+          "text": "A CUP is not required.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.9945803284645081
+        },
+        {
+          "text": "The setback is 300ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.9937006235122681
+        },
+        {
+          "text": "The risk level is low.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.60)",
+          "source_quote": null,
+          "confidence": 0.5951238870620728
+        },
+        {
+          "text": "The permitting timeline is 3\u20136 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.9906230568885803
+        },
+        {
+          "text": "The project size is 122.4 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.020337479189038277
+        },
+        {
+          "text": "The project size is 146.9 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.013169048354029655
+        },
+        {
+          "text": "The capex is $131.8M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8M, capex_raw=131786000",
+          "confidence": 0.9956099390983582
+        },
+        {
+          "text": "The annual opex is $2,142,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$2,142,000/yr, power_price=$35",
+          "confidence": 0.9969862103462219
+        },
+        {
+          "text": "The P50 IRR is 16.2%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'16.2', '16.2%'} not found in sources. Sources contain: {'', '5', '0.913', '612', '12.2', '0.625', '6150000.0', '154400', '300', '11', '131786000.0', '3.7', '5.68', '68', '6', '0.88', '2015', '3.6', '3.8', '445', '34.8225', '66', '1.7', '115', '180540', '1200000', '0.21', '5.3', '146.9', '002', '8%', '92.1', '79065', '50%', '6.4%', '0.916', '66.4', '3', '131', '295', '0.5', '50', '07', '2.3', '30', '0.89', '25', '41', '0', '890000', '1', '7.9', '10%', '65.4', '65', '101.1613', '12.8', '65370000.00000001', '7.9%', '412', '0.665', '0.938', '0.757', '2142000', '22', '6.2', '5.4', '10', '5400000.0', '131.8', '118', '82', '6.4', '890', '35.0', '8', '4.1', '0.239', '1.2', '122.4', '30%', '175800'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The P90 IRR is 6.4%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.015235967934131622
+        },
+        {
+          "text": "The IRA credit is $65.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=65370000",
+          "confidence": 0.9945080876350403
+        },
+        {
+          "text": "The P50 revenue is $6.2M/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M/yr (downside), p50_revenue_raw=6150000",
+          "confidence": 0.8074365258216858
+        },
+        {
+          "text": "The NPV is $-0.8M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.06)",
+          "source_quote": null,
+          "confidence": 0.05731547996401787
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9965762495994568
+        },
+        {
+          "text": "The payback year is 11.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9966264963150024
+        },
+        {
+          "text": "The community score is 68.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=68, ira_community=True, income_percentile=41, employment_rate=92",
+          "confidence": 0.9983640313148499
+        },
+        {
+          "text": "The site is an IRA energy community.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.50)",
+          "source_quote": null,
+          "confidence": 0.4957802891731262
+        },
+        {
+          "text": "The community rating is Good.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7 degrees, slope_rating=Excellent, land_cover=Cropland, protected_area=None within 3",
+          "confidence": 0.9672682881355286
+        }
+      ],
+      "adversarial_caught": true
+    },
+    {
+      "query_idx": 3,
+      "query": "Large solar installation in Gray County, Texas",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Large solar installation in Gray County, Texas",
+        "started_at": 1772060570.688617,
+        "phase1_session_id": "62a35ec0-df5f-470f-bc53-ad0d5b062016",
+        "error": "Phase 1 returned no sites"
+      }
+    },
+    {
+      "query_idx": 1,
+      "query": "500-acre utility-scale solar farm in Wheeler County, TX",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "500-acre utility-scale solar farm in Wheeler County, TX",
+        "started_at": 1772060478.254077,
+        "phase1_session_id": "9d960a3c-66e5-445f-acad-1a18cdcf803d",
+        "phase1_elapsed": 30.510488986968994,
+        "num_sites": 5,
+        "top_site": "Potter County Site D",
+        "phase2_session_id": "cd306201-1e31-48a6-936f-9dbd6527c101",
+        "terralink_latency_ms": 66259,
+        "total_elapsed": 96.77958607673645
+      },
+      "response_text_original": "Site: Potter County Site D in Potter County, TX. Satellite score: 83. Solar irradiance: 5.7 kWh/m2/day. Slope: 2.7 degrees. Land cover: Grassland. Land: Owner Texas Panhandle Ranches Inc., parcel TX-Hemphill-044-119, 960 acres, last sale $320/acre (2018), zoning A-1 Agricultural. Yield: P50 276200 MWh/yr, P90 239600 MWh/yr, variance 13.2%, capacity factor P50 0.235, degradation 0.5%/yr. Grid: Nearest substation AEP Texas Hemphill Sub at 3.1 mi, 69kV, interconnection cost $1.1M \u2013 $1.5M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP required, setback 750ft, risk level high, timeline 14\u201324 months. Financials: Project size 192.0 MW AC (230.4 MW DC), capex $206.4M, annual opex $3,360,000/yr, P50 IRR 7.9%, P90 IRR 6.3%, IRA credit $102.5M (30% base + 10% EC adder + 10% domestic content), P50 revenue $9.7M/yr, NPV $-0.6M (P50, 8% discount), payback Year 11. Community: Score 58, IRA energy community: yes, rating Fair.",
+      "num_sources": 7,
+      "status": "OK",
+      "hallucination_index": 0.4318,
+      "total_claims": 44,
+      "grounded_count": 25,
+      "hallucinated_count": 19,
+      "opinion_count": 0,
+      "cortex_latency_ms": 57200.2,
+      "claims": [
+        {
+          "text": "The site is located in Potter County, TX.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site TX-004 \u2014 Potter County Site D: satellite_score=83, solar_irradiance=5",
+          "confidence": 0.8335884213447571
+        },
+        {
+          "text": "The satellite score is 83.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site TX-004 \u2014 Potter County Site D: satellite_score=83, solar_irradiance=5",
+          "confidence": 0.9968390464782715
+        },
+        {
+          "text": "The solar irradiance is 5.7 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.008482425473630428
+        },
+        {
+          "text": "The slope is 2.7 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.005977055057883263
+        },
+        {
+          "text": "The land cover is Grassland.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7 degrees, slope_rating=Excellent, land_cover=Grassland, protected_area=None within 1",
+          "confidence": 0.9969442486763
+        },
+        {
+          "text": "The land is owned by Texas Panhandle Ranches Inc.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Texas Panhandle Ranches Inc",
+          "confidence": 0.9965853691101074
+        },
+        {
+          "text": "The parcel number is TX-Hemphill-044-119.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979265928268433
+        },
+        {
+          "text": "The land area is 960 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.995026171207428
+        },
+        {
+          "text": "The last sale price was $320/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9977413415908813
+        },
+        {
+          "text": "The last sale occurred in 2018.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9950358271598816
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9980140924453735
+        },
+        {
+          "text": "The yield P50 is 276200 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=276200, p90_mwh_yr=239600, variance_pct=13",
+          "confidence": 0.9979425072669983
+        },
+        {
+          "text": "The yield P90 is 239600 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=276200, p90_mwh_yr=239600, variance_pct=13",
+          "confidence": 0.9959613680839539
+        },
+        {
+          "text": "The variance is 13.2%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'13.2%'} not found in sources. Sources contain: {'13.2'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.235.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.05403672158718109
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is AEP Texas Hemphill Sub.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.020800171419978142
+        },
+        {
+          "text": "The distance to the nearest substation is 3.1 mi.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.0031200202647596598
+        },
+        {
+          "text": "The substation voltage is 69kV.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.0473719947040081
+        },
+        {
+          "text": "The interconnection cost is $1.1M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.003923890180885792
+        },
+        {
+          "text": "The interconnection cost is $1.5M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.002055260119959712
+        },
+        {
+          "text": "The queue region is SPP.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M, cost_low=1100000, cost_high=1500000, queue_region=SPP, queue_status=Moderate queue",
+          "confidence": 0.9973956346511841
+        },
+        {
+          "text": "A CUP is required for permitting.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.996366024017334
+        },
+        {
+          "text": "The setback is 750ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9906843900680542
+        },
+        {
+          "text": "The risk level is high.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.07)",
+          "source_quote": null,
+          "confidence": 0.06888938695192337
+        },
+        {
+          "text": "The permitting timeline is 14 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.7831683158874512
+        },
+        {
+          "text": "The permitting timeline is 24 months.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.68)",
+          "source_quote": null,
+          "confidence": 0.679999589920044
+        },
+        {
+          "text": "The project size is 192.0 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.00837614294141531
+        },
+        {
+          "text": "The project size is 230.4 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.031853701919317245
+        },
+        {
+          "text": "The capex is $206.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M, capex_raw=206356000",
+          "confidence": 0.9938424825668335
+        },
+        {
+          "text": "The annual opex is $3,360,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$3,360,000/yr, power_price=$35",
+          "confidence": 0.9970858693122864
+        },
+        {
+          "text": "The P50 IRR is 7.9%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.004884709138423204
+        },
+        {
+          "text": "The P90 IRR is 6.3%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.018247365951538086
+        },
+        {
+          "text": "The IRA credit is $102.5M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=102530000",
+          "confidence": 0.9931881427764893
+        },
+        {
+          "text": "The IRA credit base is 30%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=102530000",
+          "confidence": 0.9970566034317017
+        },
+        {
+          "text": "The IRA credit EC adder is 10%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=102530000",
+          "confidence": 0.9945788383483887
+        },
+        {
+          "text": "The IRA credit domestic content is 10%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=102530000",
+          "confidence": 0.995595395565033
+        },
+        {
+          "text": "The P50 revenue is $9.7M/yr.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.05337078496813774
+        },
+        {
+          "text": "The NPV is $-0.6M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.0432601198554039
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9966442584991455
+        },
+        {
+          "text": "The payback year is 11.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9964913725852966
+        },
+        {
+          "text": "The community score is 58.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=58, ira_community=True, income_percentile=40, employment_rate=90",
+          "confidence": 0.9983256459236145
+        },
+        {
+          "text": "The IRA energy community rating is yes.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, ira_itc_pct=50%, is_energy_community=True, net_capex=$103",
+          "confidence": 0.9862603545188904
+        },
+        {
+          "text": "The community rating is Fair.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.027009880170226097
+        }
+      ]
+    },
+    {
+      "query_idx": 6,
+      "query": "Utility-scale solar project in the Arizona Sonoran desert",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 2 returned no packet",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Utility-scale solar project in the Arizona Sonoran desert",
+        "started_at": 1772060632.261686,
+        "phase1_session_id": "5b0e9c4a-5d1f-4238-ae32-ab1798356d17",
+        "phase1_elapsed": 22.883389949798584,
+        "num_sites": 5,
+        "top_site": "Maricopa County Site E",
+        "phase2_session_id": "f0f3e6f1-e548-4155-9e04-54ff55340c75",
+        "error": "Phase 2 returned no packet"
+      }
+    },
+    {
+      "query_idx": 5,
+      "query": "50-acre solar site in Maricopa County, Arizona",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 2 returned no packet",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "50-acre solar site in Maricopa County, Arizona",
+        "started_at": 1772060631.3620338,
+        "phase1_session_id": "847e13e1-be59-455e-9fb5-fab537f7488c",
+        "phase1_elapsed": 24.392269134521484,
+        "num_sites": 5,
+        "top_site": "Maricopa County Site C",
+        "phase2_session_id": "f9992de5-2e32-4ffb-8552-878214f96387",
+        "error": "Phase 2 returned no packet"
+      }
+    },
+    {
+      "query_idx": 4,
+      "query": "100MW solar site in Roberts County, TX near existing transmission",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "100MW solar site in Roberts County, TX near existing transmission",
+        "started_at": 1772060574.014996,
+        "phase1_session_id": "b31f77cf-7b92-4eda-bc67-ce3d8f1d5e79",
+        "phase1_elapsed": 75.25070571899414,
+        "num_sites": 5,
+        "top_site": "Deaf Smith County Site D",
+        "phase2_session_id": "76a9c27b-0620-40cd-8f28-1b7057d51443",
+        "terralink_latency_ms": 30592,
+        "total_elapsed": 105.85229301452637
+      },
+      "response_text_original": "Site: Deaf Smith County Site D in Deaf Smith County, TX. Satellite score: 85. Solar irradiance: 5.9 kWh/m2/day. Slope: 1.3 degrees. Land cover: Grassland / Shrubland. Land: Owner Texas Panhandle Ranches Inc., parcel TX-Hemphill-044-119, 960 acres, last sale $320/acre (2018), zoning A-1 Agricultural. Yield: P50 276200 MWh/yr, P90 239600 MWh/yr, variance 13.2%, capacity factor P50 0.235, degradation 0.5%/yr. Grid: Nearest substation AEP Texas Hemphill Sub at 3.1 mi, 69kV, interconnection cost $1.1M \u2013 $1.5M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP required, setback 750ft, risk level high, timeline 14\u201324 months. Financials: Project size 192.0 MW AC (230.4 MW DC), capex $206.4M, annual opex $3,360,000/yr, P50 IRR 7.9%, P90 IRR 6.3%, IRA credit $102.5M (30% base + 10% EC adder + 10% domestic content), P50 revenue $9.7M/yr, NPV $-0.6M (P50, 8% discount), payback Year 11. Community: Score 58, IRA energy community: yes, rating Fair.",
+      "num_sources": 7,
+      "status": "OK",
+      "hallucination_index": 0.4615,
+      "total_claims": 39,
+      "grounded_count": 21,
+      "hallucinated_count": 18,
+      "opinion_count": 0,
+      "cortex_latency_ms": 46542.5,
+      "claims": [
+        {
+          "text": "The site is located in Deaf Smith County, TX.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.49)",
+          "source_quote": null,
+          "confidence": 0.4932889938354492
+        },
+        {
+          "text": "The satellite score is 85.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site TX-004 \u2014 Deaf Smith County Site D: satellite_score=85, solar_irradiance=5",
+          "confidence": 0.9964284300804138
+        },
+        {
+          "text": "The solar irradiance is 5.9 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.009974918328225613
+        },
+        {
+          "text": "The slope is 1.3 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.003155144164338708
+        },
+        {
+          "text": "The land cover is Grassland / Shrubland.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "3 degrees, slope_rating=Excellent, land_cover=Grassland / Shrubland, protected_area=None within 2",
+          "confidence": 0.9969297051429749
+        },
+        {
+          "text": "The land is owned by Texas Panhandle Ranches Inc.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Texas Panhandle Ranches Inc",
+          "confidence": 0.9965853691101074
+        },
+        {
+          "text": "The parcel number is TX-Hemphill-044-119.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979265928268433
+        },
+        {
+          "text": "The land area is 960 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.995026171207428
+        },
+        {
+          "text": "The last sale price was $320/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9977413415908813
+        },
+        {
+          "text": "The last sale occurred in 2018.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9950358271598816
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9980140924453735
+        },
+        {
+          "text": "The yield P50 is 276200 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=276200, p90_mwh_yr=239600, variance_pct=13",
+          "confidence": 0.9979425072669983
+        },
+        {
+          "text": "The yield P90 is 239600 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=276200, p90_mwh_yr=239600, variance_pct=13",
+          "confidence": 0.9959613680839539
+        },
+        {
+          "text": "The variance is 13.2%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'13.2%'} not found in sources. Sources contain: {'13.2'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.235.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.05403672158718109
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is AEP Texas Hemphill Sub.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.020800171419978142
+        },
+        {
+          "text": "The distance to the nearest substation is 3.1 mi.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.0031200202647596598
+        },
+        {
+          "text": "The substation voltage is 69kV.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.0473719947040081
+        },
+        {
+          "text": "The interconnection cost is $1.1M \u2013 $1.5M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.023093832656741142
+        },
+        {
+          "text": "The queue region is SPP.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M, cost_low=1100000, cost_high=1500000, queue_region=SPP, queue_status=Moderate queue",
+          "confidence": 0.9973956346511841
+        },
+        {
+          "text": "A CUP is required for permitting.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.996366024017334
+        },
+        {
+          "text": "The setback is 750ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9906843900680542
+        },
+        {
+          "text": "The risk level is high.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.07)",
+          "source_quote": null,
+          "confidence": 0.06888938695192337
+        },
+        {
+          "text": "The permitting timeline is 14\u201324 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9733151197433472
+        },
+        {
+          "text": "The project size is 192.0 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.00837614294141531
+        },
+        {
+          "text": "The project size is 230.4 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.031853701919317245
+        },
+        {
+          "text": "The capex is $206.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M, capex_raw=206356000",
+          "confidence": 0.9938424825668335
+        },
+        {
+          "text": "The annual opex is $3,360,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$3,360,000/yr, power_price=$35",
+          "confidence": 0.9970858693122864
+        },
+        {
+          "text": "The P50 IRR is 7.9%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.004884709138423204
+        },
+        {
+          "text": "The P90 IRR is 6.3%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.018247365951538086
+        },
+        {
+          "text": "The IRA credit is $102.5M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=102530000",
+          "confidence": 0.9931881427764893
+        },
+        {
+          "text": "The P50 revenue is $9.7M/yr.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.05337078496813774
+        },
+        {
+          "text": "The NPV is $-0.6M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.0432601198554039
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9966442584991455
+        },
+        {
+          "text": "The payback year is 11.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9964913725852966
+        },
+        {
+          "text": "The community score is 58.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=58, ira_community=True, income_percentile=40, employment_rate=90",
+          "confidence": 0.9983256459236145
+        },
+        {
+          "text": "The IRA energy community is yes.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, ira_itc_pct=50%, is_energy_community=True, net_capex=$103",
+          "confidence": 0.9870840907096863
+        },
+        {
+          "text": "The community rating is Fair.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.027009880170226097
+        }
+      ]
+    },
+    {
+      "query_idx": 9,
+      "query": "Solar site in Yuma County, Arizona",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Solar site in Yuma County, Arizona",
+        "started_at": 1772060726.4342458,
+        "phase1_session_id": "6f20b0b0-2661-4430-8582-88a58c2f9575",
+        "phase1_elapsed": 21.118518114089966,
+        "num_sites": 5,
+        "top_site": "Pinal County Site A",
+        "phase2_session_id": "e27daa37-4eda-46a6-b664-7f030efccd46",
+        "terralink_latency_ms": 33250,
+        "total_elapsed": 54.37988018989563
+      },
+      "response_text_original": "Site: Pinal County Site A in Pinal County, AZ. Satellite score: 86. Solar irradiance: 6.4 kWh/m2/day. Slope: 1.1 degrees. Land cover: Cropland / Desert. Land: Owner Desert Sun Holdings LLC, parcel AZ-Maricopa-401-8821, 1150 acres, last sale $420/acre (2020), zoning RU-190 Rural. Yield: P50 245200 MWh/yr, P90 218800 MWh/yr, variance 10.8%, capacity factor P50 0.279, degradation 0.5%/yr. Grid: Nearest substation APS Maricopa South Sub at 1.4 mi, 500kV, interconnection cost $420K \u2013 $640K, queue region WECC. Permitting: Zoning RU-190 Rural Unincorporated, CUP required, setback 400ft, risk level medium, timeline 6\u201312 months. Financials: Project size 230.0 MW AC (276.0 MW DC), capex $246.2M, annual opex $4,025,000/yr, P50 IRR 4.8%, P90 IRR 3.7%, IRA credit $98.3M (30% base + 10% domestic content), P50 revenue $10.3M/yr, NPV $-38.0M (P50, 8% discount), payback Year 14. Community: Score 61, IRA energy community: no, rating Fair.",
+      "num_sources": 7,
+      "status": "OK",
+      "hallucination_index": 0.4146,
+      "total_claims": 41,
+      "grounded_count": 24,
+      "hallucinated_count": 17,
+      "opinion_count": 0,
+      "cortex_latency_ms": 49568.8,
+      "claims": [
+        {
+          "text": "The site is located in Pinal County, AZ.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site AZ-001 \u2014 Pinal County Site A: satellite_score=86, solar_irradiance=6",
+          "confidence": 0.9877274036407471
+        },
+        {
+          "text": "The satellite score is 86.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site AZ-001 \u2014 Pinal County Site A: satellite_score=86, solar_irradiance=6",
+          "confidence": 0.9959601759910583
+        },
+        {
+          "text": "The solar irradiance is 6.4 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.015188945457339287
+        },
+        {
+          "text": "The slope is 1.1 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.0128767229616642
+        },
+        {
+          "text": "The land cover is Cropland / Desert.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "1 degrees, slope_rating=Excellent, land_cover=Cropland / Desert, protected_area=None within 5",
+          "confidence": 0.9959329962730408
+        },
+        {
+          "text": "The land is owned by Desert Sun Holdings LLC.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Desert Sun Holdings LLC, mailing_address=2200 N Central Ave Ste 1800, Phoenix, AZ 85004, parcel_id=AZ-Maricopa-401-8821, acreage=1150, last_sale_price=$420/acre (2020), last_sale_date=2020-06-15, tax_assessment=$483,000, land_use=Agricultural \u2014 Desert, owner_type=entity, zoning=RU-190 Rural",
+          "confidence": 0.9981762170791626
+        },
+        {
+          "text": "The parcel number is AZ-Maricopa-401-8821.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Desert Sun Holdings LLC, mailing_address=2200 N Central Ave Ste 1800, Phoenix, AZ 85004, parcel_id=AZ-Maricopa-401-8821, acreage=1150, last_sale_price=$420/acre (2020), last_sale_date=2020-06-15, tax_assessment=$483,000, land_use=Agricultural \u2014 Desert, owner_type=entity, zoning=RU-190 Rural",
+          "confidence": 0.9977526068687439
+        },
+        {
+          "text": "The land area is 1150 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Desert Sun Holdings LLC, mailing_address=2200 N Central Ave Ste 1800, Phoenix, AZ 85004, parcel_id=AZ-Maricopa-401-8821, acreage=1150, last_sale_price=$420/acre (2020), last_sale_date=2020-06-15, tax_assessment=$483,000, land_use=Agricultural \u2014 Desert, owner_type=entity, zoning=RU-190 Rural",
+          "confidence": 0.9899643063545227
+        },
+        {
+          "text": "The last sale price was $420/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Desert Sun Holdings LLC, mailing_address=2200 N Central Ave Ste 1800, Phoenix, AZ 85004, parcel_id=AZ-Maricopa-401-8821, acreage=1150, last_sale_price=$420/acre (2020), last_sale_date=2020-06-15, tax_assessment=$483,000, land_use=Agricultural \u2014 Desert, owner_type=entity, zoning=RU-190 Rural",
+          "confidence": 0.9975346326828003
+        },
+        {
+          "text": "The last sale occurred in 2020.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Desert Sun Holdings LLC, mailing_address=2200 N Central Ave Ste 1800, Phoenix, AZ 85004, parcel_id=AZ-Maricopa-401-8821, acreage=1150, last_sale_price=$420/acre (2020), last_sale_date=2020-06-15, tax_assessment=$483,000, land_use=Agricultural \u2014 Desert, owner_type=entity, zoning=RU-190 Rural",
+          "confidence": 0.9936244487762451
+        },
+        {
+          "text": "The zoning is RU-190 Rural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=RU-190 Rural Unincorporated, cup_required=True, cup_timeline=6\u201312 months, setback_ft=400, moratorium=False, risk_level=medium, risk_score=35, estimated_permit_timeline=6\u201312 months",
+          "confidence": 0.9979610443115234
+        },
+        {
+          "text": "The yield P50 is 245200 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=245200, p90_mwh_yr=218800, variance_pct=10",
+          "confidence": 0.9976919889450073
+        },
+        {
+          "text": "The yield P90 is 218800 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=245200, p90_mwh_yr=218800, variance_pct=10",
+          "confidence": 0.9958956241607666
+        },
+        {
+          "text": "The variance is 10.8%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'10.8%'} not found in sources. Sources contain: {'10.8'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.279.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.04438456892967224
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is APS Maricopa South Sub.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.010359193198382854
+        },
+        {
+          "text": "The distance to the nearest substation is 1.4 mi.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.0008496808586642146
+        },
+        {
+          "text": "The substation voltage is 500kV.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.019450394436717033
+        },
+        {
+          "text": "The interconnection cost is between $420K and $640K.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.15)",
+          "source_quote": null,
+          "confidence": 0.15277741849422455
+        },
+        {
+          "text": "The queue region is WECC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.65)",
+          "source_quote": null,
+          "confidence": 0.6485220789909363
+        },
+        {
+          "text": "The zoning is Rural Unincorporated.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=RU-190 Rural Unincorporated, cup_required=True, cup_timeline=6\u201312 months, setback_ft=400, moratorium=False, risk_level=medium, risk_score=35, estimated_permit_timeline=6\u201312 months",
+          "confidence": 0.9952759742736816
+        },
+        {
+          "text": "A CUP is required.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=RU-190 Rural Unincorporated, cup_required=True, cup_timeline=6\u201312 months, setback_ft=400, moratorium=False, risk_level=medium, risk_score=35, estimated_permit_timeline=6\u201312 months",
+          "confidence": 0.9969092011451721
+        },
+        {
+          "text": "The setback is 400ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=RU-190 Rural Unincorporated, cup_required=True, cup_timeline=6\u201312 months, setback_ft=400, moratorium=False, risk_level=medium, risk_score=35, estimated_permit_timeline=6\u201312 months",
+          "confidence": 0.9924048781394958
+        },
+        {
+          "text": "The risk level is medium.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=RU-190 Rural Unincorporated, cup_required=True, cup_timeline=6\u201312 months, setback_ft=400, moratorium=False, risk_level=medium, risk_score=35, estimated_permit_timeline=6\u201312 months",
+          "confidence": 0.9867286086082458
+        },
+        {
+          "text": "The permitting timeline is 6\u201312 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=RU-190 Rural Unincorporated, cup_required=True, cup_timeline=6\u201312 months, setback_ft=400, moratorium=False, risk_level=medium, risk_score=35, estimated_permit_timeline=6\u201312 months",
+          "confidence": 0.983412504196167
+        },
+        {
+          "text": "The project size is 230.0 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.00879294890910387
+        },
+        {
+          "text": "The project size is 276.0 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.01327607873827219
+        },
+        {
+          "text": "The capex is $246.2M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2M, capex_raw=246170000",
+          "confidence": 0.9916763305664062
+        },
+        {
+          "text": "The annual opex is $4,025,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$4,025,000/yr, power_price=$42",
+          "confidence": 0.996994137763977
+        },
+        {
+          "text": "The P50 IRR is 4.8%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.018479280173778534
+        },
+        {
+          "text": "The P90 IRR is 3.7%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.008677656762301922
+        },
+        {
+          "text": "The IRA credit is $98.3M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "3M (30% base + 10% domestic content), ira_credit_raw=98260000",
+          "confidence": 0.9899707436561584
+        },
+        {
+          "text": "The IRA credit is based on 30% base and 10% domestic content.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "3M (30% base + 10% domestic content), ira_credit_raw=98260000",
+          "confidence": 0.9963147044181824
+        },
+        {
+          "text": "The P50 revenue is $10.3M/yr.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.008106643334031105
+        },
+        {
+          "text": "The NPV is $-38.0M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.10)",
+          "source_quote": null,
+          "confidence": 0.10209180414676666
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0M (P50, 8% discount), payback_year=Year 14, project_life=25 years",
+          "confidence": 0.9966146349906921
+        },
+        {
+          "text": "The payback year is 14.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0M (P50, 8% discount), payback_year=Year 14, project_life=25 years",
+          "confidence": 0.9968230724334717
+        },
+        {
+          "text": "The community score is 61.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=61, ira_community=False, income_percentile=55, employment_rate=93",
+          "confidence": 0.9983062744140625
+        },
+        {
+          "text": "The IRA energy community status is no.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, ira_itc_pct=40%, is_energy_community=False, net_capex=$147",
+          "confidence": 0.9959483742713928
+        },
+        {
+          "text": "The community rating is Fair.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.025242917239665985
+        }
+      ]
+    },
+    {
+      "query_idx": 10,
+      "query": "Solar site in Licking County, Ohio",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Solar site in Licking County, Ohio",
+        "started_at": 1772060830.4079192,
+        "phase1_session_id": "4e6f6d0e-1fa3-4516-818b-8138010ec70f",
+        "error": "Phase 1 returned no sites"
+      }
+    },
+    {
+      "query_idx": 8,
+      "query": "200-acre solar development near Phoenix, AZ",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "200-acre solar development near Phoenix, AZ",
+        "started_at": 1772060725.3974872,
+        "phase1_session_id": "66804f1e-c9c1-4a96-a4de-5f2ae44f25c7",
+        "phase1_elapsed": 31.888896942138672,
+        "num_sites": 5,
+        "top_site": "Maricopa County Site E",
+        "phase2_session_id": "cf8dc472-71e1-453b-8134-4eb17f146a08",
+        "terralink_latency_ms": 74126,
+        "total_elapsed": 106.02042388916016
+      },
+      "response_text_original": "Site: Maricopa County Site E in Maricopa County, AZ. Satellite score: 88. Solar irradiance: 6.3 kWh/m2/day. Slope: 2.1 degrees. Land cover: Sparse Vegetation / Desert. Land: Owner Jessica & Richard Moore, parcel AZ-MAR-109-6293, 320 acres, last sale $796/acre (2018), zoning A-1 Agricultural. Yield: P50 169360 MWh/yr, P90 160610 MWh/yr, variance 5.2%, capacity factor P50 0.193, degradation 0.5%/yr. Grid: Nearest substation Tenney Substation at 16.8 mi, 69kV, interconnection cost $5,201,033 \u2013 $5,441,033, queue region ERCOT. Permitting: Zoning Agricultural (AZ), CUP not required, setback 300ft, risk level low, timeline 4\u20138 months. Financials: Project size 64.0 MW AC (76.8 MW DC), capex $73.7M, annual opex $1,120,000/yr, P50 IRR 14.9%, P90 IRR 14.0%, IRA credit $27.3M (30% base + 10% domestic content), P50 revenue $7.1M/yr, NPV $29.6M (P50, 8% discount), payback Year 7. Community: Score 65, IRA energy community: no, rating Fair.",
+      "num_sources": 7,
+      "error": "CortexOS error: ",
+      "status": "CORTEX_FAIL"
+    },
+    {
+      "query_idx": 7,
+      "query": "Solar farm in Pinal County, AZ with high irradiance",
+      "adversarial": true,
+      "corruption_desc": "Changed acreage from 880 to 1301",
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Solar farm in Pinal County, AZ with high irradiance",
+        "started_at": 1772060724.735856,
+        "phase1_session_id": "fb41d1a8-470c-4aaa-b86a-1c1ef96dc33e",
+        "phase1_elapsed": 32.11002206802368,
+        "num_sites": 5,
+        "top_site": "Yuma County Site B",
+        "phase2_session_id": "37608314-c373-4640-9f88-9d0f2eaece0d",
+        "terralink_latency_ms": 74562,
+        "total_elapsed": 106.69393014907837
+      },
+      "response_text_original": "Site: Yuma County Site B in Yuma County, AZ. Satellite score: 90. Solar irradiance: 6.1 kWh/m2/day. Slope: 0.7 degrees. Land cover: Sparse Vegetation / Desert. Land: Owner Garcia Family Trust, parcel AZ-Pinal-217-4451, 880 acres, last sale $380/acre (2017), zoning G-R Rural. Yield: P50 202400 MWh/yr, P90 179600 MWh/yr, variance 11.3%, capacity factor P50 0.271, degradation 0.5%/yr. Grid: Nearest substation Substation (115kV) at 14.6 mi, 115kV, interconnection cost $7,703,616 \u2013 $7,853,616, queue region ERCOT. Permitting: Zoning Agricultural (AZ), CUP not required, setback 300ft, risk level low, timeline 4\u20138 months. Financials: Project size 176.0 MW AC (211.2 MW DC), capex $195.7M, annual opex $3,080,000/yr, P50 IRR 4.9%, P90 IRR 3.8%, IRA credit $75.2M (30% base + 10% domestic content), P50 revenue $8.5M/yr, NPV $-29.8M (P50, 8% discount), payback Year 14. Community: Score 65, IRA energy community: no, rating Fair.",
+      "num_sources": 7,
+      "response_text_corrupted": "Site: Yuma County Site B in Yuma County, AZ. Satellite score: 90. Solar irradiance: 6.1 kWh/m2/day. Slope: 0.7 degrees. Land cover: Sparse Vegetation / Desert. Land: Owner Garcia Family Trust, parcel AZ-Pinal-217-4451, 1301 acres, last sale $380/acre (2017), zoning G-R Rural. Yield: P50 202400 MWh/yr, P90 179600 MWh/yr, variance 11.3%, capacity factor P50 0.271, degradation 0.5%/yr. Grid: Nearest substation Substation (115kV) at 14.6 mi, 115kV, interconnection cost $7,703,616 \u2013 $7,853,616, queue region ERCOT. Permitting: Zoning Agricultural (AZ), CUP not required, setback 300ft, risk level low, timeline 4\u20138 months. Financials: Project size 176.0 MW AC (211.2 MW DC), capex $195.7M, annual opex $3,080,000/yr, P50 IRR 4.9%, P90 IRR 3.8%, IRA credit $75.2M (30% base + 10% domestic content), P50 revenue $8.5M/yr, NPV $-29.8M (P50, 8% discount), payback Year 14. Community: Score 65, IRA energy community: no, rating Fair.",
+      "error": "CortexOS error: ",
+      "status": "CORTEX_FAIL"
+    },
+    {
+      "query_idx": 13,
+      "query": "Solar development in Muskingum County, Ohio",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Solar development in Muskingum County, Ohio",
+        "started_at": 1772060891.5015318,
+        "phase1_session_id": "2d13af34-7c62-48f1-8364-3665f8ded70f",
+        "error": "Phase 1 returned no sites"
+      }
+    },
+    {
+      "query_idx": 12,
+      "query": "Community solar project in Knox County, OH",
+      "adversarial": true,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Community solar project in Knox County, OH",
+        "started_at": 1772060891.490164,
+        "phase1_session_id": "6d44bd93-0863-4c38-9798-8daee0e9f71d",
+        "error": "Phase 1 returned no sites"
+      }
+    },
+    {
+      "query_idx": 11,
+      "query": "50-acre solar farm in the Ohio Appalachian region",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "50-acre solar farm in the Ohio Appalachian region",
+        "started_at": 1772060891.416648,
+        "phase1_session_id": "ac022d98-9d55-422b-87a6-7dbd6b40ce34",
+        "error": "Phase 1 returned no sites"
+      }
+    },
+    {
+      "query_idx": 16,
+      "query": "Utility-scale solar in Kern County, California",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 2 returned no packet",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Utility-scale solar in Kern County, California",
+        "started_at": 1772060952.2994912,
+        "phase1_session_id": "8acd94e6-4c6b-4bd7-9ffc-d56a1cce2ba5",
+        "phase1_elapsed": 29.04159379005432,
+        "num_sites": 5,
+        "top_site": "Riverside County Site C",
+        "phase2_session_id": "c5c999eb-9437-4c61-8a1e-dff8a70da3f4",
+        "error": "Phase 2 returned no packet"
+      }
+    },
+    {
+      "query_idx": 14,
+      "query": "100-acre solar site in Lancaster County, Pennsylvania",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 2 returned no packet",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "100-acre solar site in Lancaster County, Pennsylvania",
+        "started_at": 1772060952.261188,
+        "phase1_session_id": "4a54d4e3-d609-4af8-b2b6-235b7f94deb1",
+        "phase1_elapsed": 29.51639199256897,
+        "num_sites": 5,
+        "top_site": "York County Site C",
+        "phase2_session_id": "9143dde8-f11f-4100-880b-2e1c2e9afa06",
+        "error": "Phase 2 returned no packet"
+      }
+    },
+    {
+      "query_idx": 15,
+      "query": "Solar farm in Wake County, North Carolina",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Solar farm in Wake County, North Carolina",
+        "started_at": 1772060952.2913332,
+        "phase1_session_id": "22d75c24-b6fd-44cf-9223-9141c98d1205",
+        "phase1_elapsed": 28.852386713027954,
+        "num_sites": 5,
+        "top_site": "Rowan County Site E",
+        "phase2_session_id": "3fd35384-96e5-4ad4-b91d-b46b5d23de11",
+        "terralink_latency_ms": 39228,
+        "total_elapsed": 68.10015368461609
+      },
+      "response_text_original": "Site: Rowan County Site E in Rowan County, NC. Satellite score: 75. Solar irradiance: 4.8 kWh/m2/day. Slope: 6.4 degrees. Land cover: Cropland / Pasture. Land: Owner Jessica Miller, parcel NC-ROW-381-8025, 1280 acres, last sale $5,678/acre (2006), zoning A-1 Agricultural. Yield: P50 140160 MWh/yr, P90 132294 MWh/yr, variance 5.6%, capacity factor P50 0.16, degradation 0.5%/yr. Grid: Nearest substation Substation (230kV) at 11.1 mi, 230kV, interconnection cost $5,909,581 \u2013 $6,059,581, queue region PJM. Permitting: Zoning Agricultural (NC), CUP required, setback 500ft, risk level medium, timeline 12\u201318 months. Financials: Project size 256.0 MW AC (307.2 MW DC), capex $279.4M, annual opex $4,480,000/yr, P50 IRR 0.1%, P90 IRR 0.1%, IRA credit $109.4M (30% base + 10% domestic content), P50 revenue $6.2M/yr, NPV $-104.2M (P50, 8% discount), payback Year 28. Community: Score 65, IRA energy community: no, rating Fair.",
+      "num_sources": 7,
+      "status": "OK",
+      "hallucination_index": 0.3333,
+      "total_claims": 39,
+      "grounded_count": 26,
+      "hallucinated_count": 13,
+      "opinion_count": 0,
+      "cortex_latency_ms": 55836.7,
+      "claims": [
+        {
+          "text": "Rowan County Site E is located in Rowan County, NC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.27)",
+          "source_quote": null,
+          "confidence": 0.270280122756958
+        },
+        {
+          "text": "The satellite score is 75.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site NC-005 \u2014 Rowan County Site E: satellite_score=75, solar_irradiance=4",
+          "confidence": 0.9965488314628601
+        },
+        {
+          "text": "The solar irradiance is 4.8 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.013880242593586445
+        },
+        {
+          "text": "The slope is 6.4 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.019103864207863808
+        },
+        {
+          "text": "The land cover is Cropland / Pasture.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4 degrees, slope_rating=Fair, land_cover=Cropland / Pasture, protected_area=BLM boundary 0",
+          "confidence": 0.9968937635421753
+        },
+        {
+          "text": "The land is owned by Jessica Miller.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Jessica Miller, mailing_address=County Courthouse, Rowan County, NC, parcel_id=NC-ROW-381-8025, acreage=1280, last_sale_price=$5,678/acre (2006), last_sale_date=2006-08-22, tax_assessment=$5,996,015, land_use=Agricultural, owner_type=individual, zoning=A-1 Agricultural",
+          "confidence": 0.997267484664917
+        },
+        {
+          "text": "The parcel number is NC-ROW-381-8025.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Jessica Miller, mailing_address=County Courthouse, Rowan County, NC, parcel_id=NC-ROW-381-8025, acreage=1280, last_sale_price=$5,678/acre (2006), last_sale_date=2006-08-22, tax_assessment=$5,996,015, land_use=Agricultural, owner_type=individual, zoning=A-1 Agricultural",
+          "confidence": 0.9975928664207458
+        },
+        {
+          "text": "The land area is 1280 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Jessica Miller, mailing_address=County Courthouse, Rowan County, NC, parcel_id=NC-ROW-381-8025, acreage=1280, last_sale_price=$5,678/acre (2006), last_sale_date=2006-08-22, tax_assessment=$5,996,015, land_use=Agricultural, owner_type=individual, zoning=A-1 Agricultural",
+          "confidence": 0.99429851770401
+        },
+        {
+          "text": "The last sale price was $5,678/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Jessica Miller, mailing_address=County Courthouse, Rowan County, NC, parcel_id=NC-ROW-381-8025, acreage=1280, last_sale_price=$5,678/acre (2006), last_sale_date=2006-08-22, tax_assessment=$5,996,015, land_use=Agricultural, owner_type=individual, zoning=A-1 Agricultural",
+          "confidence": 0.997430145740509
+        },
+        {
+          "text": "The last sale occurred in 2006.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Jessica Miller, mailing_address=County Courthouse, Rowan County, NC, parcel_id=NC-ROW-381-8025, acreage=1280, last_sale_price=$5,678/acre (2006), last_sale_date=2006-08-22, tax_assessment=$5,996,015, land_use=Agricultural, owner_type=individual, zoning=A-1 Agricultural",
+          "confidence": 0.9960755705833435
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Jessica Miller, mailing_address=County Courthouse, Rowan County, NC, parcel_id=NC-ROW-381-8025, acreage=1280, last_sale_price=$5,678/acre (2006), last_sale_date=2006-08-22, tax_assessment=$5,996,015, land_use=Agricultural, owner_type=individual, zoning=A-1 Agricultural",
+          "confidence": 0.9951955676078796
+        },
+        {
+          "text": "The yield P50 is 140160 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=140160, p90_mwh_yr=132294, variance_pct=5",
+          "confidence": 0.9978803396224976
+        },
+        {
+          "text": "The yield P90 is 132294 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=140160, p90_mwh_yr=132294, variance_pct=5",
+          "confidence": 0.995005190372467
+        },
+        {
+          "text": "The variance is 5.6%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'5.6%'} not found in sources. Sources contain: {'5.6'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.16.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.035795245319604874
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is 11.1 mi away.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.0033061213325709105
+        },
+        {
+          "text": "The substation voltage is 230kV.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Grid Connection] substation_name=Substation (230kV), distance_mi=11",
+          "confidence": 0.9546610713005066
+        },
+        {
+          "text": "The interconnection cost is between $5,909,581 and $6,059,581.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.08)",
+          "source_quote": null,
+          "confidence": 0.08215848356485367
+        },
+        {
+          "text": "The queue region is PJM.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8, voltage_kv=230, utility=Local Utility, cost_range=$5,909,581 \u2013 $6,059,581, cost_low=5909581, cost_high=6059581, queue_region=PJM, queue_status=Review required",
+          "confidence": 0.9937303066253662
+        },
+        {
+          "text": "The zoning is Agricultural in NC.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (NC), cup_required=True, cup_timeline=6\u201312 months, setback_ft=500, moratorium=False, risk_level=medium, risk_score=45, estimated_permit_timeline=12\u201318 months",
+          "confidence": 0.998036801815033
+        },
+        {
+          "text": "A CUP is required.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (NC), cup_required=True, cup_timeline=6\u201312 months, setback_ft=500, moratorium=False, risk_level=medium, risk_score=45, estimated_permit_timeline=12\u201318 months",
+          "confidence": 0.9964118599891663
+        },
+        {
+          "text": "The setback is 500ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (NC), cup_required=True, cup_timeline=6\u201312 months, setback_ft=500, moratorium=False, risk_level=medium, risk_score=45, estimated_permit_timeline=12\u201318 months",
+          "confidence": 0.9939683675765991
+        },
+        {
+          "text": "The risk level is medium.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (NC), cup_required=True, cup_timeline=6\u201312 months, setback_ft=500, moratorium=False, risk_level=medium, risk_score=45, estimated_permit_timeline=12\u201318 months",
+          "confidence": 0.9861895442008972
+        },
+        {
+          "text": "The permitting timeline is 12\u201318 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (NC), cup_required=True, cup_timeline=6\u201312 months, setback_ft=500, moratorium=False, risk_level=medium, risk_score=45, estimated_permit_timeline=12\u201318 months",
+          "confidence": 0.979175329208374
+        },
+        {
+          "text": "The project size is 256.0 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.012655392289161682
+        },
+        {
+          "text": "The project size is 307.2 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.006218945607542992
+        },
+        {
+          "text": "The capex is $279.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M, capex_raw=279392581",
+          "confidence": 0.9940388202667236
+        },
+        {
+          "text": "The annual opex is $4,480,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$4,480,000/yr, power_price=$44",
+          "confidence": 0.9970701932907104
+        },
+        {
+          "text": "The P50 IRR is 0.1%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.020531175658106804
+        },
+        {
+          "text": "The P90 IRR is 0.1%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.054457392543554306
+        },
+        {
+          "text": "The IRA credit is $109.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M (30% base + 10% domestic content), ira_credit_raw=109360000",
+          "confidence": 0.9954824447631836
+        },
+        {
+          "text": "The P50 revenue is $6.2M/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8M/yr (downside), p50_revenue_raw=6170000",
+          "confidence": 0.921848475933075
+        },
+        {
+          "text": "The NPV is $-104.2M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.09)",
+          "source_quote": null,
+          "confidence": 0.09429194033145905
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2M (P50, 8% discount), payback_year=Year 28, project_life=25 years",
+          "confidence": 0.9967966675758362
+        },
+        {
+          "text": "The payback is Year 28.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2M (P50, 8% discount), payback_year=Year 28, project_life=25 years",
+          "confidence": 0.9967411160469055
+        },
+        {
+          "text": "The community score is 65.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=65, ira_community=False, income_percentile=48, employment_rate=89",
+          "confidence": 0.9982897639274597
+        },
+        {
+          "text": "The IRA energy community is no.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, ira_itc_pct=40%, is_energy_community=False, net_capex=$170",
+          "confidence": 0.9912987351417542
+        },
+        {
+          "text": "The rating is Fair.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4 degrees, slope_rating=Fair, land_cover=Cropland / Pasture, protected_area=BLM boundary 0",
+          "confidence": 0.9928264617919922
+        }
+      ]
+    },
+    {
+      "query_idx": 19,
+      "query": "Cheapest 50-acre solar site in Texas under $2M total capex",
+      "adversarial": true,
+      "corruption_desc": "Changed distance from 3.1 mi to 8.1 mi",
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Cheapest 50-acre solar site in Texas under $2M total capex",
+        "started_at": 1772061076.3119922,
+        "phase1_session_id": "631dd966-c4fb-47a9-9c2c-5fdddb876df1",
+        "phase1_elapsed": 22.086050033569336,
+        "num_sites": 5,
+        "top_site": "Roberts County Site D",
+        "phase2_session_id": "276f3926-a4d6-4f36-83fa-5592cdaf2c42",
+        "terralink_latency_ms": 31232,
+        "total_elapsed": 53.327674865722656
+      },
+      "response_text_original": "Site: Roberts County Site D in Roberts County, TX. Satellite score: 83. Solar irradiance: 5.7 kWh/m2/day. Slope: 2.4 degrees. Land cover: Cropland / Grassland. Land: Owner Texas Panhandle Ranches Inc., parcel TX-Hemphill-044-119, 960 acres, last sale $320/acre (2018), zoning A-1 Agricultural. Yield: P50 276200 MWh/yr, P90 239600 MWh/yr, variance 13.2%, capacity factor P50 0.235, degradation 0.5%/yr. Grid: Nearest substation AEP Texas Hemphill Sub at 3.1 mi, 69kV, interconnection cost $1.1M \u2013 $1.5M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP required, setback 750ft, risk level high, timeline 14\u201324 months. Financials: Project size 192.0 MW AC (230.4 MW DC), capex $206.4M, annual opex $3,360,000/yr, P50 IRR 7.9%, P90 IRR 6.3%, IRA credit $102.5M (30% base + 10% EC adder + 10% domestic content), P50 revenue $9.7M/yr, NPV $-0.6M (P50, 8% discount), payback Year 11. Community: Score 58, IRA energy community: yes, rating Fair.",
+      "num_sources": 7,
+      "response_text_corrupted": "Site: Roberts County Site D in Roberts County, TX. Satellite score: 83. Solar irradiance: 5.7 kWh/m2/day. Slope: 2.4 degrees. Land cover: Cropland / Grassland. Land: Owner Texas Panhandle Ranches Inc., parcel TX-Hemphill-044-119, 960 acres, last sale $320/acre (2018), zoning A-1 Agricultural. Yield: P50 276200 MWh/yr, P90 239600 MWh/yr, variance 13.2%, capacity factor P50 0.235, degradation 0.5%/yr. Grid: Nearest substation AEP Texas Hemphill Sub at 8.1 mi, 69kV, interconnection cost $1.1M \u2013 $1.5M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP required, setback 750ft, risk level high, timeline 14\u201324 months. Financials: Project size 192.0 MW AC (230.4 MW DC), capex $206.4M, annual opex $3,360,000/yr, P50 IRR 7.9%, P90 IRR 6.3%, IRA credit $102.5M (30% base + 10% EC adder + 10% domestic content), P50 revenue $9.7M/yr, NPV $-0.6M (P50, 8% discount), payback Year 11. Community: Score 58, IRA energy community: yes, rating Fair.",
+      "status": "OK",
+      "hallucination_index": 0.4737,
+      "total_claims": 38,
+      "grounded_count": 20,
+      "hallucinated_count": 18,
+      "opinion_count": 0,
+      "cortex_latency_ms": 45857.7,
+      "claims": [
+        {
+          "text": "Roberts County Site D is located in Roberts County, TX.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.68)",
+          "source_quote": null,
+          "confidence": 0.6810228824615479
+        },
+        {
+          "text": "The satellite score is 83.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site TX-004 \u2014 Roberts County Site D: satellite_score=83, solar_irradiance=5",
+          "confidence": 0.996911883354187
+        },
+        {
+          "text": "The solar irradiance is 5.7 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.008482425473630428
+        },
+        {
+          "text": "The slope is 2.4 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.0115406084805727
+        },
+        {
+          "text": "The land cover is Cropland / Grassland.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4 degrees, slope_rating=Excellent, land_cover=Cropland / Grassland, protected_area=None within 4",
+          "confidence": 0.9962167143821716
+        },
+        {
+          "text": "The land is owned by Texas Panhandle Ranches Inc.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Texas Panhandle Ranches Inc",
+          "confidence": 0.9965853691101074
+        },
+        {
+          "text": "The parcel number is TX-Hemphill-044-119.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979265928268433
+        },
+        {
+          "text": "The land area is 960 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.995026171207428
+        },
+        {
+          "text": "The last sale price was $320/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9977413415908813
+        },
+        {
+          "text": "The sale occurred in 2018.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": ", mailing_address=1200 S Main St, Shamrock, TX 79079, parcel_id=TX-Hemphill-044-119, acreage=960, last_sale_price=$320/acre (2018), last_sale_date=2018-04-12, tax_assessment=$307,200, land_use=Agricultural \u2014 Rangeland, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9873003363609314
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9980140924453735
+        },
+        {
+          "text": "The yield P50 is 276200 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=276200, p90_mwh_yr=239600, variance_pct=13",
+          "confidence": 0.9979425072669983
+        },
+        {
+          "text": "The yield P90 is 239600 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=276200, p90_mwh_yr=239600, variance_pct=13",
+          "confidence": 0.9959613680839539
+        },
+        {
+          "text": "The variance is 13.2%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'13.2%'} not found in sources. Sources contain: {'13.2'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.235.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.05403672158718109
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is AEP Texas Hemphill Sub.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.020800171419978142
+        },
+        {
+          "text": "The distance to the substation is 8.1 mi.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'8.1'} not found in sources. Sources contain: {'', '206.4', '230.4', '320', '0.235', '11', '103', '3.7', '40', '0.658', '044', '4.6', '1.5', '24', '004', '6.3', '04', '9670000.0', '11.4', '119', '13.2', '3.1', '102', '960', '8%', '8.4', '1200', '50%', '0.812', '2.4', '0.5', '0.902', '103.8', '50', '6.3%', '8390000.0', '30', '0.89', '5.0', '750', '0.814', '276200', '25', '0', '1', '102530000.0', '7.9', '10%', '79079', '0.85', '307200', '65', '1500000', '2018', '12', '0.204', '1.1', '102.5', '5.51', '7.9%', '1100000', '206', '34.7161', '83', '4.5', '10', '69', '206356000.0', '58', '3360000', '90.5', '14', '5.7', '9.7', '239600', '35.0', '8', '0.787', '102.3087', '0.808', '30%', '9', '192.0'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The substation voltage is 69kV.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.0473719947040081
+        },
+        {
+          "text": "The interconnection cost is between $1.1M and $1.5M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.040841273963451385
+        },
+        {
+          "text": "The queue region is SPP.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M, cost_low=1100000, cost_high=1500000, queue_region=SPP, queue_status=Moderate queue",
+          "confidence": 0.9973956346511841
+        },
+        {
+          "text": "A CUP is required for permitting.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.996366024017334
+        },
+        {
+          "text": "The setback is 750ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9906843900680542
+        },
+        {
+          "text": "The risk level is high.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.07)",
+          "source_quote": null,
+          "confidence": 0.06888938695192337
+        },
+        {
+          "text": "The permitting timeline is between 14 and 24 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=True, cup_timeline=12\u201324 months, setback_ft=750, moratorium=False, risk_level=high, risk_score=65, estimated_permit_timeline=14\u201324 months",
+          "confidence": 0.9885265827178955
+        },
+        {
+          "text": "The project size is 192.0 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.00837614294141531
+        },
+        {
+          "text": "The project size is 230.4 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.031853701919317245
+        },
+        {
+          "text": "The capex is $206.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M, capex_raw=206356000",
+          "confidence": 0.9938424825668335
+        },
+        {
+          "text": "The annual opex is $3,360,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$3,360,000/yr, power_price=$35",
+          "confidence": 0.9970858693122864
+        },
+        {
+          "text": "The P50 IRR is 7.9%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.004884709138423204
+        },
+        {
+          "text": "The P90 IRR is 6.3%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.018247365951538086
+        },
+        {
+          "text": "The IRA credit is $102.5M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "5M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=102530000",
+          "confidence": 0.9931881427764893
+        },
+        {
+          "text": "The P50 revenue is $9.7M/yr.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.05337078496813774
+        },
+        {
+          "text": "The NPV is $-0.6M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.0432601198554039
+        },
+        {
+          "text": "The payback year is 11.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9964913725852966
+        },
+        {
+          "text": "The community score is 58.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=58, ira_community=True, income_percentile=40, employment_rate=90",
+          "confidence": 0.9983256459236145
+        },
+        {
+          "text": "The site is an IRA energy community.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, voltage_kv=69, utility=AEP Texas, cost_range=$1",
+          "confidence": 0.971775472164154
+        },
+        {
+          "text": "The community rating is Fair.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.027009880170226097
+        }
+      ],
+      "adversarial_caught": true
+    },
+    {
+      "query_idx": 18,
+      "query": "50-acre solar site in Pueblo County, Colorado",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "50-acre solar site in Pueblo County, Colorado",
+        "started_at": 1772061065.062755,
+        "phase1_session_id": "1d53e297-85fb-42f9-84c4-2f3eb6a34c17",
+        "phase1_elapsed": 39.82870078086853,
+        "num_sites": 5,
+        "top_site": "Morgan County Site C",
+        "phase2_session_id": "8f8af6db-6588-4579-b3d7-8de319b6aab4",
+        "terralink_latency_ms": 71646,
+        "total_elapsed": 111.48037505149841
+      },
+      "response_text_original": "Site: Morgan County Site C in Morgan County, CO. Satellite score: 80. Solar irradiance: 5.3 kWh/m2/day. Slope: 4.2 degrees. Land cover: Native Grassland. Land: Owner Walker Family Trust, parcel CO-MOR-763-3499, 640 acres, last sale $1,953/acre (2014), zoning A-1 Agricultural. Yield: P50 146000 MWh/yr, P90 137125 MWh/yr, variance 6.1%, capacity factor P50 0.167, degradation 0.5%/yr. Grid: Nearest substation Substation (138kV) at 5.1 mi, 138kV, interconnection cost $2,839,947 \u2013 $2,989,947, queue region SPP. Permitting: Zoning Agricultural (CO), CUP not required, setback 300ft, risk level low, timeline 4\u20138 months. Financials: Project size 128.0 MW AC (153.6 MW DC), capex $139.6M, annual opex $2,240,000/yr, P50 IRR 4.7%, P90 IRR 4.1%, IRA credit $54.7M (30% base + 10% domestic content), P50 revenue $5.8M/yr, NPV $-22.6M (P50, 8% discount), payback Year 15. Community: Score 65, IRA energy community: no, rating Fair.",
+      "num_sources": 7,
+      "status": "OK",
+      "hallucination_index": 0.35,
+      "total_claims": 40,
+      "grounded_count": 26,
+      "hallucinated_count": 14,
+      "opinion_count": 0,
+      "cortex_latency_ms": 54780.0,
+      "claims": [
+        {
+          "text": "The site is located in Morgan County, CO.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.996056079864502
+        },
+        {
+          "text": "The satellite score is 80.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site CO-003 \u2014 Morgan County Site C: satellite_score=80, solar_irradiance=5",
+          "confidence": 0.9967013001441956
+        },
+        {
+          "text": "The solar irradiance is 5.3 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.010181325487792492
+        },
+        {
+          "text": "The slope is 4.2 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.0315299853682518
+        },
+        {
+          "text": "The land cover is Native Grassland.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2 degrees, slope_rating=Good, land_cover=Native Grassland, protected_area=None within 4",
+          "confidence": 0.9959208965301514
+        },
+        {
+          "text": "The land is owned by Walker Family Trust.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.9973541498184204
+        },
+        {
+          "text": "The parcel number is CO-MOR-763-3499.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.9978827834129333
+        },
+        {
+          "text": "The land area is 640 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.9959871172904968
+        },
+        {
+          "text": "The last sale price was $1,953/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.9974310994148254
+        },
+        {
+          "text": "The last sale occurred in 2014.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.9957790374755859
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Walker Family Trust, mailing_address=County Courthouse, Morgan County, CO, parcel_id=CO-MOR-763-3499, acreage=640, last_sale_price=$1,953/acre (2014), last_sale_date=2014-05-09, tax_assessment=$1,050,208, land_use=Agricultural / Rangeland, owner_type=trust, zoning=A-1 Agricultural",
+          "confidence": 0.9966617822647095
+        },
+        {
+          "text": "The yield P50 is 146000 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=146000, p90_mwh_yr=137125, variance_pct=6",
+          "confidence": 0.997793436050415
+        },
+        {
+          "text": "The yield P90 is 137125 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=146000, p90_mwh_yr=137125, variance_pct=6",
+          "confidence": 0.9940474033355713
+        },
+        {
+          "text": "The variance is 6.1%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'6.1%'} not found in sources. Sources contain: {'6.1'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.167.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.04)",
+          "source_quote": null,
+          "confidence": 0.037417683750391006
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is 5.1 mi away.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.00)",
+          "source_quote": null,
+          "confidence": 0.0022778671700507402
+        },
+        {
+          "text": "The substation voltage is 138kV.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Grid Connection] substation_name=Substation (138kV), distance_mi=5",
+          "confidence": 0.927200973033905
+        },
+        {
+          "text": "The interconnection cost is between $2,839,947 and $2,989,947.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.11)",
+          "source_quote": null,
+          "confidence": 0.11404409259557724
+        },
+        {
+          "text": "The queue region is SPP.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2, voltage_kv=138, utility=Local Utility, cost_range=$2,839,947 \u2013 $2,989,947, cost_low=2839947, cost_high=2989947, queue_region=SPP, queue_status=Review required",
+          "confidence": 0.9969967603683472
+        },
+        {
+          "text": "The zoning is Agricultural in CO.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (CO), cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=25, estimated_permit_timeline=4\u20138 months",
+          "confidence": 0.9979318380355835
+        },
+        {
+          "text": "A CUP is not required.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (CO), cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=25, estimated_permit_timeline=4\u20138 months",
+          "confidence": 0.9919392466545105
+        },
+        {
+          "text": "The setback is 300ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (CO), cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=25, estimated_permit_timeline=4\u20138 months",
+          "confidence": 0.9941206574440002
+        },
+        {
+          "text": "The risk level is low.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.31)",
+          "source_quote": null,
+          "confidence": 0.31476789712905884
+        },
+        {
+          "text": "The permitting timeline is 4\u20138 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=Agricultural (CO), cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=25, estimated_permit_timeline=4\u20138 months",
+          "confidence": 0.9915243983268738
+        },
+        {
+          "text": "The project size is 128.0 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.018111515790224075
+        },
+        {
+          "text": "The project size is 153.6 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.02206220105290413
+        },
+        {
+          "text": "The capex is $139.6M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M, capex_raw=139618947",
+          "confidence": 0.9941137433052063
+        },
+        {
+          "text": "The annual opex is $2,240,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$2,240,000/yr, power_price=$40",
+          "confidence": 0.9970008730888367
+        },
+        {
+          "text": "The P50 IRR is 4.7%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.006531077437102795
+        },
+        {
+          "text": "The P90 IRR is 4.1%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.03)",
+          "source_quote": null,
+          "confidence": 0.03470076620578766
+        },
+        {
+          "text": "The IRA credit is $54.7M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7M (30% base + 10% domestic content), ira_credit_raw=54680000",
+          "confidence": 0.9911504983901978
+        },
+        {
+          "text": "The IRA credit is 30% base plus 10% domestic content.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7M (30% base + 10% domestic content), ira_credit_raw=54680000",
+          "confidence": 0.9944033622741699
+        },
+        {
+          "text": "The P50 revenue is $5.8M/yr.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.10)",
+          "source_quote": null,
+          "confidence": 0.09664061665534973
+        },
+        {
+          "text": "The NPV is $-22.6M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.045330069959163666
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 15, project_life=25 years",
+          "confidence": 0.9966701865196228
+        },
+        {
+          "text": "The payback year is 15.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "6M (P50, 8% discount), payback_year=Year 15, project_life=25 years",
+          "confidence": 0.9970445036888123
+        },
+        {
+          "text": "The community score is 65.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=65, ira_community=False, income_percentile=47, employment_rate=89",
+          "confidence": 0.9982783794403076
+        },
+        {
+          "text": "The IRA energy community is no.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, ira_itc_pct=40%, is_energy_community=False, net_capex=$84",
+          "confidence": 0.9911829233169556
+        },
+        {
+          "text": "The rating is Fair.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "0, rating=Fair",
+          "confidence": 0.9859360456466675
+        }
+      ]
+    },
+    {
+      "query_idx": 20,
+      "query": "Solar site within 1 mile of a 345kV substation in Texas",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Solar site within 1 mile of a 345kV substation in Texas",
+        "started_at": 1772061175.5433338,
+        "phase1_session_id": "82c12884-866d-4990-b85a-715837acc95a",
+        "error": "Phase 1 returned no sites"
+      }
+    },
+    {
+      "query_idx": 17,
+      "query": "Solar project in Nye County, Nevada",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Solar project in Nye County, Nevada",
+        "started_at": 1772061058.585239,
+        "phase1_session_id": "c9d280ce-910a-4082-8eba-3e386a0d7417",
+        "phase1_elapsed": 48.83566904067993,
+        "num_sites": 5,
+        "top_site": "Clark County Site C",
+        "phase2_session_id": "30bd7f0e-51f4-4227-9f29-f6575b550314",
+        "terralink_latency_ms": 69246,
+        "total_elapsed": 118.0908670425415
+      },
+      "response_text_original": "Site: Clark County Site C in Clark County, NV. Satellite score: 88. Solar irradiance: 6.1 kWh/m2/day. Slope: 2.6 degrees. Land cover: Shrubland. Land: Owner Lisa Jackson, parcel NV-CLA-510-5418, 1120 acres, last sale $1,150/acre (2017), zoning A-1 Agricultural. Yield: P50 151840 MWh/yr, P90 142781 MWh/yr, variance 6.0%, capacity factor P50 0.173, degradation 0.5%/yr. Grid: Nearest substation NV Area Substation (estimate) at 4.2 mi, 138kV, interconnection cost $1,470,000 \u2013 $2,100,000, queue region WECC. Permitting: Zoning Agricultural (NV), CUP not required, setback 300ft, risk level low, timeline 4\u20138 months. Financials: Project size 224.0 MW AC (268.8 MW DC), capex $241.0M, annual opex $3,920,000/yr, P50 IRR 0.1%, P90 IRR 0.1%, IRA credit $95.7M (30% base + 10% domestic content), P50 revenue $5.8M/yr, NPV $-83.7M (P50, 8% discount), payback Year 25. Community: Score 65, IRA energy community: no, rating Fair.",
+      "num_sources": 7,
+      "error": "CortexOS error: ",
+      "status": "CORTEX_FAIL"
+    },
+    {
+      "query_idx": 21,
+      "query": "Low-risk solar project in a county with no moratorium in Ohio",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 2 returned no packet",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Low-risk solar project in a county with no moratorium in Ohio",
+        "started_at": 1772061231.35456,
+        "phase1_session_id": "1a463149-8ee5-4a32-99dc-dcdce13368f0",
+        "phase1_elapsed": 78.1405520439148,
+        "num_sites": 5,
+        "top_site": "Licking County Site A",
+        "phase2_session_id": "6cc6c60f-5a20-43a7-80e4-5b6df59637be",
+        "error": "Phase 2 returned no packet"
+      }
+    },
+    {
+      "query_idx": 23,
+      "query": "Energy community eligible solar site in Collingsworth County, TX",
+      "adversarial": true,
+      "corruption_desc": "Changed capex from $131.8M to $892.3M",
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Energy community eligible solar site in Collingsworth County, TX",
+        "started_at": 1772061236.690869,
+        "phase1_session_id": "3ee22cd1-a878-4ec1-87ed-d7e3f0b9e586",
+        "phase1_elapsed": 69.50468182563782,
+        "num_sites": 5,
+        "top_site": "Hemphill County Site B",
+        "phase2_session_id": "69361aa4-a4e3-4f0d-9fe4-9607f73b5253",
+        "terralink_latency_ms": 28826,
+        "total_elapsed": 98.33640599250793
+      },
+      "response_text_original": "Site: Hemphill County Site B in Hemphill County, TX. Satellite score: 82. Solar irradiance: 5.3 kWh/m2/day. Slope: 1.7 degrees. Land cover: Cropland. Land: Owner Higgins Land Trust LLC, parcel TX-Gray-118-445, 612 acres, last sale $295/acre (2015), zoning A-1 Agricultural. Yield: P50 175800 MWh/yr, P90 154400 MWh/yr, variance 12.2%, capacity factor P50 0.239, degradation 0.5%/yr. Grid: Nearest substation Xcel Energy Gray Sub at 2.3 mi, 115kV, interconnection cost $890K \u2013 $1.2M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP not required, setback 300ft, risk level low, timeline 3\u20136 months. Financials: Project size 122.4 MW AC (146.9 MW DC), capex $131.8M, annual opex $2,142,000/yr, P50 IRR 7.9%, P90 IRR 6.4%, IRA credit $65.4M (30% base + 10% EC adder + 10% domestic content), P50 revenue $6.2M/yr, NPV $-0.8M (P50, 8% discount), payback Year 11. Community: Score 68, IRA energy community: yes, rating Good.",
+      "num_sources": 7,
+      "response_text_corrupted": "Site: Hemphill County Site B in Hemphill County, TX. Satellite score: 82. Solar irradiance: 5.3 kWh/m2/day. Slope: 1.7 degrees. Land cover: Cropland. Land: Owner Higgins Land Trust LLC, parcel TX-Gray-118-445, 612 acres, last sale $295/acre (2015), zoning A-1 Agricultural. Yield: P50 175800 MWh/yr, P90 154400 MWh/yr, variance 12.2%, capacity factor P50 0.239, degradation 0.5%/yr. Grid: Nearest substation Xcel Energy Gray Sub at 2.3 mi, 115kV, interconnection cost $890K \u2013 $1.2M, queue region SPP. Permitting: Zoning A-1 Agricultural, CUP not required, setback 300ft, risk level low, timeline 3\u20136 months. Financials: Project size 122.4 MW AC (146.9 MW DC), capex $892.3M, annual opex $2,142,000/yr, P50 IRR 7.9%, P90 IRR 6.4%, IRA credit $65.4M (30% base + 10% EC adder + 10% domestic content), P50 revenue $6.2M/yr, NPV $-0.8M (P50, 8% discount), payback Year 11. Community: Score 68, IRA energy community: yes, rating Good.",
+      "status": "OK",
+      "hallucination_index": 0.4615,
+      "total_claims": 39,
+      "grounded_count": 21,
+      "hallucinated_count": 18,
+      "opinion_count": 0,
+      "cortex_latency_ms": 51158.0,
+      "claims": [
+        {
+          "text": "Hemphill County Site B is located in Hemphill County, TX.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.55)",
+          "source_quote": null,
+          "confidence": 0.5467635989189148
+        },
+        {
+          "text": "The satellite score is 82.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[GEE Scorer] Site TX-002 \u2014 Hemphill County Site B: satellite_score=82, solar_irradiance=5",
+          "confidence": 0.9965742826461792
+        },
+        {
+          "text": "The solar irradiance is 5.3 kWh/m2/day.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.010283113457262516
+        },
+        {
+          "text": "The slope is 1.7 degrees.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.022229664027690887
+        },
+        {
+          "text": "The land cover is Cropland.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7 degrees, slope_rating=Excellent, land_cover=Cropland, protected_area=None within 3",
+          "confidence": 0.9961643218994141
+        },
+        {
+          "text": "The land is owned by Higgins Land Trust LLC.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979678988456726
+        },
+        {
+          "text": "The parcel number is TX-Gray-118-445.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9979265928268433
+        },
+        {
+          "text": "The land area is 612 acres.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9955097436904907
+        },
+        {
+          "text": "The last sale price was $295/acre.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9974648952484131
+        },
+        {
+          "text": "The last sale occurred in 2015.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Land Intelligence] Owner: Higgins Land Trust LLC, mailing_address=PO Box 412, Pampa, TX 79065, parcel_id=TX-Gray-118-445, acreage=612, last_sale_price=$295/acre (2015), last_sale_date=2015-07-22, tax_assessment=$180,540, land_use=Agricultural \u2014 Grazing, owner_type=entity, zoning=A-1 Agricultural",
+          "confidence": 0.9952059388160706
+        },
+        {
+          "text": "The zoning is A-1 Agricultural.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.997984766960144
+        },
+        {
+          "text": "The yield P50 is 175800 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=175800, p90_mwh_yr=154400, variance_pct=12",
+          "confidence": 0.997542142868042
+        },
+        {
+          "text": "The yield P90 is 154400 MWh/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Yield Forecast] p50_mwh_yr=175800, p90_mwh_yr=154400, variance_pct=12",
+          "confidence": 0.9957937002182007
+        },
+        {
+          "text": "The variance is 12.2%.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'12.2%'} not found in sources. Sources contain: {'12.2'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The capacity factor P50 is 0.239.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.05)",
+          "source_quote": null,
+          "confidence": 0.04575558751821518
+        },
+        {
+          "text": "The degradation is 0.5%/yr.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'0.5%'} not found in sources. Sources contain: {'0.5'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The nearest substation is Xcel Energy Gray Sub.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.011689795181155205
+        },
+        {
+          "text": "The distance to the nearest substation is 2.3 mi.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.0066990358754992485
+        },
+        {
+          "text": "The substation voltage is 115kV.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.011926235631108284
+        },
+        {
+          "text": "The interconnection cost is between $890K and $1.2M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.37)",
+          "source_quote": null,
+          "confidence": 0.37027961015701294
+        },
+        {
+          "text": "The queue region is SPP.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "2M, cost_low=890000, cost_high=1200000, queue_region=SPP, queue_status=Moderate queue \u2014 SPP active review",
+          "confidence": 0.9975850582122803
+        },
+        {
+          "text": "A CUP is not required.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.9945803284645081
+        },
+        {
+          "text": "The setback is 300ft.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.9937006235122681
+        },
+        {
+          "text": "The risk level is low.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.60)",
+          "source_quote": null,
+          "confidence": 0.5951238870620728
+        },
+        {
+          "text": "The permitting timeline is 3\u20136 months.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Permitting Risk] zoning_class=A-1 Agricultural, cup_required=False, cup_timeline=N/A, setback_ft=300, moratorium=False, risk_level=low, risk_score=22, estimated_permit_timeline=3\u20136 months",
+          "confidence": 0.9906230568885803
+        },
+        {
+          "text": "The project size is 122.4 MW AC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.020337479189038277
+        },
+        {
+          "text": "The project size is 146.9 MW DC.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.013169048354029655
+        },
+        {
+          "text": "The capex is $892.3M.",
+          "grounded": false,
+          "verdict": "NUM_MISMATCH",
+          "reason": "NUM_MISMATCH: {'892', '892.3'} not found in sources. Sources contain: {'', '5', '0.913', '612', '12.2', '0.625', '6150000.0', '154400', '300', '11', '131786000.0', '3.7', '5.68', '68', '6', '0.88', '2015', '3.6', '3.8', '445', '34.8225', '66', '1.7', '115', '180540', '1200000', '0.21', '5.3', '146.9', '002', '8%', '92.1', '79065', '50%', '6.4%', '0.916', '66.4', '3', '131', '295', '0.5', '50', '07', '2.3', '30', '0.89', '25', '41', '0', '890000', '1', '7.9', '10%', '65.4', '65', '101.1613', '12.8', '65370000.00000001', '7.9%', '412', '0.665', '0.938', '0.757', '2142000', '22', '6.2', '5.4', '10', '5400000.0', '131.8', '118', '82', '6.4', '890', '35.0', '8', '4.1', '0.239', '1.2', '122.4', '30%', '175800'}",
+          "source_quote": null,
+          "confidence": 1.0
+        },
+        {
+          "text": "The annual opex is $2,142,000/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "89/W-DC, annual_opex=$2,142,000/yr, power_price=$35",
+          "confidence": 0.9969862103462219
+        },
+        {
+          "text": "The P50 IRR is 7.9%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.01)",
+          "source_quote": null,
+          "confidence": 0.006413544062525034
+        },
+        {
+          "text": "The P90 IRR is 6.4%.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.02)",
+          "source_quote": null,
+          "confidence": 0.015235967934131622
+        },
+        {
+          "text": "The IRA credit is $65.4M.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M (30% base + 10% EC adder + 10% domestic content), ira_credit_raw=65370000",
+          "confidence": 0.9945080876350403
+        },
+        {
+          "text": "The P50 revenue is $6.2M/yr.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "4M/yr (downside), p50_revenue_raw=6150000",
+          "confidence": 0.8074365258216858
+        },
+        {
+          "text": "The NPV is $-0.8M.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.06)",
+          "source_quote": null,
+          "confidence": 0.05731547996401787
+        },
+        {
+          "text": "The discount rate is 8%.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9965762495994568
+        },
+        {
+          "text": "The payback year is 11.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "8M (P50, 8% discount), payback_year=Year 11, project_life=25 years",
+          "confidence": 0.9966264963150024
+        },
+        {
+          "text": "The community score is 68.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "[Community] score=68, ira_community=True, income_percentile=41, employment_rate=92",
+          "confidence": 0.9983640313148499
+        },
+        {
+          "text": "The site is an IRA energy community.",
+          "grounded": false,
+          "verdict": "UNSUPPORTED",
+          "reason": "No source sentence entails this claim (best: 0.50)",
+          "source_quote": null,
+          "confidence": 0.4957802891731262
+        },
+        {
+          "text": "The community rating is Good.",
+          "grounded": true,
+          "verdict": "GROUNDED",
+          "reason": "",
+          "source_quote": "7 degrees, slope_rating=Excellent, land_cover=Cropland, protected_area=None within 3",
+          "confidence": 0.9672682881355286
+        }
+      ],
+      "adversarial_caught": true
+    },
+    {
+      "query_idx": 22,
+      "query": "Solar farm on agricultural land in the Texas Panhandle",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "terralink_meta": {
+        "query": "Solar farm on agricultural land in the Texas Panhandle",
+        "started_at": 1772061236.17115,
+        "phase1_session_id": "a0fe9256-9442-42ac-874d-8eff684f6834",
+        "phase1_elapsed": 69.00408601760864,
+        "num_sites": 5,
+        "top_site": "Castro County Site A",
+        "phase2_session_id": "e3a32e01-34cc-47aa-b64b-343d42d8efe3",
+        "terralink_latency_ms": 29339,
+        "total_elapsed": 98.35177087783813
+      },
+      "response_text_original": "Site: Castro County Site A in Castro County, TX. Satellite score: 87. Solar irradiance: 5.9 kWh/m2/day. Slope: 1.7 degrees. Land cover: Cropland. Land: Owner James R. Holloway, parcel TX-Wheeler-234-891, 847 acres, last sale $340/acre (2009), zoning A-1 Agricultural. Yield: P50 211200 MWh/yr, P90 184800 MWh/yr, variance 12.5%, capacity factor P50 0.241, degradation 0.5%/yr. Grid: Nearest substation Oncor Wheeler Substation at 1.1 mi, 345kV, interconnection cost $570K \u2013 $820K, queue region ERCOT. Permitting: Zoning A-1 Agricultural, CUP required, setback 500ft, risk level medium, timeline 8\u201314 months. Financials: Project size 169.4 MW AC (203.3 MW DC), capex $181.6M, annual opex $2,964,500/yr, P50 IRR 6.4%, P90 IRR 5.0%, IRA credit $90.5M (30% base + 10% EC adder + 10% domestic content), P50 revenue $7.4M/yr, NPV $-12.3M (P50, 8% discount), payback Year 12. Community: Score 72, IRA energy community: yes, rating Good.",
+      "num_sources": 7,
+      "error": "CortexOS error: ",
+      "status": "CORTEX_FAIL"
+    },
+    {
+      "query_idx": 24,
+      "query": "Solar project in Hemphill County, TX with maximum IRA credits",
+      "adversarial": false,
+      "corruption_desc": null,
+      "threshold": 0.7,
+      "error": "Phase 1 returned no sites",
+      "status": "TERRALINK_FAIL",
+      "terralink_meta": {
+        "query": "Solar project in Hemphill County, TX with maximum IRA credits",
+        "started_at": 1772061382.1915011,
+        "phase1_session_id": "8d107303-4f15-4a57-8b00-a4eee617d21d",
+        "error": "Phase 1 returned no sites"
+      }
+    }
+  ]
+}

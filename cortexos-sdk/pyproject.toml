@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cortexos"
-version = "0.1.0"
-description = "CortexOS Python SDK — memory-augmented LLM agents"
+version = "0.2.0"
+description = "CortexOS Python SDK — hallucination detection for LLM agents"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-keywords = ["llm", "memory", "attribution", "rag", "ai"]
+keywords = ["llm", "memory", "attribution", "rag", "ai", "hallucination"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -24,11 +24,25 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+tui = [
+    "textual>=0.80,<1",
+    "httpx-sse>=0.4,<1",
+    "click>=8,<9",
+]
 dev = [
     "pytest>=8,<9",
     "pytest-asyncio>=0.23,<1",
     "respx>=0.21,<1",   # httpx mock library
 ]
+
+[project.urls]
+Homepage = "https://cortexa.ink"
+Documentation = "https://cortexa.ink/docs"
+Repository = "https://github.com/Tactacion/cortexos-sdk"
+"Bug Tracker" = "https://github.com/Tactacion/cortexos-sdk/issues"
+
+[project.scripts]
+cortexos = "cortexos.tui.cli:monitor"
 
 [tool.setuptools.packages.find]
 include = ["cortexos*"]

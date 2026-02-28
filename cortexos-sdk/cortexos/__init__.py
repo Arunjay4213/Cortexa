@@ -10,6 +10,8 @@ from cortexos.errors import (
     ServerError,
     ValidationError,
 )
+from cortexos.exceptions import CortexOSError, MemoryBlockedError
+from cortexos.models import CheckResult, ClaimResult, GateResult, ShieldResult
 from cortexos.types import (
     Attribution,
     CAMAAttribution,
@@ -21,13 +23,20 @@ from cortexos.types import (
     RecallAndAttributeResult,
     RecallResult,
 )
+from cortexos.verification import VerificationClient
 
-__version__ = "0.1.0"
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("cortexos")
+except PackageNotFoundError:
+    __version__ = "0.2.0"  # fallback for editable installs
 
 __all__ = [
     # Clients
     "Cortex",
     "AsyncCortex",
+    "VerificationClient",
     # Types
     "Memory",
     "Attribution",
@@ -38,8 +47,15 @@ __all__ = [
     "RecallResult",
     "RecallAndAttributeResult",
     "Page",
+    # Verification models
+    "CheckResult",
+    "ClaimResult",
+    "GateResult",
+    "ShieldResult",
     # Errors
     "CortexError",
+    "CortexOSError",
+    "MemoryBlockedError",
     "AuthError",
     "RateLimitError",
     "MemoryNotFoundError",

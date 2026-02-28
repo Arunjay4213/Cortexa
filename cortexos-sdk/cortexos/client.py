@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from cortexos._http import SyncHTTP
 from cortexos.types import Attribution, CAMAAttribution, Memory, Page, RecallAndAttributeResult, RecallResult
 
-_DEFAULT_BASE_URL = "http://localhost:8000"
+_DEFAULT_BASE_URL = os.environ.get("CORTEX_URL", "https://api.cortexa.ink")
 _API_PREFIX = "/api/v1"
 _DEFAULT_TIMEOUT = 30.0
 _DEFAULT_RETRIES = 3

@@ -1,0 +1,335 @@
+/* ═══════════════════════════════════════════════════════
+   CortexOS Monitor — Bloomberg Terminal / Cyberpunk Theme
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Global ─────────────────────────────────────────── */
+Screen {
+    background: #0D0D0D;
+    color: #CCCCCC;
+    layers: base overlay;
+}
+
+/* ── Custom Header ──────────────────────────────────── */
+#cortex-header {
+    height: 3;
+    dock: top;
+}
+
+#header-bar {
+    height: 1;
+    background: #1A1A1A;
+    layout: horizontal;
+    padding: 0 1;
+}
+
+#header-title {
+    width: 1fr;
+    color: #00FF88;
+    text-style: bold;
+}
+
+#header-url {
+    width: auto;
+    color: #444444;
+    content-align: center middle;
+}
+
+#header-status {
+    width: auto;
+    min-width: 12;
+    content-align: right middle;
+}
+
+#tab-bar {
+    height: 1;
+    background: #0D0D0D;
+    layout: horizontal;
+    padding: 0 1;
+}
+
+.tab-btn {
+    width: auto;
+    min-width: 14;
+    padding: 0 1;
+    color: #555555;
+    background: #0D0D0D;
+}
+
+.tab-btn.--active {
+    color: #FFFFFF;
+    text-style: bold;
+    background: #0D0D0D;
+}
+
+#header-sep {
+    height: 1;
+    background: #0D0D0D;
+    color: #222222;
+}
+
+/* ── Custom Footer ──────────────────────────────────── */
+#cortex-footer {
+    height: 1;
+    dock: bottom;
+    background: #1A1A1A;
+    padding: 0 1;
+    color: #444444;
+}
+
+/* ── Main Content ───────────────────────────────────── */
+#main-content {
+    height: 1fr;
+}
+
+ContentSwitcher {
+    height: 1fr;
+}
+
+/* ── Tab 1: Feed ────────────────────────────────────── */
+#feed-pane {
+    height: 1fr;
+    layout: horizontal;
+}
+
+#feed-left {
+    width: 70%;
+    height: 1fr;
+}
+
+#feed-panel {
+    height: 1fr;
+    border: solid #1E3A2F;
+    padding: 0 1;
+}
+
+#feed-panel-title {
+    dock: top;
+    height: 1;
+    color: #00FF88;
+    text-style: bold;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#feed-log {
+    height: 1fr;
+}
+
+#feed-right {
+    width: 30%;
+    height: 1fr;
+    padding: 0 0 0 1;
+}
+
+#session-panel {
+    height: 1fr;
+    border: solid #1A2A3A;
+    padding: 0 1;
+}
+
+#session-title {
+    dock: top;
+    height: 1;
+    color: #00DDFF;
+    text-style: bold;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#session-stats {
+    height: 13;
+}
+
+#sparkline-panel {
+    height: 5;
+    border: solid #1E3A2F;
+    padding: 0 1;
+    dock: bottom;
+}
+
+#sparkline-title {
+    dock: top;
+    height: 1;
+    color: #444444;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#sparkline-content {
+    height: 1fr;
+    color: #00FF88;
+}
+
+/* ── Tab 2: Claims ──────────────────────────────────── */
+#claims-pane {
+    height: 1fr;
+    layout: vertical;
+}
+
+#claims-table {
+    height: 1fr;
+}
+
+#claims-footer {
+    height: 1;
+    dock: bottom;
+    color: #444444;
+    padding: 0 1;
+}
+
+DataTable {
+    height: 1fr;
+}
+
+DataTable > .datatable--header {
+    background: #1A1A2E;
+    color: #00DDFF;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: #1A2A3A;
+}
+
+DataTable > .datatable--header-cursor {
+    background: #1A1A2E;
+    color: #00DDFF;
+    text-style: bold;
+}
+
+/* ── Tab 3: Memory ──────────────────────────────────── */
+#memory-pane {
+    height: 1fr;
+    layout: vertical;
+}
+
+#memory-ops-panel {
+    height: 1fr;
+    border: solid #1E3A2F;
+    padding: 0 1;
+}
+
+#memory-ops-title {
+    dock: top;
+    height: 1;
+    color: #00FF88;
+    text-style: bold;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#memory-ops-log {
+    height: 1fr;
+}
+
+#memory-health-panel {
+    height: 12;
+    border: solid #1A2A3A;
+    padding: 0 1;
+    dock: bottom;
+}
+
+#memory-health-title {
+    dock: top;
+    height: 1;
+    color: #00DDFF;
+    text-style: bold;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#memory-health-content {
+    height: 1fr;
+}
+
+/* ── Tab 4: Agents ──────────────────────────────────── */
+#agents-pane {
+    height: 1fr;
+    layout: vertical;
+}
+
+#agents-table {
+    height: 1fr;
+}
+
+#agents-banner {
+    height: 1;
+    dock: bottom;
+    background: #1A0000;
+    padding: 0 1;
+    color: #FF3366;
+    text-style: bold;
+}
+
+/* ── Tab 5: Inspect ─────────────────────────────────── */
+#inspect-pane {
+    height: 1fr;
+    layout: vertical;
+    padding: 1;
+}
+
+#inspect-empty {
+    height: 1fr;
+    color: #444444;
+    content-align: center middle;
+}
+
+#inspect-header-bar {
+    height: 3;
+    padding: 1;
+    border: solid #1A2A3A;
+    margin-bottom: 1;
+}
+
+#inspect-claims-section {
+    height: 1fr;
+    border: solid #1E3A2F;
+    padding: 0 1;
+}
+
+#inspect-claims-title {
+    dock: top;
+    height: 1;
+    color: #00FF88;
+    text-style: bold;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#inspect-claims-log {
+    height: 1fr;
+}
+
+#inspect-actions {
+    height: 1;
+    dock: bottom;
+    color: #444444;
+    padding: 0 1;
+}
+
+/* ── Command Palette Overlay ────────────────────────── */
+#cmd-overlay {
+    layer: overlay;
+    width: 100%;
+    height: 100%;
+    align: center middle;
+}
+
+#cmd-panel {
+    width: 50;
+    height: 12;
+    background: #111111;
+    border: double #00FF88;
+    padding: 1 2;
+}
+
+#cmd-input {
+    width: 100%;
+    background: #111111;
+    color: #FFFFFF;
+}
+
+#cmd-hints {
+    color: #444444;
+    margin-top: 1;
+}

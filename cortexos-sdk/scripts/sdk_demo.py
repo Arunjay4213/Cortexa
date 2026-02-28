@@ -3,20 +3,27 @@
 CortexOS SDK Demo — stores memories, recalls, runs CAMA, asserts hallucination detection.
 
 Usage:
-    python scripts/sdk_demo.py
+    CORTEX_API_KEY=your-key python scripts/sdk_demo.py
 
 Requires:
-    - CortexOS engine running on localhost:8000
-    - API key: ***REMOVED***
+    - CortexOS engine running (set CORTEX_URL for non-default)
+    - CORTEX_API_KEY environment variable
 """
 
+import os
 import sys
 import time
 
 from cortexos import Cortex, CAMAAttribution
 
-API_KEY = "***REMOVED***"
-BASE_URL = "http://localhost:8000"
+# NOTE: Never commit real API keys. Use env vars.
+API_KEY = os.environ.get("CORTEX_API_KEY")
+if not API_KEY:
+    raise RuntimeError(
+        "Set CORTEX_API_KEY environment variable to run this demo.\n"
+        "Example: CORTEX_API_KEY=your-key python scripts/sdk_demo.py"
+    )
+BASE_URL = os.environ.get("CORTEX_URL", "https://api.cortexa.ink")
 AGENT_ID = "sdk-demo-agent"
 
 # ── Setup ─────────────────────────────────────────────────────────────────

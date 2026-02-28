@@ -5,7 +5,7 @@ Run with:
     pytest tests/test_integration.py -v
 
 Requires:
-    CORTEX_BASE_URL env var (default: http://localhost:8000)
+    CORTEX_BASE_URL env var (default: https://api.cortexa.ink)
     A running cortex-engine server with embedding backend healthy.
 
 These tests are skipped automatically if the server is not reachable.
@@ -23,7 +23,7 @@ import pytest_asyncio
 from cortexos import AsyncCortex, Cortex
 from cortexos.errors import MemoryNotFoundError
 
-BASE_URL = os.environ.get("CORTEX_BASE_URL", "http://localhost:8000")
+BASE_URL = os.environ.get("CORTEX_BASE_URL", "https://api.cortexa.ink")
 ADMIN_SECRET = os.environ.get("CORTEX_ADMIN_SECRET", "cortex-admin-secret")
 AGENT_PREFIX = "sdk-integ"
 

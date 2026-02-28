@@ -3,14 +3,22 @@
 CortexOS SDK Error Handling Test — verifies proper exception types.
 
 Usage:
-    python scripts/test_errors.py
+    CORTEX_API_KEY=your-key python scripts/test_errors.py
 """
+
+import os
 
 from cortexos import Cortex
 from cortexos.errors import CortexError, MemoryNotFoundError
 
-BASE_URL = "http://localhost:8000"
-API_KEY = "***REMOVED***"
+# NOTE: Never commit real API keys. Use env vars.
+BASE_URL = os.environ.get("CORTEX_URL", "https://api.cortexa.ink")
+API_KEY = os.environ.get("CORTEX_API_KEY")
+if not API_KEY:
+    raise RuntimeError(
+        "Set CORTEX_API_KEY environment variable to run this test.\n"
+        "Example: CORTEX_API_KEY=your-key python scripts/test_errors.py"
+    )
 
 print("=" * 60)
 print("  CortexOS SDK Error Handling Tests")
