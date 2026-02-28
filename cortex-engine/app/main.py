@@ -17,16 +17,16 @@ settings = Settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Load DeBERTa ONNX model + attribution service
+    # Startup: Initialize NLI + attribution services
     from app.services.attributor import AttributionService
     from app.services.nli import NLIService
 
-    nli = NLIService(settings.nli_model_path)
+    nli = NLIService()
     attributor = AttributionService(nli)  # reuses same NLI instance
     app.state.nli = nli
     app.state.attributor = attributor
     app.state.settings = settings
-    print(f"NLI model loaded from {settings.nli_model_path}")
+    print("NLI service initialized (Groq API)")
     print("Attribution service initialized")
 
     if not settings.admin_secret:

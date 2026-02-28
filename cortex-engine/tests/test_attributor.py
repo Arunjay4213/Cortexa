@@ -1,7 +1,7 @@
 """
 Tests for the leave-one-out Shapley attribution engine.
 
-Requires the DeBERTa ONNX model at models/deberta-v3-base-nli/.
+Requires CORTEX_GROQ_API_KEY to be set (NLI runs via Groq API).
 """
 
 import time
@@ -11,18 +11,21 @@ import pytest
 from app.services.attributor import AttributionService, SourceInfluence
 from app.services.nli import NLIService
 
-MODEL_DIR = "models/deberta-v3-base-nli"
-
 
 @pytest.fixture(scope="module")
 def nli_service():
-    """Load NLI model once for all tests."""
-    return NLIService(MODEL_DIR)
+    """Load NLI service (requires Groq API key)."""
+    from app.config import Settings
+
+    settings = Settings()
+    if not settings.groq_api_key:
+        pytest.skip("CORTEX_GROQ_API_KEY not set")
+    return NLIService()
 
 
 @pytest.fixture(scope="module")
 def attributor(nli_service):
-    """Create attribution service reusing the NLI model."""
+    """Create attribution service reusing the NLI service."""
     return AttributionService(nli_service)
 
 
@@ -39,12 +42,12 @@ class TestSingleSource:
         assert result.influences[0].direction == "SUPPORTS"
         assert result.influences[0].influence_norm == 1.0
         assert result.primary_source_index == 0
-        # full score + 0 leave-one-out (single source → score_minus_0 = 0.0)
+        # full score + 0 leave-one-out (single source -> score_minus_0 = 0.0)
         assert result.computation_calls >= 1
 
 
 class TestMultiSourceOneRelevant:
-    """Test 2: Multiple sources, only one relevant — it dominates."""
+    """Test 2: Multiple sources, only one relevant -- it dominates."""
 
     def test_dominant_source(self, attributor):
         claim = "The return policy is 45 days."
@@ -178,8 +181,8 @@ class TestPerformance:
         elapsed = time.time() - start
 
         assert len(results) == 5
-        # Should complete within 30 seconds (generous for CI)
-        assert elapsed < 30.0, f"Attribution took {elapsed:.1f}s, expected < 30s"
+        # Groq API is fast but network-bound; allow 120s for CI
+        assert elapsed < 120.0, f"Attribution took {elapsed:.1f}s, expected < 120s"
 
         # Total calls should be tracked
         total_calls = sum(r.computation_calls for r in results)
@@ -194,7 +197,7 @@ class TestAttributionOffByDefault:
     """Test 7: Attribution is off by default, no extra NLI calls."""
 
     def test_no_attribution_by_default(self, nli_service):
-        """Check with no config → attribution fields are None."""
+        """Check with no config -> attribution fields are None."""
         import asyncio
 
         from app.config import Settings
@@ -211,7 +214,7 @@ class TestAttributionOffByDefault:
         request = CheckRequest(
             response="The return policy is 45 days.",
             sources=["45-day return window for all products."],
-            # No config → attribution disabled
+            # No config -> attribution disabled
         )
 
         result = asyncio.run(

@@ -189,7 +189,7 @@ async def run_check(
             grounded_count += 1
             continue
 
-        # 4. NLI gate (DeBERTa)
+        # 4. NLI gate
         nli_grounded, nli_conf, best_sentence = check_nli(
             claim_text,
             request.sources,

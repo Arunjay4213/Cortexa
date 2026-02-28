@@ -1,69 +1,72 @@
 import re
 
-import numpy as np
-import onnxruntime as ort
-from tokenizers import Tokenizer
+import httpx
+
+from app.config import Settings
+
+_settings = Settings()
+
+# Groq API endpoint (same pattern as decomposer.py)
+_GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+_NLI_MODEL = "llama-3.1-8b-instant"
+
+_NLI_PROMPT = """Classify the relationship between the premise and hypothesis.
+
+Premise: {premise}
+Hypothesis: {hypothesis}
+
+Reply with exactly one word: ENTAILMENT, CONTRADICTION, or NEUTRAL"""
 
 
 class NLIService:
     """
-    DeBERTa-v3-base NLI via ONNX Runtime.
-    Classifies (premise, hypothesis) pairs into:
-      entailment, neutral, contradiction
+    NLI classification via Groq LLM (replaces local ONNX DeBERTa).
+
+    Zero memory footprint — all inference happens server-side on Groq.
     """
 
-    def __init__(self, model_dir: str):
-        """
-        model_dir should contain:
-          - model.onnx (the ONNX model)
-          - tokenizer.json (HuggingFace fast tokenizer)
-        """
-        self.session = ort.InferenceSession(
-            f"{model_dir}/model.onnx",
-            providers=["CPUExecutionProvider"],
-        )
-        self.tokenizer = Tokenizer.from_file(f"{model_dir}/tokenizer.json")
-        self.tokenizer.enable_padding(pad_id=0, pad_token="[PAD]")
-        self.tokenizer.enable_truncation(max_length=512)
-        # Label order from cross-encoder/nli-deberta-v3-base config.json
-        self.labels = ["contradiction", "entailment", "neutral"]
-
-        # Detect which inputs the ONNX model expects
-        self._input_names = [inp.name for inp in self.session.get_inputs()]
+    def __init__(self):
+        if not _settings.groq_api_key:
+            raise RuntimeError(
+                "CORTEX_GROQ_API_KEY is required for NLI service"
+            )
+        self._api_key = _settings.groq_api_key
 
     def predict(self, premise: str, hypothesis: str) -> dict:
         """
-        Returns {"entailment": 0.92, "neutral": 0.05, "contradiction": 0.03}
+        Returns {"entailment": float, "neutral": float, "contradiction": float}
         """
-        encoded = self.tokenizer.encode(premise, hypothesis)
-        input_ids = np.array([encoded.ids], dtype=np.int64)
-        attention_mask = np.array([encoded.attention_mask], dtype=np.int64)
+        prompt = _NLI_PROMPT.format(premise=premise, hypothesis=hypothesis)
 
-        feeds = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-        }
-        if "token_type_ids" in self._input_names:
-            token_type_ids = np.array([encoded.type_ids], dtype=np.int64)
-            feeds["token_type_ids"] = token_type_ids
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.post(
+                _GROQ_URL,
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": _NLI_MODEL,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0,
+                    "max_tokens": 10,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
 
-        outputs = self.session.run(None, feeds)
+        label = data["choices"][0]["message"]["content"].strip().upper()
 
-        logits = outputs[0][0]
-        probs = self._softmax(logits)
-        return {label: float(prob) for label, prob in zip(self.labels, probs)}
+        if "ENTAILMENT" in label:
+            return {"entailment": 0.95, "contradiction": 0.02, "neutral": 0.03}
+        elif "CONTRADICTION" in label:
+            return {"entailment": 0.02, "contradiction": 0.95, "neutral": 0.03}
+        else:
+            return {"entailment": 0.15, "contradiction": 0.15, "neutral": 0.70}
 
     def predict_batch(self, pairs: list[tuple[str, str]]) -> list[dict]:
         """Batch predict for efficiency."""
-        results = []
-        for premise, hypothesis in pairs:
-            results.append(self.predict(premise, hypothesis))
-        return results
-
-    @staticmethod
-    def _softmax(x):
-        e = np.exp(x - np.max(x))
-        return e / e.sum()
+        return [self.predict(p, h) for p, h in pairs]
 
 
 def check_nli(
