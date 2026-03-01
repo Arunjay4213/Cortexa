@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
+import { Inter, Roboto_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
 import { SWRProvider } from "@/lib/providers/SWRProvider";
 import { WebSocketProvider } from "@/lib/providers/WebSocketProvider";
 import { ToastProvider } from "@/components/primitives/Toast";
@@ -19,6 +20,12 @@ const robotoMono = Roboto_Mono({
   display: "swap",
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Cortexa - Memory Observability",
   description:
@@ -31,16 +38,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${robotoMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${robotoMono.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased grain">
-        <SWRProvider>
-          <ToastProvider>
-            <WebSocketProvider>
-              <WebSocketToastBridge />
-              <DashboardShell>{children}</DashboardShell>
-            </WebSocketProvider>
-          </ToastProvider>
-        </SWRProvider>
+        <AuthProvider>
+          <SWRProvider>
+            <ToastProvider>
+              <WebSocketProvider>
+                <WebSocketToastBridge />
+                <DashboardShell>{children}</DashboardShell>
+              </WebSocketProvider>
+            </ToastProvider>
+          </SWRProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -11,8 +11,11 @@ import {
   Shield,
   Bell,
   Settings,
+  BookOpen,
+  LogOut,
 } from "lucide-react";
 import { mockHealthAlerts } from "@/lib/mock-data";
+import { useAuth } from "@/lib/providers/AuthProvider";
 
 // ── Navigation items ─────────────────────────────────────────────────
 
@@ -34,6 +37,7 @@ const TOP_NAV: NavItem[] = [
 const unresolvedAlerts = mockHealthAlerts.filter((a) => !a.resolved).length;
 
 const BOTTOM_NAV: NavItem[] = [
+  { href: "/docs", label: "Docs", icon: BookOpen },
   { href: "/alerts", label: "Alerts", icon: Bell, badge: unresolvedAlerts > 0 ? unresolvedAlerts : undefined },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -42,6 +46,7 @@ const BOTTOM_NAV: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const isActive = (href: string) => {
     if (href === "/overview") return pathname === "/overview" || pathname === "/";
@@ -160,6 +165,49 @@ export function Sidebar() {
             style={{ borderTop: "1px solid var(--panel-border)" }}
           />
           {BOTTOM_NAV.map(renderItem)}
+
+          {/* Logout */}
+          <Tooltip.Root delayDuration={0}>
+            <Tooltip.Trigger asChild>
+              <button
+                onClick={logout}
+                className="relative flex items-center justify-center w-10 h-10 mx-auto"
+                aria-label="Logout"
+              >
+                <span
+                  className="flex items-center justify-center w-10 h-10 rounded-sm transition-colors duration-100"
+                  style={{
+                    color: "var(--grafana-text-muted)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--panel-bg-hover)";
+                    e.currentTarget.style.color = "var(--grafana-red)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "var(--grafana-text-muted)";
+                  }}
+                >
+                  <LogOut size={20} strokeWidth={1.5} />
+                </span>
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                side="right"
+                sideOffset={8}
+                className="z-50 rounded-sm px-3 py-1.5 text-xs animate-fade-in"
+                style={{
+                  background: "var(--panel-bg-hover)",
+                  color: "var(--grafana-text-primary)",
+                  border: "1px solid var(--panel-border)",
+                }}
+              >
+                Logout
+                <Tooltip.Arrow style={{ fill: "var(--panel-bg-hover)" }} />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
         </div>
       </aside>
     </Tooltip.Provider>

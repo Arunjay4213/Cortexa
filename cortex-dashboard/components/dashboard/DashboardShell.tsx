@@ -1,14 +1,26 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { CommandPalette } from "./CommandPalette";
 import { MemoryDetailPanel } from "@/components/shared/MemoryDetailPanel";
+import { useAuth } from "@/lib/providers/AuthProvider";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
+
+  // Redirect unauthenticated users to login (skip if on /login or landing page)
+  useEffect(() => {
+    if (!isAuthenticated && pathname !== "/login" && pathname !== "/") {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, pathname, router]);
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
@@ -26,6 +38,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     setCmdPaletteOpen(false);
     setSelectedMemoryId(memoryId);
   }, []);
+
+  // On login page, landing page, or not authenticated — render children without shell
+  if (pathname === "/login" || pathname === "/" || !isAuthenticated) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

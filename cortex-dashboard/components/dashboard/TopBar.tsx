@@ -20,6 +20,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/snapshots": "Snapshots",
   "/alerts": "Alerts",
   "/settings": "Settings",
+  "/docs": "API Documentation",
 };
 
 function getPageName(pathname: string): string {
