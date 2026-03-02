@@ -1,320 +1,314 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  Brain,
-  Search,
-  Shield,
-  Zap,
-  ArrowRight,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  DollarSign,
-  TrendingUp,
-  Eye,
-  FileCheck,
-  ChevronDown,
-  Terminal,
-  Activity,
-
-  Trash2,
-  ExternalLink,
-  Layers,
+  Search, Shield, Zap, ArrowRight, AlertTriangle,
+  CheckCircle, XCircle, Clock, DollarSign, TrendingUp,
+  Eye, FileCheck, ChevronDown, Terminal, Activity,
+  Trash2, ExternalLink, Layers,
 } from 'lucide-react'
 
-// ─── Hooks ──────────────────────────────────────────────────────────────────
+// ─── Hooks ───────────────────────────────────────────────────────────────────
 
-function useInView(threshold = 0.2) {
+function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null)
   const [inView, setInView] = useState(false)
-
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true)
-          observer.unobserve(el)
-        }
-      },
-      { threshold }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setInView(true); obs.unobserve(el) }
+    }, { threshold })
+    obs.observe(el)
+    return () => obs.disconnect()
   }, [threshold])
-
   return { ref, inView }
 }
 
-function useStaggeredReveal(inView: boolean, steps: number, intervalMs = 400) {
-  const [visibleStep, setVisibleStep] = useState(0)
-
+function useStagger(inView: boolean, steps: number, ms = 420) {
+  const [step, setStep] = useState(0)
   useEffect(() => {
-    if (!inView) return
-    if (visibleStep >= steps) return
-    const timer = setTimeout(() => setVisibleStep((s) => s + 1), intervalMs)
-    return () => clearTimeout(timer)
-  }, [inView, visibleStep, steps, intervalMs])
-
-  return visibleStep
+    if (!inView || step >= steps) return
+    const t = setTimeout(() => setStep(s => s + 1), ms)
+    return () => clearTimeout(t)
+  }, [inView, step, steps, ms])
+  return step
 }
 
-// ─── Reusable Components ────────────────────────────────────────────────────
+// ─── Logo ─────────────────────────────────────────────────────────────────────
 
-function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'red' | 'green' | 'yellow' }) {
-  const colors = {
-    default: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-    red: 'bg-red-950/50 text-red-400 border-red-800/50',
-    green: 'bg-emerald-950/50 text-emerald-400 border-emerald-800/50',
-    yellow: 'bg-yellow-950/50 text-yellow-400 border-yellow-800/50',
-  }
+function Logo({ className = 'logo-img-nav' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono rounded border ${colors[variant]}`}>
-      {children}
-    </span>
+    <img
+      src="/cortexalogo.jpeg"
+      alt="Cortexa"
+      className={`${className} rounded-lg anim-logo`}
+    />
   )
 }
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+// ─── Aurora background ────────────────────────────────────────────────────────
+
+function Aurora() {
   return (
-    <div className={`bg-zinc-900/80 border border-zinc-800 rounded-lg backdrop-blur-sm ${className}`}>
-      {children}
+    <div className="aurora" aria-hidden>
+      <div className="aurora-blob" />
+      <div className="aurora-blob" />
+      <div className="aurora-blob" />
     </div>
   )
 }
 
-function Button({
-  children,
-  variant = 'primary',
-  onClick,
-  className = '',
-}: {
-  children: React.ReactNode
-  variant?: 'primary' | 'secondary' | 'ghost'
-  onClick?: () => void
-  className?: string
-}) {
-  const styles = {
-    primary: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500',
-    secondary: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700',
-    ghost: 'bg-transparent hover:bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 border-transparent',
-  }
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg border transition-all duration-200 ${styles[variant]} ${className}`}
-    >
-      {children}
-    </button>
-  )
-}
+// ─── Section label ────────────────────────────────────────────────────────────
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function Label({ children }: { children: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="h-px w-8 bg-emerald-500/50" />
-      <span className="text-xs font-mono text-emerald-500 uppercase tracking-widest">{children}</span>
-      <div className="h-px flex-1 bg-emerald-500/10" />
+    <div className="section-label">
+      <span>{children}</span>
     </div>
   )
 }
 
-// ─── Section 1: Hero ────────────────────────────────────────────────────────
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+
+function Nav() {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
+  return (
+    <nav className={`nav-base ${scrolled ? 'nav-scrolled' : ''}`}>
+      <Logo className="logo-img-nav" />
+      <div className="hidden sm:flex items-center gap-7">
+        <a href="#demo" className="text-sm font-medium transition-colors"
+          style={{ color: 'var(--muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+          Demo
+        </a>
+        <a href="#manifesto" className="text-sm font-medium transition-colors"
+          style={{ color: 'var(--muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+          Manifesto
+        </a>
+        <button
+          className="btn-primary text-xs px-4 py-2"
+          onClick={() => document.querySelector<HTMLInputElement>('input[type="email"]')
+            ?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <Terminal size={13} />
+          Early Access
+        </button>
+      </div>
+    </nav>
+  )
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
 
 function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6">
-      {/* Background grid */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(16,185,129,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.3) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 text-center overflow-hidden">
+      <Aurora />
 
-      <div className="relative max-w-4xl mx-auto text-center">
-        {/* Logo/brand */}
-        <div className="flex items-center justify-center gap-3 mb-8 animate-fade-in-up opacity-0-initial">
-          <Brain className="w-8 h-8 text-emerald-500" />
-          <span className="text-xl font-mono font-bold tracking-tight text-white">
-            CORTEXA
+      {/* Radial vignette — darkens edges, focuses on center */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 40%, transparent 30%, rgba(15,14,13,0.85) 100%)' }} />
+
+      <div className="relative z-10 max-w-5xl mx-auto">
+
+        {/* Logo — large, solo, let it speak */}
+        <div className="flex justify-center mb-10 anim-fade-up hidden-init d-1">
+          <Logo className="logo-img" />
+        </div>
+
+        {/* Pill badge */}
+        <div className="flex justify-center mb-8 anim-fade-up hidden-init d-2">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono border"
+            style={{ background: 'rgba(198,226,39,0.07)', borderColor: 'rgba(198,226,39,0.2)', color: 'var(--lime)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
+            Early Access — Now Open
           </span>
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-white mb-6 animate-fade-in-up opacity-0-initial stagger-1">
+        <h1 className="font-bold leading-[1.08] tracking-tight mb-7 anim-fade-up hidden-init d-3"
+          style={{ fontSize: 'clamp(2.8rem, 5vw + 1rem, 5.5rem)', color: 'var(--text)' }}>
           Your agent hallucinated.
           <br />
-          <span className="text-emerald-400">Which memory caused it?</span>
+          <span style={{ color: 'var(--lime)' }}>Which memory caused it?</span>
         </h1>
 
-        {/* Subline */}
-        <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto mb-10 animate-fade-in-up opacity-0-initial stagger-2">
-          Cortexa traces every LLM response back to the memories that influenced it.
-          Find the root cause in seconds, not hours. Fix it before your users notice.
+        {/* Subhead */}
+        <p className="max-w-2xl mx-auto mb-12 font-light anim-fade-up hidden-init d-4"
+          style={{ fontSize: 'clamp(1.05rem, 0.5vw + 0.9rem, 1.25rem)', color: 'var(--muted)', lineHeight: 1.7 }}>
+          Cortexa traces every LLM response back to the memories that shaped it.
+          Find the root cause in seconds. Fix it before your users notice.
         </p>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up opacity-0-initial stagger-3">
-          <Button
-            variant="primary"
-            onClick={() =>
-              document.getElementById('trace-demo')?.scrollIntoView({ behavior: 'smooth' })
-            }
-          >
+        {/* CTA row */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 anim-fade-up hidden-init d-5">
+          <button className="btn-primary"
+            onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}>
             See How It Works
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() =>
-              document.getElementById('manifesto')?.scrollIntoView({ behavior: 'smooth' })
-            }
-          >
+            <ArrowRight size={16} />
+          </button>
+          <button className="btn-secondary"
+            onClick={() => document.getElementById('manifesto')?.scrollIntoView({ behavior: 'smooth' })}>
             Read the Manifesto
-          </Button>
+          </button>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-5 h-5 text-zinc-600" />
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto mt-20 anim-fade-up hidden-init"
+          style={{ animationDelay: '0.85s' }}>
+          {[
+            { n: '3s', label: 'root cause trace' },
+            { n: '35%', label: 'token reduction' },
+            { n: '$38K', label: 'avg annual waste found' },
+          ].map(({ n, label }) => (
+            <div key={label} className="text-center">
+              <div className="stat-number" style={{ color: 'var(--lime)' }}>{n}</div>
+              <div className="text-xs mt-1.5 font-mono" style={{ color: 'var(--muted)' }}>{label}</div>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* Scroll cue */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 anim-bounce" style={{ color: 'var(--muted)', opacity: 0.4 }}>
+        <ChevronDown size={20} />
       </div>
     </section>
   )
 }
 
-// ─── Section 2: Hallucination Trace Demo ────────────────────────────────────
+// ─── Trace Demo ───────────────────────────────────────────────────────────────
 
 function TraceDemo() {
-  const { ref, inView } = useInView(0.15)
-  const step = useStaggeredReveal(inView, 8, 500)
+  const { ref, inView } = useInView(0.1)
+  const step = useStagger(inView, 8, 480)
 
   return (
-    <section id="trace-demo" className="py-24 px-6" ref={ref}>
+    <section id="demo" className="py-28 px-6" ref={ref}>
       <div className="max-w-4xl mx-auto">
-        <SectionLabel>Live Trace</SectionLabel>
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-          Watch a hallucination get traced in real time
+        <Label>Live Trace</Label>
+        <h2 className="font-bold mb-4 tracking-tight"
+          style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
+          Watch a hallucination traced in real time
         </h2>
-        <p className="text-zinc-400 mb-12 max-w-2xl">
-          An agent responds to a customer. The answer is wrong. Cortexa shows you exactly
-          which memory caused it, why it was selected, and how to fix it.
+        <p className="mb-12 max-w-xl" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
+          An agent responds wrong. Cortexa shows you exactly which memory caused it,
+          why it ranked first, and how to fix it — in seconds.
         </p>
 
-        <Card className="p-0 overflow-hidden">
-          {/* Terminal header */}
-          <div className="flex items-center gap-2 px-4 py-3 bg-zinc-950 border-b border-zinc-800">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500/80" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <div className="w-3 h-3 rounded-full bg-green-500/80" />
-            </div>
-            <span className="text-xs font-mono text-zinc-500 ml-2">cortexa trace --query "subscription status"</span>
+        <div className="terminal-win">
+          <div className="terminal-titlebar">
+            <div className="dot dot-r" />
+            <div className="dot dot-y" />
+            <div className="dot dot-g" />
+            <span className="text-xs font-mono ml-3" style={{ color: 'var(--muted)' }}>
+              cortexa trace --query "subscription status"
+            </span>
           </div>
 
-          <div className="p-6 sm:p-8 space-y-0 font-mono text-sm">
-            {/* Step 1: Agent response */}
+          <div className="p-7 sm:p-10 font-mono text-sm space-y-0">
+
             {step >= 1 && (
-              <div className="animate-fade-in-up opacity-0-initial mb-6">
-                <div className="text-zinc-500 text-xs mb-2">AGENT RESPONSE</div>
-                <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800">
-                  <p className="text-zinc-200">
-                    "Your subscription renews on <span className="text-red-400 font-semibold underline decoration-red-400/50">March 15th</span>."
+              <div className="anim-fade-up hidden-init mb-6">
+                <div className="text-xs mb-2" style={{ color: 'var(--muted)' }}>AGENT RESPONSE</div>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}>
+                  <p style={{ color: 'var(--text)' }}>
+                    "Your subscription renews on{' '}
+                    <span style={{ color: '#f87171', textDecoration: 'underline', textDecorationColor: 'rgba(248,113,113,0.4)' }}>
+                      March 15th
+                    </span>."
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Ground truth */}
             {step >= 2 && (
-              <div className="animate-fade-in-up opacity-0-initial mb-6">
-                <div className="flex items-center gap-2 text-xs mb-2">
-                  <XCircle className="w-3.5 h-3.5 text-red-400" />
-                  <span className="text-red-400">GROUND TRUTH MISMATCH</span>
+              <div className="anim-fade-up hidden-init mb-6">
+                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#f87171' }}>
+                  <XCircle size={13} /> GROUND TRUTH MISMATCH
                 </div>
-                <div className="bg-red-950/20 rounded-lg p-4 border border-red-800/30">
-                  <p className="text-red-300">
-                    User cancelled their subscription on February 1st.
-                  </p>
+                <div className="rounded-xl p-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <p style={{ color: '#fca5a5' }}>User cancelled their subscription on February 1st.</p>
                 </div>
               </div>
             )}
 
-            {/* Step 3: Trace header */}
             {step >= 3 && (
-              <div className="animate-fade-in-up opacity-0-initial mb-4">
-                <div className="flex items-center gap-2 text-xs text-zinc-500 mb-3 pt-2 border-t border-zinc-800">
-                  <Search className="w-3.5 h-3.5" />
+              <div className="anim-fade-up hidden-init mb-5">
+                <div className="flex items-center gap-2 text-xs pt-3 border-t" style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}>
+                  <Search size={12} />
                   ATTRIBUTION TRACE — 4 memories retrieved, 2 causal
                 </div>
               </div>
             )}
 
-            {/* Step 4: Memory #47 (stale, high attribution) */}
             {step >= 4 && (
-              <div className="animate-slide-in-left opacity-0-initial mb-3">
-                <div className="bg-red-950/10 rounded-lg p-4 border border-red-800/30 animate-pulse-glow">
+              <div className="anim-slide-left hidden-init mb-3">
+                <div className="rounded-xl p-4 anim-pulse-red" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.22)' }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-400">→</span>
-                      <span className="text-zinc-300">Memory #47</span>
-                      <Badge variant="red">attribution: 0.73</Badge>
+                      <span style={{ color: 'var(--muted)' }}>→</span>
+                      <span style={{ color: 'var(--text)' }}>Memory #47</span>
+                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                        attribution: 0.73
+                      </span>
                     </div>
-                    <Badge variant="red">
-                      <AlertTriangle className="w-3 h-3" />
-                      STALE
-                    </Badge>
+                    <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                      <AlertTriangle size={10} /> STALE
+                    </span>
                   </div>
-                  <p className="text-zinc-400 text-xs ml-5 mb-1">
+                  <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
                     "User subscription renews monthly on the 15th"
                   </p>
-                  <p className="text-red-400/70 text-xs ml-5">
-                    <Clock className="w-3 h-3 inline mr-1" />
+                  <p className="text-xs ml-5" style={{ color: 'rgba(248,113,113,0.6)' }}>
+                    <Clock size={10} className="inline mr-1" />
                     Last verified: 4 months ago — no recency check applied
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Step 5: Memory #198 (current but buried) */}
             {step >= 5 && (
-              <div className="animate-slide-in-left opacity-0-initial mb-4">
-                <div className="bg-emerald-950/10 rounded-lg p-4 border border-emerald-800/30">
+              <div className="anim-slide-left hidden-init mb-5">
+                <div className="rounded-xl p-4" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(198,226,39,0.18)' }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-400">→</span>
-                      <span className="text-zinc-300">Memory #198</span>
-                      <Badge variant="green">attribution: 0.12</Badge>
+                      <span style={{ color: 'var(--muted)' }}>→</span>
+                      <span style={{ color: 'var(--text)' }}>Memory #198</span>
+                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(198,226,39,0.12)', color: 'var(--lime)', border: '1px solid rgba(198,226,39,0.25)' }}>
+                        attribution: 0.12
+                      </span>
                     </div>
-                    <Badge variant="green">
-                      <CheckCircle className="w-3 h-3" />
-                      CURRENT
-                    </Badge>
+                    <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(198,226,39,0.12)', color: 'var(--lime)', border: '1px solid rgba(198,226,39,0.25)' }}>
+                      <CheckCircle size={10} /> CURRENT
+                    </span>
                   </div>
-                  <p className="text-zinc-400 text-xs ml-5 mb-1">
+                  <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
                     "User cancelled subscription Feb 1"
                   </p>
-                  <p className="text-yellow-400/70 text-xs ml-5">
-                    <AlertTriangle className="w-3 h-3 inline mr-1" />
+                  <p className="text-xs ml-5" style={{ color: 'rgba(253,224,71,0.6)' }}>
+                    <AlertTriangle size={10} className="inline mr-1" />
                     Retrieval rank: 4th — correct memory was buried
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Step 6: Diagnosis */}
             {step >= 6 && (
-              <div className="animate-fade-in-up opacity-0-initial mb-4 pt-3 border-t border-zinc-800">
-                <div className="bg-zinc-950 rounded-lg p-4 border border-yellow-800/30">
-                  <div className="flex items-center gap-2 text-yellow-400 text-xs mb-2">
-                    <Eye className="w-3.5 h-3.5" />
-                    DIAGNOSIS
+              <div className="anim-fade-up hidden-init mb-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(253,224,71,0.18)' }}>
+                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#fde047' }}>
+                    <Eye size={13} /> DIAGNOSIS
                   </div>
-                  <p className="text-zinc-200 text-sm">
+                  <p className="text-sm" style={{ color: 'var(--text)', lineHeight: 1.65 }}>
                     Stale memory outranked current memory. Memory #47 has not been verified
                     in 4 months and contains outdated subscription data. The correct information
                     (Memory #198) was retrieved but ranked 4th due to embedding similarity
@@ -324,15 +318,13 @@ function TraceDemo() {
               </div>
             )}
 
-            {/* Step 7: Fix */}
             {step >= 7 && (
-              <div className="animate-fade-in-up opacity-0-initial mb-4">
-                <div className="bg-emerald-950/20 rounded-lg p-4 border border-emerald-800/30 animate-pulse-glow-green">
-                  <div className="flex items-center gap-2 text-emerald-400 text-xs mb-2">
-                    <Zap className="w-3.5 h-3.5" />
-                    RECOMMENDED FIX
+              <div className="anim-fade-up hidden-init mb-4">
+                <div className="rounded-xl p-4 anim-pulse-lime" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(198,226,39,0.22)' }}>
+                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--lime)' }}>
+                    <Zap size={13} /> RECOMMENDED FIX
                   </div>
-                  <ul className="text-zinc-300 text-sm space-y-1">
+                  <ul className="text-sm space-y-1" style={{ color: 'var(--text)' }}>
                     <li>→ Invalidate Memory #47 (stale, contradicted)</li>
                     <li>→ Boost recency weight in retrieval scoring</li>
                     <li>→ Flag 3 similar stale memories for review</li>
@@ -341,366 +333,340 @@ function TraceDemo() {
               </div>
             )}
 
-            {/* Step 8: Time saved */}
             {step >= 8 && (
-              <div className="animate-fade-in-up opacity-0-initial">
-                <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-emerald-500" />
-                    <span className="text-emerald-400">Time to root cause: <strong>3 seconds</strong></span>
-                  </div>
-                  <span className="text-zinc-600 text-xs">previously: ~45 minutes of manual debugging</span>
+              <div className="anim-fade-up hidden-init flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex items-center gap-2">
+                  <Activity size={15} style={{ color: 'var(--lime)' }} />
+                  <span style={{ color: 'var(--lime)' }}>
+                    Time to root cause: <strong>3 seconds</strong>
+                  </span>
                 </div>
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                  previously: ~45 min of log archaeology
+                </span>
               </div>
             )}
           </div>
-        </Card>
+        </div>
       </div>
     </section>
   )
 }
 
-// ─── Section 3: Three Questions ─────────────────────────────────────────────
+// ─── Three Questions ──────────────────────────────────────────────────────────
 
 function ThreeQuestions() {
-  const { ref, inView } = useInView(0.1)
+  const { ref, inView } = useInView(0.08)
 
   return (
-    <section className="py-24 px-6" ref={ref}>
+    <section className="py-28 px-6" ref={ref}>
       <div className="max-w-6xl mx-auto">
-        <SectionLabel>The Blind Spots</SectionLabel>
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+        <Label>The Blind Spots</Label>
+        <h2 className="font-bold mb-4 tracking-tight max-w-xl"
+          style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
           Three questions you can't answer today
         </h2>
-        <p className="text-zinc-400 mb-12 max-w-2xl">
+        <p className="mb-14 max-w-xl" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
           You're running thousands of queries through memories every day.
           But can you answer these?
         </p>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-5">
+
           {/* Card 1: Memory P&L */}
-          <Card className={`p-6 transition-all duration-700 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <div className="flex items-center gap-2 mb-4">
-              <DollarSign className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-lg font-semibold text-white">
+          <div className={`card p-7 transition-all duration-700 ${inView ? 'anim-fade-up' : 'hidden-init'}`}>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(198,226,39,0.1)' }}>
+                <DollarSign size={17} style={{ color: 'var(--lime)' }} />
+              </div>
+              <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>
                 Which memories are worth paying for?
               </h3>
             </div>
-
-            {/* Mini P&L table */}
-            <div className="font-mono text-xs mb-4">
-              <div className="grid grid-cols-4 gap-2 pb-2 mb-2 border-b border-zinc-800 text-zinc-500">
-                <span>MEMORY</span>
-                <span className="text-right">COST/D</span>
-                <span className="text-right">ATTR</span>
-                <span className="text-right">ROI</span>
+            <div className="font-mono text-xs mb-5">
+              <div className="grid grid-cols-4 gap-2 pb-2 mb-2 border-b" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                <span>MEM</span><span className="text-right">$/d</span>
+                <span className="text-right">ATTR</span><span className="text-right">ROI</span>
               </div>
-              <div className="grid grid-cols-4 gap-2 py-1.5 text-zinc-300">
-                <span className="truncate">user_prefs</span>
-                <span className="text-right">$0.42</span>
-                <span className="text-right text-emerald-400">0.89</span>
-                <span className="text-right text-emerald-400">+312%</span>
-              </div>
-              <div className="grid grid-cols-4 gap-2 py-1.5 text-zinc-300">
-                <span className="truncate">past_orders</span>
-                <span className="text-right">$1.20</span>
-                <span className="text-right text-emerald-400">0.67</span>
-                <span className="text-right text-emerald-400">+89%</span>
-              </div>
-              <div className="grid grid-cols-4 gap-2 py-1.5 bg-red-950/20 -mx-2 px-2 rounded text-zinc-300">
-                <span className="truncate text-red-400">old_convos</span>
-                <span className="text-right">$3.80</span>
-                <span className="text-right text-red-400">0.03</span>
-                <span className="text-right text-red-400">-94%</span>
-              </div>
-              <div className="grid grid-cols-4 gap-2 py-1.5 bg-red-950/20 -mx-2 px-2 rounded text-zinc-300">
-                <span className="truncate text-red-400">raw_logs</span>
-                <span className="text-right">$2.10</span>
-                <span className="text-right text-red-400">0.01</span>
-                <span className="text-right text-red-400">-98%</span>
-              </div>
+              {[
+                { name: 'user_prefs', cost: '$0.42', attr: '0.89', roi: '+312%', good: true },
+                { name: 'past_orders', cost: '$1.20', attr: '0.67', roi: '+89%', good: true },
+                { name: 'old_convos', cost: '$3.80', attr: '0.03', roi: '-94%', good: false },
+                { name: 'raw_logs', cost: '$2.10', attr: '0.01', roi: '-98%', good: false },
+              ].map(r => (
+                <div key={r.name} className={`grid grid-cols-4 gap-2 py-1.5 rounded ${!r.good ? '-mx-1 px-1' : ''}`}
+                  style={{ background: !r.good ? 'rgba(239,68,68,0.07)' : 'transparent' }}>
+                  <span className="truncate" style={{ color: r.good ? 'var(--text)' : '#f87171' }}>{r.name}</span>
+                  <span className="text-right" style={{ color: 'var(--muted)' }}>{r.cost}</span>
+                  <span className="text-right" style={{ color: r.good ? 'var(--lime)' : '#f87171' }}>{r.attr}</span>
+                  <span className="text-right" style={{ color: r.good ? 'var(--lime)' : '#f87171' }}>{r.roi}</span>
+                </div>
+              ))}
             </div>
-
-            <div className="bg-zinc-950 rounded p-3 text-xs">
-              <span className="text-zinc-400">
-                <strong className="text-emerald-400">23 memories</strong> have negative ROI.
-                Archiving them saves <strong className="text-emerald-400">$285/mo</strong>.
+            <div className="rounded-lg p-3 text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--muted)' }}>
+                <strong style={{ color: 'var(--lime)' }}>23 memories</strong> have negative ROI.
+                Archiving them saves <strong style={{ color: 'var(--lime)' }}>$285/mo</strong>.
               </span>
             </div>
-          </Card>
+          </div>
 
           {/* Card 2: Health */}
-          <Card className={`p-6 transition-all duration-700 delay-150 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <div className="flex items-center gap-2 mb-4">
-              <Activity className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-lg font-semibold text-white">
+          <div className={`card p-7 transition-all duration-700 delay-150 ${inView ? 'anim-fade-up' : 'hidden-init'}`}>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(198,226,39,0.1)' }}>
+                <Activity size={17} style={{ color: 'var(--lime)' }} />
+              </div>
+              <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>
                 Are your memories helping or hurting?
               </h3>
             </div>
-
-            <div className="space-y-4 mb-4">
-              <HealthRow icon={<XCircle className="w-4 h-4 text-red-400" />} label="Contradictions found" value={2} color="red" />
-              <HealthRow icon={<Clock className="w-4 h-4 text-yellow-400" />} label="Stale memories" value={14} color="yellow" />
-              <HealthRow icon={<AlertTriangle className="w-4 h-4 text-orange-400" />} label="Coverage gaps" value={3} color="orange" />
+            <div className="space-y-4 mb-5">
+              {[
+                { icon: <XCircle size={14} style={{ color: '#f87171' }} />, label: 'Contradictions', val: 2, pct: 14, color: '#f87171' },
+                { icon: <Clock size={14} style={{ color: '#fbbf24' }} />, label: 'Stale memories', val: 14, pct: 98, color: '#fbbf24' },
+                { icon: <AlertTriangle size={14} style={{ color: '#fb923c' }} />, label: 'Coverage gaps', val: 3, pct: 21, color: '#fb923c' },
+              ].map(r => (
+                <div key={r.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text)' }}>
+                    {r.icon} {r.label}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: r.color }} />
+                    </div>
+                    <span className="font-mono text-sm w-5 text-right" style={{ color: 'var(--text)' }}>{r.val}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="bg-zinc-950 rounded p-3 text-xs border-l-2 border-red-500">
-              <span className="text-red-400 font-semibold">4 memories are actively causing hallucinations.</span>
-              <span className="text-zinc-500 block mt-1">
-                Memory #47, #112, #203, #89 — contradicted by newer data.
-              </span>
+            <div className="rounded-lg p-3 text-xs border-l-2" style={{ background: 'rgba(239,68,68,0.07)', borderLeftColor: '#ef4444' }}>
+              <span className="font-semibold" style={{ color: '#f87171' }}>4 memories are actively causing wrong answers.</span>
+              <span className="block mt-1" style={{ color: 'var(--muted)' }}>Memory #47, #112, #203, #89 — contradicted by newer data.</span>
             </div>
-          </Card>
+          </div>
 
           {/* Card 3: Compliance */}
-          <Card className={`p-6 transition-all duration-700 delay-300 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-lg font-semibold text-white">
+          <div className={`card p-7 transition-all duration-700 delay-300 ${inView ? 'anim-fade-up' : 'hidden-init'}`}>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(198,226,39,0.1)' }}>
+                <Shield size={17} style={{ color: 'var(--lime)' }} />
+              </div>
+              <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>
                 Can you prove deletion to a regulator?
               </h3>
             </div>
-
-            <ProvenanceMiniGraph />
-
-            <div className="bg-zinc-950 rounded p-3 text-xs mt-4">
-              <span className="text-zinc-400">
-                <FileCheck className="w-3 h-3 inline mr-1 text-emerald-400" />
-                Compliance certificate generated in <strong className="text-emerald-400">3 seconds</strong>.
-                Cryptographic proof of cascading deletion across all derived data.
+            <ProvenanceGraph />
+            <div className="rounded-lg p-3 text-xs mt-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--muted)' }}>
+                <FileCheck size={11} className="inline mr-1" style={{ color: 'var(--lime)' }} />
+                Compliance certificate generated in{' '}
+                <strong style={{ color: 'var(--lime)' }}>3 seconds</strong>.
+                Cryptographic proof of cascading deletion.
               </span>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-function HealthRow({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
-  const bgColor = color === 'red' ? 'bg-red-400' : color === 'yellow' ? 'bg-yellow-400' : 'bg-orange-400'
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-sm text-zinc-300">
-        {icon}
-        {label}
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div className={`h-full ${bgColor} rounded-full`} style={{ width: `${Math.min(value * 7, 100)}%` }} />
-        </div>
-        <span className="font-mono text-sm text-zinc-200 w-6 text-right">{value}</span>
-      </div>
-    </div>
-  )
-}
-
-function ProvenanceMiniGraph() {
+function ProvenanceGraph() {
   const [deleted, setDeleted] = useState(false)
-
   useEffect(() => {
-    const interval = setInterval(() => {
+    const iv = setInterval(() => {
       setDeleted(true)
-      setTimeout(() => setDeleted(false), 2500)
-    }, 5000)
-    return () => clearInterval(interval)
+      setTimeout(() => setDeleted(false), 2600)
+    }, 5200)
+    return () => clearInterval(iv)
   }, [])
+
+  const lineColor = deleted ? '#ef4444' : 'rgba(255,255,255,0.12)'
+  const dash = deleted ? '4 3' : 'none'
 
   return (
     <div className="relative">
-      <svg viewBox="0 0 280 120" className="w-full h-auto">
-        {/* Edges */}
-        <line x1="60" y1="60" x2="140" y2="30" stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" strokeDasharray={deleted ? '4 2' : 'none'} className="transition-all duration-500" />
-        <line x1="60" y1="60" x2="140" y2="60" stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" strokeDasharray={deleted ? '4 2' : 'none'} className="transition-all duration-500" />
-        <line x1="60" y1="60" x2="140" y2="90" stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" strokeDasharray={deleted ? '4 2' : 'none'} className="transition-all duration-500" />
-        <line x1="140" y1="30" x2="220" y2="45" stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" strokeDasharray={deleted ? '4 2' : 'none'} className="transition-all duration-500" />
-        <line x1="140" y1="60" x2="220" y2="45" stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" strokeDasharray={deleted ? '4 2' : 'none'} className="transition-all duration-500" />
-        <line x1="140" y1="90" x2="220" y2="80" stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" strokeDasharray={deleted ? '4 2' : 'none'} className="transition-all duration-500" />
-
-        {/* User node */}
-        <circle cx="60" cy="60" r="14" fill={deleted ? '#7f1d1d' : '#064e3b'} stroke={deleted ? '#ef4444' : '#10b981'} strokeWidth="2" className="transition-all duration-500" />
-        <text x="60" y="64" textAnchor="middle" fill="white" fontSize="8" fontFamily="monospace">USER</text>
-
-        {/* Memory nodes */}
-        <circle cx="140" cy="30" r="10" fill={deleted ? '#450a0a' : '#18181b'} stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" className="transition-all duration-500" opacity={deleted ? 0.3 : 1} />
-        <text x="140" y="33" textAnchor="middle" fill={deleted ? '#ef4444' : '#a1a1aa'} fontSize="6" fontFamily="monospace">MEM</text>
-
-        <circle cx="140" cy="60" r="10" fill={deleted ? '#450a0a' : '#18181b'} stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" className="transition-all duration-500" opacity={deleted ? 0.3 : 1} />
-        <text x="140" y="63" textAnchor="middle" fill={deleted ? '#ef4444' : '#a1a1aa'} fontSize="6" fontFamily="monospace">MEM</text>
-
-        <circle cx="140" cy="90" r="10" fill={deleted ? '#450a0a' : '#18181b'} stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" className="transition-all duration-500" opacity={deleted ? 0.3 : 1} />
-        <text x="140" y="93" textAnchor="middle" fill={deleted ? '#ef4444' : '#a1a1aa'} fontSize="6" fontFamily="monospace">EMB</text>
-
-        {/* Response nodes */}
-        <circle cx="220" cy="45" r="10" fill={deleted ? '#450a0a' : '#18181b'} stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" className="transition-all duration-500" opacity={deleted ? 0.3 : 1} />
-        <text x="220" y="48" textAnchor="middle" fill={deleted ? '#ef4444' : '#a1a1aa'} fontSize="6" fontFamily="monospace">RSP</text>
-
-        <circle cx="220" cy="80" r="10" fill={deleted ? '#450a0a' : '#18181b'} stroke={deleted ? '#ef4444' : '#3f3f46'} strokeWidth="1.5" className="transition-all duration-500" opacity={deleted ? 0.3 : 1} />
-        <text x="220" y="83" textAnchor="middle" fill={deleted ? '#ef4444' : '#a1a1aa'} fontSize="6" fontFamily="monospace">RSP</text>
-
-        {/* Deletion animation label */}
+      <svg viewBox="0 0 280 120" className="w-full">
+        {[[60,60,140,30],[60,60,140,60],[60,60,140,90],
+          [140,30,220,45],[140,60,220,45],[140,90,220,80]].map(([x1,y1,x2,y2], i) => (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke={lineColor} strokeWidth="1.5" strokeDasharray={dash}
+            className="transition-all duration-500" />
+        ))}
+        <circle cx="60" cy="60" r="14"
+          fill={deleted ? '#7f1d1d' : 'rgba(198,226,39,0.1)'}
+          stroke={deleted ? '#ef4444' : 'var(--lime)'}
+          strokeWidth="1.5" className="transition-all duration-500" />
+        <text x="60" y="64" textAnchor="middle" fill="white" fontSize="7" fontFamily="monospace">USER</text>
+        {[[140,30],[140,60],[140,90],[220,45],[220,80]].map(([cx,cy], i) => (
+          <g key={i}>
+            <circle cx={cx} cy={cy} r="10"
+              fill={deleted ? '#450a0a' : 'rgba(255,255,255,0.04)'}
+              stroke={deleted ? '#ef4444' : 'rgba(255,255,255,0.1)'}
+              strokeWidth="1.5"
+              opacity={deleted ? 0.35 : 1}
+              className="transition-all duration-500" />
+            <text x={cx} y={cy+3} textAnchor="middle"
+              fill={deleted ? '#ef4444' : 'rgba(255,255,255,0.4)'}
+              fontSize="6" fontFamily="monospace">
+              {i < 3 ? 'MEM' : 'RSP'}
+            </text>
+          </g>
+        ))}
         {deleted && (
           <g>
-            <rect x="70" y="100" width="140" height="18" rx="4" fill="#7f1d1d" />
-            <text x="140" y="112" textAnchor="middle" fill="#ef4444" fontSize="8" fontFamily="monospace">
+            <rect x="65" y="100" width="150" height="16" rx="4" fill="rgba(127,29,29,0.8)" />
+            <text x="140" y="111" textAnchor="middle" fill="#ef4444" fontSize="7" fontFamily="monospace">
               GDPR CASCADE: DELETING...
             </text>
           </g>
         )}
       </svg>
       {!deleted && (
-        <button
-          onClick={() => setDeleted(true)}
-          className="absolute bottom-0 right-0 flex items-center gap-1 text-xs text-zinc-500 hover:text-red-400 transition-colors font-mono"
-        >
-          <Trash2 className="w-3 h-3" />
-          simulate deletion
+        <button onClick={() => setDeleted(true)}
+          className="absolute bottom-0 right-0 flex items-center gap-1 text-xs font-mono transition-colors"
+          style={{ color: 'var(--muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+          <Trash2 size={11} /> simulate deletion
         </button>
       )}
     </div>
   )
 }
 
-// ─── Section 4: Before/After ────────────────────────────────────────────────
+// ─── Before / After ───────────────────────────────────────────────────────────
 
 function BeforeAfter() {
-  const { ref, inView } = useInView(0.1)
+  const { ref, inView } = useInView(0.08)
 
   return (
-    <section className="py-24 px-6" ref={ref}>
+    <section className="py-28 px-6" ref={ref}>
       <div className="max-w-5xl mx-auto">
-        <SectionLabel>The Difference</SectionLabel>
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-12">
+        <Label>The Difference</Label>
+        <h2 className="font-bold mb-14 tracking-tight"
+          style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
           Before and after Cortexa
         </h2>
 
-        <div className={`grid md:grid-cols-2 gap-6 transition-all duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-          {/* Without */}
-          <Card className="p-6 border-red-900/30 bg-red-950/5">
-            <div className="flex items-center gap-2 mb-6">
+        <div className={`grid md:grid-cols-2 gap-6 transition-opacity duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="card p-7" style={{ borderColor: 'rgba(239,68,68,0.15)', background: 'rgba(239,68,68,0.03)' }}>
+            <div className="flex items-center gap-2 mb-7">
               <div className="w-2 h-2 rounded-full bg-red-500" />
-              <h3 className="text-lg font-semibold text-red-400">Without Cortexa</h3>
+              <h3 className="text-base font-semibold" style={{ color: '#f87171' }}>Without Cortexa</h3>
             </div>
+            <div className="space-y-6">
+              {[
+                { icon: <XCircle size={15} style={{ color: '#f87171' }} />, t: 'Agent gives wrong answer', d: "You know something's wrong. Which memory? You dig through logs for 45 minutes. Maybe you find it." },
+                { icon: <Clock size={15} style={{ color: '#f87171' }} />, t: '45 minutes to root cause', d: "Manually diffing retrieved memories against outputs. Hoping you can reproduce the query." },
+                { icon: <DollarSign size={15} style={{ color: '#f87171' }} />, t: '$38K/yr on dead memories', d: "Injecting memories that contribute nothing. They crowd context, add latency. No way to know which." },
+                { icon: <Shield size={15} style={{ color: '#f87171' }} />, t: '"We think we deleted everything"', d: "GDPR request arrives. You delete the row. But the embeddings? Summaries? Cached responses?" },
+              ].map(r => (
+                <div key={r.t} className="flex gap-3">
+                  <div className="mt-0.5 flex-shrink-0">{r.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>{r.t}</p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>{r.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-            <div className="space-y-5">
-              <BeforeAfterRow
-                icon={<XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />}
-                title="Agent hallucinates"
-                desc="You know something's wrong, but which memory? You check logs for 45 minutes, maybe you find it, maybe you don't."
-              />
-              <BeforeAfterRow
-                icon={<Clock className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />}
-                title="45 minutes to find root cause"
-                desc="Manually diffing retrieved memories against outputs. Hope you guessed the right query to reproduce it."
-              />
-              <BeforeAfterRow
-                icon={<DollarSign className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />}
-                title="$38K/yr wasted on useless memories"
-                desc="You're injecting memories into every prompt. Most contribute nothing. You have no way to know which ones."
-              />
-              <BeforeAfterRow
-                icon={<Shield className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />}
-                title='"We think we deleted everything?"'
-                desc="GDPR request comes in. You delete the user row. But what about embeddings? Summaries? Cached responses?"
-              />
+          <div className="card p-7" style={{ borderColor: 'rgba(198,226,39,0.15)', background: 'rgba(198,226,39,0.02)' }}>
+            <div className="flex items-center gap-2 mb-7">
+              <div className="w-2 h-2 rounded-full" style={{ background: 'var(--lime)' }} />
+              <h3 className="text-base font-semibold" style={{ color: 'var(--lime)' }}>With Cortexa</h3>
             </div>
-          </Card>
-
-          {/* With */}
-          <Card className="p-6 border-emerald-900/30 bg-emerald-950/5">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <h3 className="text-lg font-semibold text-emerald-400">With Cortexa</h3>
+            <div className="space-y-6">
+              {[
+                { icon: <CheckCircle size={15} style={{ color: 'var(--lime)' }} />, t: 'Trace to root cause in 3 seconds', d: "Every response is attributed. Run cx.trace(), see which memory caused it, see the exact fix." },
+                { icon: <Zap size={15} style={{ color: 'var(--lime)' }} />, t: '35% token reduction, saving $13K/yr', d: "Memory P&L shows what earns its tokens and what's dead weight. Archive the losers." },
+                { icon: <TrendingUp size={15} style={{ color: 'var(--lime)' }} />, t: 'Continuous memory health monitoring', d: "Contradictions, stale data, duplicates — surfaced before they hit production." },
+                { icon: <FileCheck size={15} style={{ color: 'var(--lime)' }} />, t: 'Cryptographic deletion certificate', d: "Provenance graph traces all derived data. One cascade. One certificate. Regulators satisfied." },
+              ].map(r => (
+                <div key={r.t} className="flex gap-3">
+                  <div className="mt-0.5 flex-shrink-0">{r.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>{r.t}</p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>{r.d}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="space-y-5">
-              <BeforeAfterRow
-                icon={<CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />}
-                title="Trace to root cause in 3 seconds"
-                desc="Every response is attributed. Click the hallucination, see which memory caused it, see the fix."
-              />
-              <BeforeAfterRow
-                icon={<Zap className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />}
-                title="35% token reduction, saving $13K/yr"
-                desc="Memory P&L shows exactly which memories earn their tokens and which are dead weight. Archive the losers."
-              />
-              <BeforeAfterRow
-                icon={<TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />}
-                title="Continuous memory health monitoring"
-                desc="Contradictions, stale data, coverage gaps — surfaced automatically before they cause production issues."
-              />
-              <BeforeAfterRow
-                icon={<FileCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />}
-                title="Cryptographic deletion certificate"
-                desc="Provenance graph traces all derived data. One click cascades deletion. Certificate proves it to any regulator."
-              />
-            </div>
-          </Card>
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-function BeforeAfterRow({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <div className="flex gap-3">
-      {icon}
-      <div>
-        <p className="text-sm font-semibold text-zinc-200 mb-1">{title}</p>
-        <p className="text-xs text-zinc-500 leading-relaxed">{desc}</p>
-      </div>
-    </div>
-  )
-}
-
-// ─── Section 5: How It Works ────────────────────────────────────────────────
+// ─── How It Works ─────────────────────────────────────────────────────────────
 
 function HowItWorks() {
-  const { ref, inView } = useInView(0.1)
+  const { ref, inView } = useInView(0.08)
+
+  const steps = [
+    {
+      n: 1, icon: <Layers size={20} />,
+      title: 'Install the SDK',
+      desc: 'One pip install. Wraps Mem0, SuperMemory, or your custom memory layer. No data migration, no architecture changes.',
+      code: `pip install cortexos\n\nfrom cortexos import Cortex\ncx = Cortex(api_key="cx-...")`,
+    },
+    {
+      n: 2, icon: <Zap size={20} />,
+      title: 'Gate every memory write',
+      desc: 'cx.gate() verifies grounding before anything gets stored. Wrong memories are blocked at the source, not debugged after the fact.',
+      code: `result = cx.gate(\n  memory="user prefers express",\n  sources=[context_docs]\n)\nif result.grounded:\n  store(memory)`,
+    },
+    {
+      n: 3, icon: <Eye size={20} />,
+      title: 'Trace bad answers instantly',
+      desc: 'When an agent goes wrong, cx.trace() finds the culprit memory in seconds. No log archaeology. No guessing.',
+      code: `trace = cx.trace(\n  "wrong answer text"\n)\nprint(trace.matches[0].memory)\n# → the memory that caused it`,
+    },
+  ]
 
   return (
-    <section className="py-24 px-6" ref={ref}>
+    <section className="py-28 px-6" ref={ref}>
       <div className="max-w-5xl mx-auto">
-        <SectionLabel>Integration</SectionLabel>
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+        <Label>Integration</Label>
+        <h2 className="font-bold mb-4 tracking-tight"
+          style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
           Three steps. Ten minutes. No migration.
         </h2>
-        <p className="text-zinc-400 mb-12 max-w-2xl">
-          Cortexa wraps your existing memory system. No data migration, no vendor lock-in,
-          no changes to your agent architecture.
+        <p className="mb-14 max-w-xl" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
+          Cortexa sits in front of your existing memory system — no data movement,
+          no vendor lock-in, no changes to your agent.
         </p>
 
-        <div className={`grid md:grid-cols-3 gap-8 mb-12 transition-all duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-          <StepCard
-            step={1}
-            icon={<Layers className="w-6 h-6" />}
-            title="Wrap your memory system"
-            desc="One SDK call wraps Mem0, Zep, LangChain, or your custom memory layer. No migration, no data movement."
-            code={`from cortexa import wrap\nmemory = wrap(your_memory)`}
-          />
-          <StepCard
-            step={2}
-            icon={<Zap className="w-6 h-6" />}
-            title="Every query gets scored"
-            desc="Fast attribution runs on 100% of queries in under 10ms. Deep causal analysis (Shapley values) runs on-demand for investigation."
-            code={`# automatic — zero code\n# ~8ms p99 latency overhead`}
-          />
-          <StepCard
-            step={3}
-            icon={<Eye className="w-6 h-6" />}
-            title="See what to fix"
-            desc="Dashboard shows Memory P&L — what each memory costs vs. what it contributes. Health alerts fire before your users notice problems."
-            code={`cortexa dashboard\n# → localhost:9400`}
-          />
+        <div className={`grid md:grid-cols-3 gap-5 mb-14 transition-opacity duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
+          {steps.map(s => (
+            <div key={s.n} className="card p-7">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-mono font-bold"
+                  style={{ background: 'rgba(198,226,39,0.1)', border: '1px solid rgba(198,226,39,0.25)', color: 'var(--lime)' }}>
+                  {s.n}
+                </div>
+                <div style={{ color: 'var(--lime)' }}>{s.icon}</div>
+              </div>
+              <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text)' }}>{s.title}</h3>
+              <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--muted)' }}>{s.desc}</p>
+              <pre className="rounded-xl p-4 text-xs font-mono overflow-x-auto"
+                style={{ background: 'rgba(0,0,0,0.4)', color: 'rgba(198,226,39,0.75)', border: '1px solid var(--border)' }}>
+                {s.code}
+              </pre>
+            </div>
+          ))}
         </div>
 
-        {/* Integration logos */}
-        <div className="flex flex-wrap items-center justify-center gap-6 text-zinc-600 font-mono text-sm">
-          <span className="text-zinc-500">Works with:</span>
-          {['Mem0', 'Zep', 'LangChain', 'LlamaIndex', 'Custom Memory Systems'].map((name) => (
-            <span key={name} className="px-3 py-1.5 rounded border border-zinc-800 bg-zinc-900/50 text-zinc-400 text-xs">
-              {name}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <span className="text-xs font-mono" style={{ color: 'var(--muted)' }}>Works with:</span>
+          {['Mem0', 'SuperMemory', 'LangChain', 'LlamaIndex', 'Custom Memory'].map(n => (
+            <span key={n} className="px-3 py-1.5 rounded-lg text-xs font-mono"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'rgba(240,237,232,0.5)' }}>
+              {n}
             </span>
           ))}
         </div>
@@ -709,113 +675,71 @@ function HowItWorks() {
   )
 }
 
-function StepCard({
-  step,
-  icon,
-  title,
-  desc,
-  code,
-}: {
-  step: number
-  icon: React.ReactNode
-  title: string
-  desc: string
-  code: string
-}) {
-  return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-sm font-mono font-bold">
-          {step}
-        </div>
-        <div className="text-emerald-500">{icon}</div>
-      </div>
-      <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-      <p className="text-sm text-zinc-400 mb-4 leading-relaxed">{desc}</p>
-      <pre className="bg-zinc-950 rounded p-3 text-xs font-mono text-emerald-400/80 overflow-x-auto">
-        {code}
-      </pre>
-    </Card>
-  )
-}
-
-// ─── Section 6: Manifesto ───────────────────────────────────────────────────
+// ─── Manifesto ────────────────────────────────────────────────────────────────
 
 function Manifesto() {
-  const { ref, inView } = useInView(0.1)
+  const { ref, inView } = useInView(0.08)
 
   return (
-    <section id="manifesto" className="py-24 px-6" ref={ref}>
-      <div className={`max-w-3xl mx-auto transition-all duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-        <SectionLabel>Manifesto</SectionLabel>
+    <section id="manifesto" className="py-28 px-6" ref={ref}>
+      <div className={`max-w-3xl mx-auto transition-opacity duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
+        <Label>Manifesto</Label>
 
-        <div className="space-y-6 text-zinc-300 leading-relaxed">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">
-            Memory without observability is liability.
-          </h2>
+        <h2 className="font-bold mb-12 tracking-tight"
+          style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
+          Memory without observability is liability.
+        </h2>
 
+        <div className="space-y-6 text-base leading-[1.75]" style={{ color: 'rgba(240,237,232,0.7)' }}>
           <p>
             Every AI engineering team is building memory into their agents. Persistent context,
-            user history, retrieved knowledge — it makes agents smarter, more personalized,
-            more useful.
+            user history, retrieved knowledge — it makes agents smarter, more personalized, more useful.
           </p>
-
-          <p>
-            But nobody is watching the memories.
-          </p>
-
-          <p className="text-zinc-200 font-medium">
-            When your agent hallucinates, you can't tell which memory caused it.
+          <p>But nobody is watching the memories.</p>
+          <p style={{ color: 'var(--text)', fontWeight: 500 }}>
+            When your agent gives a wrong answer, you can't tell which memory caused it.
             When your token bill spikes, you can't tell which memories are worth paying for.
             When a user requests deletion, you can't prove you got everything.
           </p>
-
           <p>
             Memory systems today are black boxes. Mem0, Zep, custom RAG stores — they all solve
             the same problem: <em>how to store and retrieve memories</em>. None of them solve
-            the next problem: <em>how to know if those memories are helping or hurting</em>.
+            the next one: <em>how to know if those memories are helping or hurting</em>.
           </p>
-
-          <p>
-            This is the observability gap.
-          </p>
-
+          <p>This is the observability gap.</p>
           <p>
             Database engineers solved this decades ago. You wouldn't run Postgres without
-            <code className="text-emerald-400 bg-emerald-950/30 px-1.5 py-0.5 rounded text-sm"> EXPLAIN ANALYZE</code>.
-            You wouldn't deploy an API without distributed tracing. You wouldn't run a service
+            <code className="px-1.5 py-0.5 rounded text-sm mx-1 font-mono"
+              style={{ background: 'rgba(198,226,39,0.1)', color: 'var(--lime)' }}>
+              EXPLAIN ANALYZE
+            </code>.
+            You wouldn't ship an API without distributed tracing. You wouldn't run a service
             without metrics and alerting.
           </p>
-
           <p>
             Yet every AI team is running memory systems blind. Injecting hundreds of memories
             into every prompt. Paying for tokens they don't need. Trusting data they haven't
             verified. Hoping nothing contradicts.
           </p>
-
-          <p className="text-white font-medium text-lg">
+          <p className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
             Cortexa is the observability layer for agent memory.
           </p>
-
           <p>
             For every response, we trace which memories influenced which claims. We score their
-            contribution. We find the contradictions, the stale data, the coverage gaps. We show
-            you which memories earn their tokens and which are dead weight.
+            contribution. We find contradictions, stale data, and coverage gaps. We show you
+            which memories earn their tokens and which are dead weight.
           </p>
+          <p>We don't replace your memory system. We make it accountable.</p>
 
-          <p>
-            We don't replace your memory system. We make it accountable.
-          </p>
-
-          <div className="border-l-2 border-emerald-500 pl-4 py-2 my-8">
-            <p className="text-emerald-400 font-mono text-sm">
+          <blockquote className="my-10 pl-5 py-1 border-l-2" style={{ borderColor: 'var(--lime)' }}>
+            <p className="font-mono text-sm" style={{ color: 'var(--lime)' }}>
               "If you can't measure it, you can't improve it. If you can't trace it, you can't
               trust it. If you can't prove deletion, you can't comply."
             </p>
-          </div>
+          </blockquote>
 
-          <p className="text-zinc-500 text-sm">
-            We're building for the teams running agents at scale — 10K queries/day, hundreds of
+          <p className="text-sm" style={{ color: 'rgba(240,237,232,0.35)' }}>
+            We're building for teams running agents at scale — 10K queries/day, hundreds of
             memories per user, real compliance requirements. If that's you, we'd love to talk.
           </p>
         </div>
@@ -824,200 +748,180 @@ function Manifesto() {
   )
 }
 
-// ─── Section 7: Cost of Silent Failures ─────────────────────────────────────
+// ─── Cost Cards ───────────────────────────────────────────────────────────────
 
-function CostOfFailures() {
-  const { ref, inView } = useInView(0.1)
+function CostSection() {
+  const { ref, inView } = useInView(0.08)
+
+  const cards = [
+    { bad: true,  metric: '$14,000', sub: 'avg cost of one bad enterprise response',
+      title: 'Hallucination from stale memory',
+      desc: 'A stale memory makes your agent give wrong information. Customer escalates. Team spends a day debugging. Trust takes months to rebuild.',
+      tag: 'Attribution Engine catches this' },
+    { bad: true,  metric: '$38,000', sub: 'annual spend on zero-attribution memories',
+      title: 'Token waste from dead memories',
+      desc: "Memories contributing nothing to responses fill the context window, crowd out useful data, and add latency. You'd never know without measurement.",
+      tag: 'Memory P&L reveals this' },
+    { bad: false, metric: '$13,300', sub: 'annual savings from pruning dead memories',
+      title: '35% token reduction',
+      desc: "Memory P&L identifies which memories earn their tokens. Archive the dead weight, boost the high-performers. Savings start on day one.",
+      tag: 'Lifecycle Engine optimizes this' },
+    { bad: false, metric: '3s', sub: 'to generate a cryptographic deletion cert',
+      title: 'GDPR compliance in seconds',
+      desc: 'Provenance graph traces all derived data — embeddings, summaries, cached responses. One cascade. One certificate. No guesswork.',
+      tag: 'Compliance Engine handles this' },
+  ]
 
   return (
-    <section className="py-24 px-6" ref={ref}>
+    <section className="py-28 px-6" ref={ref}>
       <div className="max-w-5xl mx-auto">
-        <SectionLabel>The Cost</SectionLabel>
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+        <Label>The Cost</Label>
+        <h2 className="font-bold mb-4 tracking-tight"
+          style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
           The cost of silent failures
         </h2>
-        <p className="text-zinc-400 mb-12 max-w-2xl">
-          Memory problems don't crash your system. They quietly degrade trust,
-          waste money, and create compliance risk. Here's what that looks like.
+        <p className="mb-14 max-w-xl" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
+          Memory problems don't crash your system. They quietly degrade trust, waste money,
+          and create compliance risk.
         </p>
 
-        <div className={`grid md:grid-cols-2 gap-6 transition-all duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-          <FailureCard
-            variant="red"
-            title="Hallucination from stale memory"
-            metric="$14,000"
-            metricLabel="avg. cost of a bad response to an enterprise customer"
-            desc="A single stale memory makes your agent give wrong information. The customer escalates. Your team spends a day debugging. Trust takes months to rebuild."
-            tag="Attribution Engine catches this"
-          />
-          <FailureCard
-            variant="red"
-            title="Token waste from dead memories"
-            metric="$38,000"
-            metricLabel="annual spend on memories with zero attribution"
-            desc="You're injecting memories that contribute nothing to responses. They fill the context window, crowd out useful memories, and add latency. You'd never know without measurement."
-            tag="Memory P&L reveals this"
-          />
-          <FailureCard
-            variant="green"
-            title="35% token reduction"
-            metric="$13,300"
-            metricLabel="annual savings from pruning zero-attribution memories"
-            desc="Cortexa's Memory P&L identifies which memories earn their tokens. Archive the dead weight, boost the high-performers. Savings start on day one."
-            tag="Lifecycle Engine optimizes this"
-          />
-          <FailureCard
-            variant="green"
-            title="GDPR compliance in seconds"
-            metric="3s"
-            metricLabel="time to generate a cryptographic deletion certificate"
-            desc="Provenance graph traces every piece of derived data — embeddings, summaries, cached responses. One deletion cascade, one certificate. No more 'we think we got everything.'"
-            tag="Compliance Engine handles this"
-          />
+        <div className={`grid md:grid-cols-2 gap-5 transition-opacity duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
+          {cards.map(c => (
+            <div key={c.title} className="card p-7"
+              style={{ borderColor: c.bad ? 'rgba(239,68,68,0.12)' : 'rgba(198,226,39,0.12)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                {c.bad
+                  ? <AlertTriangle size={15} style={{ color: '#f87171' }} />
+                  : <CheckCircle size={15} style={{ color: 'var(--lime)' }} />}
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{c.title}</h3>
+              </div>
+              <div className="mb-4">
+                <div className="stat-number" style={{ color: c.bad ? '#f87171' : 'var(--lime)' }}>
+                  {c.metric}
+                </div>
+                <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>{c.sub}</p>
+              </div>
+              <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--muted)' }}>{c.desc}</p>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono"
+                style={{
+                  background: c.bad ? 'rgba(253,224,71,0.07)' : 'rgba(198,226,39,0.08)',
+                  border: `1px solid ${c.bad ? 'rgba(253,224,71,0.2)' : 'rgba(198,226,39,0.2)'}`,
+                  color: c.bad ? '#fde047' : 'var(--lime)',
+                }}>
+                {c.bad ? <Zap size={11} /> : <CheckCircle size={11} />}
+                {c.tag}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-function FailureCard({
-  variant,
-  title,
-  metric,
-  metricLabel,
-  desc,
-  tag,
-}: {
-  variant: 'red' | 'green'
-  title: string
-  metric: string
-  metricLabel: string
-  desc: string
-  tag: string
-}) {
-  const isRed = variant === 'red'
-  return (
-    <Card className={`p-6 ${isRed ? 'border-red-900/30' : 'border-emerald-900/30'}`}>
-      <div className="flex items-center gap-2 mb-3">
-        {isRed ? (
-          <AlertTriangle className="w-4 h-4 text-red-400" />
-        ) : (
-          <CheckCircle className="w-4 h-4 text-emerald-400" />
-        )}
-        <h3 className="text-sm font-semibold text-zinc-200">{title}</h3>
-      </div>
-      <div className="mb-3">
-        <span className={`text-3xl font-bold font-mono ${isRed ? 'text-red-400' : 'text-emerald-400'}`}>
-          {metric}
-        </span>
-        <span className="text-xs text-zinc-500 block mt-1">{metricLabel}</span>
-      </div>
-      <p className="text-sm text-zinc-400 leading-relaxed mb-4">{desc}</p>
-      <Badge variant={isRed ? 'yellow' : 'green'}>
-        {isRed ? <Zap className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-        {tag}
-      </Badge>
-    </Card>
-  )
-}
+// ─── Waitlist CTA ─────────────────────────────────────────────────────────────
 
-// ─── Section 8: Footer with Waitlist ────────────────────────────────────────
-
-const GOOGLE_SHEETS_URL =
-  'https://script.google.com/macros/s/AKfycbzuIb5zHBtc-Y-Qs55ghMBPudpJivVrL7ihCfmbdK-LSE-swU48GGdquzijaKX12s7CVw/exec'
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzuIb5zHBtc-Y-Qs55ghMBPudpJivVrL7ihCfmbdK-LSE-swU48GGdquzijaKX12s7CVw/exec'
 
 function WaitlistCTA() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState('')
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!email.trim() || submitting) return
-
-      setSubmitting(true)
-      setError('')
-
-      try {
-        await fetch(GOOGLE_SHEETS_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ email: email.trim() }),
-        })
-        setSubmitted(true)
-      } catch {
-        setError('Something went wrong. Please try again.')
-      } finally {
-        setSubmitting(false)
-      }
-    },
-    [email, submitting]
-  )
+  const submit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim() || loading) return
+    setLoading(true); setErr('')
+    try {
+      await fetch(SHEETS_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      setSubmitted(true)
+    } catch {
+      setErr('Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }, [email, loading])
 
   return (
-    <section className="py-24 px-6 border-t border-zinc-800/50">
-      <div className="max-w-2xl mx-auto text-center">
-        <Brain className="w-10 h-10 text-emerald-500 mx-auto mb-6" />
-        <h2 className="text-3xl font-bold text-white mb-4">
-          Stop debugging blind.
-        </h2>
-        <p className="text-zinc-400 mb-8">
-          Cortexa is in early access for teams running agents at scale.
-          Join the waitlist — we'll reach out when your slot opens.
-        </p>
+    <section className="py-28 px-6 border-t" style={{ borderColor: 'var(--border)' }}>
+      {/* Lime glow above CTA */}
+      <div className="relative max-w-2xl mx-auto text-center">
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-40 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse, rgba(198,226,39,0.1) 0%, transparent 70%)', filter: 'blur(30px)' }} />
 
-        {submitted ? (
-          <div className="flex items-center justify-center gap-2 text-emerald-400 font-mono">
-            <CheckCircle className="w-5 h-5" />
-            You're on the list. We'll be in touch.
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={submitting}
-              className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder-zinc-600 text-sm font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 disabled:opacity-50"
-            />
-            <Button variant="primary" className={`whitespace-nowrap ${submitting ? 'opacity-70 pointer-events-none' : ''}`}>
-              {submitting ? 'Sending...' : 'Join Waitlist'}
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </form>
-        )}
-        {error && (
-          <p className="text-red-400 text-xs font-mono mt-3">{error}</p>
-        )}
+        <div className="relative z-10">
+          <Logo className="logo-img mx-auto mb-8" />
+
+          <h2 className="font-bold mb-4 tracking-tight"
+            style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
+            Stop debugging blind.
+          </h2>
+          <p className="mb-3 text-base" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
+            Cortexa is in early access for teams running agents at scale.
+            Join the waitlist — we'll reach out when your slot opens.
+          </p>
+          <p className="mb-10 text-sm font-mono" style={{ color: 'rgba(240,237,232,0.25)' }}>
+            or start now:{' '}
+            <span style={{ color: 'var(--lime)' }}>pip install cortexos</span>
+          </p>
+
+          {submitted ? (
+            <div className="flex items-center justify-center gap-2 font-mono" style={{ color: 'var(--lime)' }}>
+              <CheckCircle size={18} />
+              You're on the list. We'll be in touch.
+            </div>
+          ) : (
+            <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-mono disabled:opacity-50 outline-none transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--border-md)',
+                  color: 'var(--text)',
+                }}
+                onFocus={e => (e.target.style.borderColor = 'rgba(198,226,39,0.5)')}
+                onBlur={e => (e.target.style.borderColor = 'var(--border-md)')}
+              />
+              <button type="submit" className={`btn-primary whitespace-nowrap ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+                {loading ? 'Sending...' : 'Join Waitlist'}
+                <ArrowRight size={15} />
+              </button>
+            </form>
+          )}
+          {err && <p className="text-xs font-mono mt-3" style={{ color: '#f87171' }}>{err}</p>}
+        </div>
       </div>
     </section>
   )
 }
 
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
 function Footer() {
   return (
-    <footer className="py-8 px-6 border-t border-zinc-900">
+    <footer className="py-8 px-6 border-t" style={{ borderColor: 'var(--border)' }}>
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-zinc-600 text-sm">
-          <Brain className="w-4 h-4" />
-          <span className="font-mono">&copy; 2026 Cortexa</span>
+        <div className="flex items-center gap-2 text-sm font-mono" style={{ color: 'rgba(240,237,232,0.25)' }}>
+          <Logo className="logo-img-sm" />
+          © 2026 Cortexa
         </div>
-        <div className="flex items-center gap-6 text-xs text-zinc-600">
-          <a href="#trace-demo" className="hover:text-zinc-400 transition-colors">How It Works</a>
-          <a href="#manifesto" className="hover:text-zinc-400 transition-colors">Manifesto</a>
-          <a
-            href="https://github.com/cortexa"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-zinc-400 transition-colors flex items-center gap-1"
-          >
-            GitHub
-            <ExternalLink className="w-3 h-3" />
+        <div className="flex items-center gap-6 text-xs" style={{ color: 'rgba(240,237,232,0.3)' }}>
+          <a href="#demo" className="hover:text-white transition-colors">How It Works</a>
+          <a href="#manifesto" className="hover:text-white transition-colors">Manifesto</a>
+          <a href="https://github.com/Arunjay4213/Cortexa" target="_blank" rel="noopener noreferrer"
+            className="hover:text-white transition-colors flex items-center gap-1">
+            GitHub <ExternalLink size={11} />
           </a>
         </div>
       </div>
@@ -1025,54 +929,11 @@ function Footer() {
   )
 }
 
-// ─── Nav ────────────────────────────────────────────────────────────────────
-
-function Nav() {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/50'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5 text-emerald-500" />
-          <span className="font-mono font-bold text-white text-sm tracking-tight">CORTEXA</span>
-        </div>
-        <div className="hidden sm:flex items-center gap-6 text-xs text-zinc-500">
-          <a href="#trace-demo" className="hover:text-zinc-300 transition-colors">Demo</a>
-          <a href="#manifesto" className="hover:text-zinc-300 transition-colors">Manifesto</a>
-          <Button
-            variant="primary"
-            className="text-xs px-3 py-1.5"
-            onClick={() =>
-              document.querySelector('input[type="email"]')?.scrollIntoView({ behavior: 'smooth' })
-            }
-          >
-            <Terminal className="w-3 h-3" />
-            Get Early Access
-          </Button>
-        </div>
-      </div>
-    </nav>
-  )
-}
-
-// ─── App ────────────────────────────────────────────────────────────────────
+// ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-200 selection:bg-emerald-500/20">
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <Nav />
       <Hero />
       <TraceDemo />
@@ -1080,7 +941,7 @@ export default function App() {
       <BeforeAfter />
       <HowItWorks />
       <Manifesto />
-      <CostOfFailures />
+      <CostSection />
       <WaitlistCTA />
       <Footer />
     </div>
