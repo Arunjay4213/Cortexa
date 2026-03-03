@@ -194,7 +194,7 @@ function Hero() {
 
 function TraceDemo() {
   const { ref, inView } = useInView(0.1)
-  const step = useStagger(inView, 8, 480)
+  const step = useStagger(inView, 10, 500)
 
   return (
     <section id="demo" className="py-28 px-6" ref={ref}>
@@ -202,11 +202,12 @@ function TraceDemo() {
         <Label>Live Trace</Label>
         <h2 className="font-bold mb-4 tracking-tight"
           style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
-          Watch a hallucination traced in real time
+          Claude Code caught mid-hallucination
         </h2>
         <p className="mb-12 max-w-xl" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
-          An agent responds wrong. Cortexa shows you exactly which memory caused it,
-          why it ranked first, and how to fix it — in seconds.
+          The agent confidently calls a function renamed six months ago. Cortexa traces
+          the stale memory, steers the agent to the correct API, and approves the write —
+          before a single line of bad code ships.
         </p>
 
         <div className="terminal-win">
@@ -215,55 +216,60 @@ function TraceDemo() {
             <div className="dot dot-y" />
             <div className="dot dot-g" />
             <span className="text-xs font-mono ml-3" style={{ color: 'var(--muted)' }}>
-              cortexa trace --query "subscription status"
+              cortexa monitor --agent claude-code --project api-service
             </span>
           </div>
 
           <div className="p-7 sm:p-10 font-mono text-sm space-y-0">
 
+            {/* Step 1 — agent invocation */}
             {step >= 1 && (
-              <div className="anim-fade-up hidden-init mb-6">
-                <div className="text-xs mb-2" style={{ color: 'var(--muted)' }}>AGENT RESPONSE</div>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
-                  <p style={{ color: 'var(--text)' }}>
-                    "Your subscription renews on{' '}
-                    <span style={{ color: '#B91C1C', textDecoration: 'underline', textDecorationColor: 'rgba(248,113,113,0.4)' }}>
-                      March 15th
-                    </span>."
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {step >= 2 && (
-              <div className="anim-fade-up hidden-init mb-6">
-                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#B91C1C' }}>
-                  <XCircle size={13} /> GROUND TRUTH MISMATCH
-                </div>
-                <div className="rounded-xl p-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  <p style={{ color: '#991B1B' }}>User cancelled their subscription on February 1st.</p>
-                </div>
-              </div>
-            )}
-
-            {step >= 3 && (
               <div className="anim-fade-up hidden-init mb-5">
+                <div className="text-xs mb-2" style={{ color: 'var(--muted)' }}>CLAUDE CODE — TASK</div>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
+                  <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>$ claude <span style={{ color: 'var(--text)' }}>"fix the token refresh bug in api/auth.ts"</span></p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>● Analyzing codebase&nbsp;&nbsp;● Writing fix to api/auth.ts…</p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 — agent output (wrong) */}
+            {step >= 2 && (
+              <div className="anim-fade-up hidden-init mb-5">
+                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#B91C1C' }}>
+                  <AlertTriangle size={13} /> CORTEXA INTERCEPTED — WRITE BLOCKED
+                </div>
+                <div className="rounded-xl p-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.22)' }}>
+                  <div className="text-xs mb-2" style={{ color: '#9F1239' }}>api/auth.ts:47 — proposed write:</div>
+                  <pre className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>{`await auth.refreshToken(userId, { force: true, silent: true })`}</pre>
+                  <div className="mt-2 flex items-center gap-2 text-xs" style={{ color: '#9F1239' }}>
+                    <XCircle size={11} />
+                    <span><code style={{ background: 'rgba(239,68,68,0.15)', padding: '1px 5px', borderRadius: 4 }}>auth.refreshToken()</code> does not exist in current codebase</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 — attribution trace header */}
+            {step >= 3 && (
+              <div className="anim-fade-up hidden-init mb-4">
                 <div className="flex items-center gap-2 text-xs pt-3 border-t" style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}>
                   <Search size={12} />
-                  ATTRIBUTION TRACE — 4 memories retrieved, 2 causal
+                  ATTRIBUTION TRACE — 6 memories retrieved, 2 causal
                 </div>
               </div>
             )}
 
+            {/* Step 4 — stale memory (culprit) */}
             {step >= 4 && (
               <div className="anim-slide-left hidden-init mb-3">
                 <div className="rounded-xl p-4 anim-pulse-red" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.22)' }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span style={{ color: 'var(--muted)' }}>→</span>
-                      <span style={{ color: 'var(--text)' }}>Memory #47</span>
+                      <span style={{ color: 'var(--text)' }}>Memory #312</span>
                       <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(239,68,68,0.15)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.3)' }}>
-                        attribution: 0.73
+                        attribution: 0.81
                       </span>
                     </div>
                     <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(239,68,68,0.15)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.3)' }}>
@@ -271,25 +277,26 @@ function TraceDemo() {
                     </span>
                   </div>
                   <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
-                    "User subscription renews monthly on the 15th"
+                    "auth.refreshToken(userId, opts) — refreshes JWT, returns new token pair"
                   </p>
                   <p className="text-xs ml-5" style={{ color: '#9F1239' }}>
                     <Clock size={10} className="inline mr-1" />
-                    Last verified: 4 months ago — no recency check applied
+                    Last verified: 8 months ago — predates v2.3 auth module refactor
                   </p>
                 </div>
               </div>
             )}
 
+            {/* Step 5 — current memory (buried) */}
             {step >= 5 && (
               <div className="anim-slide-left hidden-init mb-5">
                 <div className="rounded-xl p-4" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.20)' }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span style={{ color: 'var(--muted)' }}>→</span>
-                      <span style={{ color: 'var(--text)' }}>Memory #198</span>
+                      <span style={{ color: 'var(--text)' }}>Memory #601</span>
                       <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(122,140,0,0.14)', color: 'var(--lime)', border: '1px solid rgba(122,140,0,0.25)' }}>
-                        attribution: 0.12
+                        attribution: 0.09
                       </span>
                     </div>
                     <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(122,140,0,0.14)', color: 'var(--lime)', border: '1px solid rgba(122,140,0,0.25)' }}>
@@ -297,16 +304,17 @@ function TraceDemo() {
                     </span>
                   </div>
                   <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
-                    "User cancelled subscription Feb 1"
+                    "v2.3 refactor: auth.refreshToken() → auth.rotateCredentials(userId)"
                   </p>
                   <p className="text-xs ml-5" style={{ color: '#78350F' }}>
                     <AlertTriangle size={10} className="inline mr-1" />
-                    Retrieval rank: 4th — correct memory was buried
+                    Retrieval rank: 5th — correct API buried behind stale entry
                   </p>
                 </div>
               </div>
             )}
 
+            {/* Step 6 — diagnosis */}
             {step >= 6 && (
               <div className="anim-fade-up hidden-init mb-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                 <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid rgba(28,28,30,0.12)' }}>
@@ -314,40 +322,62 @@ function TraceDemo() {
                     <Eye size={13} /> DIAGNOSIS
                   </div>
                   <p className="text-sm" style={{ color: 'var(--text)', lineHeight: 1.65 }}>
-                    Stale memory outranked current memory. Memory #47 has not been verified
-                    in 4 months and contains outdated subscription data. The correct information
-                    (Memory #198) was retrieved but ranked 4th due to embedding similarity
-                    favoring the older, more detailed entry.
+                    Stale API memory outranked the refactor note. Memory #312 has high
+                    embedding similarity to the query ("token refresh") but documents a
+                    function removed in v2.3. Memory #601, which records the rename to{' '}
+                    <code style={{ fontSize: '0.78em', background: 'rgba(28,28,30,0.08)', padding: '1px 5px', borderRadius: 4 }}>rotateCredentials()</code>,
+                    was retrieved 5th and never surfaced to the agent.
                   </p>
                 </div>
               </div>
             )}
 
+            {/* Step 7 — Cortexa steers */}
             {step >= 7 && (
               <div className="anim-fade-up hidden-init mb-4">
-                <div className="rounded-xl p-4 anim-pulse-lime" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.22)' }}>
-                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--lime)' }}>
-                    <Zap size={13} /> RECOMMENDED FIX
+                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-2 text-xs mb-3" style={{ color: 'var(--muted)' }}>
+                    <Zap size={13} style={{ color: 'var(--lime)' }} />
+                    <span style={{ color: 'var(--lime)' }}>CORTEXA STEERING</span>
+                    <span style={{ color: 'var(--muted)' }}>— re-prompting with corrected context</span>
                   </div>
-                  <ul className="text-sm space-y-1" style={{ color: 'var(--text)' }}>
-                    <li>→ Invalidate Memory #47 (stale, contradicted)</li>
-                    <li>→ Boost recency weight in retrieval scoring</li>
-                    <li>→ Flag 3 similar stale memories for review</li>
+                  <ul className="text-xs space-y-1.5" style={{ color: 'var(--muted)' }}>
+                    <li>→ Invalidating Memory #312 (deprecated API signature)</li>
+                    <li>→ Promoting Memory #601 to retrieval rank 1</li>
+                    <li>→ Flagging 4 similar pre-v2.3 memories for review</li>
                   </ul>
                 </div>
               </div>
             )}
 
+            {/* Step 8 — corrected agent output */}
             {step >= 8 && (
+              <div className="anim-fade-up hidden-init mb-4">
+                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--lime)' }}>
+                  <CheckCircle size={13} /> CLAUDE CODE — CORRECTED OUTPUT
+                </div>
+                <div className="rounded-xl p-4 anim-pulse-lime" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.22)' }}>
+                  <div className="text-xs mb-2" style={{ color: 'var(--lime)' }}>api/auth.ts:47 — approved write:</div>
+                  <pre className="text-xs leading-relaxed" style={{ color: 'var(--text)' }}>{`await auth.rotateCredentials(userId)`}</pre>
+                  <div className="mt-2 flex items-center gap-2 text-xs" style={{ color: 'var(--lime)' }}>
+                    <CheckCircle size={11} />
+                    <span>Verified against current codebase — write approved</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 9 — result footer */}
+            {step >= 9 && (
               <div className="anim-fade-up hidden-init flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex items-center gap-2">
                   <Activity size={15} style={{ color: 'var(--lime)' }} />
                   <span style={{ color: 'var(--lime)' }}>
-                    Time to root cause: <strong>3 seconds</strong>
+                    Root cause found: <strong>2.1 seconds</strong>
                   </span>
                 </div>
                 <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                  previously: ~45 min of log archaeology
+                  0 bad lines shipped · 4 stale memories flagged
                 </span>
               </div>
             )}
