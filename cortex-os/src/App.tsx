@@ -247,7 +247,7 @@ function TraceDemo() {
                   <XCircle size={13} /> GROUND TRUTH MISMATCH
                 </div>
                 <div className="rounded-xl p-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  <p style={{ color: '#fca5a5' }}>User cancelled their subscription on February 1st.</p>
+                  <p style={{ color: '#991B1B' }}>User cancelled their subscription on February 1st.</p>
                 </div>
               </div>
             )}
@@ -279,7 +279,7 @@ function TraceDemo() {
                   <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
                     "User subscription renews monthly on the 15th"
                   </p>
-                  <p className="text-xs ml-5" style={{ color: 'rgba(248,113,113,0.6)' }}>
+                  <p className="text-xs ml-5" style={{ color: '#9F1239' }}>
                     <Clock size={10} className="inline mr-1" />
                     Last verified: 4 months ago — no recency check applied
                   </p>
@@ -305,7 +305,7 @@ function TraceDemo() {
                   <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
                     "User cancelled subscription Feb 1"
                   </p>
-                  <p className="text-xs ml-5" style={{ color: 'rgba(253,224,71,0.6)' }}>
+                  <p className="text-xs ml-5" style={{ color: '#78350F' }}>
                     <AlertTriangle size={10} className="inline mr-1" />
                     Retrieval rank: 4th — correct memory was buried
                   </p>
@@ -315,8 +315,8 @@ function TraceDemo() {
 
             {step >= 6 && (
               <div className="anim-fade-up hidden-init mb-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid rgba(253,224,71,0.18)' }}>
-                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#fde047' }}>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid rgba(28,28,30,0.12)' }}>
+                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#92400E' }}>
                     <Eye size={13} /> DIAGNOSIS
                   </div>
                   <p className="text-sm" style={{ color: 'var(--text)', lineHeight: 1.65 }}>
@@ -435,8 +435,8 @@ function ThreeQuestions() {
             <div className="space-y-4 mb-5">
               {[
                 { icon: <XCircle size={14} style={{ color: '#B91C1C' }} />, label: 'Contradictions', val: 2, pct: 14, color: '#B91C1C' },
-                { icon: <Clock size={14} style={{ color: '#fbbf24' }} />, label: 'Stale memories', val: 14, pct: 98, color: '#fbbf24' },
-                { icon: <AlertTriangle size={14} style={{ color: '#fb923c' }} />, label: 'Coverage gaps', val: 3, pct: 21, color: '#fb923c' },
+                { icon: <Clock size={14} style={{ color: '#B45309' }} />, label: 'Stale memories', val: 14, pct: 98, color: '#B45309' },
+                { icon: <AlertTriangle size={14} style={{ color: '#C2410C' }} />, label: 'Coverage gaps', val: 3, pct: 21, color: '#C2410C' },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text)' }}>
@@ -665,7 +665,7 @@ function HowItWorks() {
               <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text)' }}>{s.title}</h3>
               <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--muted)' }}>{s.desc}</p>
               <pre className="rounded-xl p-4 text-xs font-mono overflow-x-auto"
-                style={{ background: 'rgba(28,28,30,0.88)', color: 'rgba(122,140,0,0.85)', border: '1px solid var(--border)' }}>
+                style={{ background: 'rgba(28,28,30,0.06)', color: '#1C1C1E', border: '1px solid rgba(28,28,30,0.14)' }}>
                 {s.code}
               </pre>
             </div>
