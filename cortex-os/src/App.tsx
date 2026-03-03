@@ -77,24 +77,35 @@ function Nav() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
+  const navLink = { color: 'var(--text)' } as const
+
   return (
     <nav className={`nav-base ${scrolled ? 'nav-scrolled' : ''}`}>
-      <Logo className="logo-img-nav" />
-      <div className="hidden sm:flex items-center gap-7">
-        <a href="#demo" className="text-sm font-medium transition-colors"
-          style={{ color: 'var(--text)' }}>
-          Demo
-        </a>
-        <a href="#manifesto" className="text-sm font-medium transition-colors"
-          style={{ color: 'var(--text)' }}>
-          Manifesto
-        </a>
+      {/* Left: logo + section links */}
+      <div className="flex items-center gap-6">
+        <Logo className="logo-img-nav" />
+        <div className="hidden sm:flex items-center gap-5">
+          {[
+            { href: '#demo',         label: 'Demo' },
+            { href: '#how-it-works', label: 'How It Works' },
+            { href: '#manifesto',    label: 'Manifesto' },
+            { href: '#faq',          label: 'FAQ' },
+          ].map(({ href, label }) => (
+            <a key={href} href={href} className="text-sm font-medium transition-colors" style={navLink}>
+              {label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Right: GitHub + CTA */}
+      <div className="hidden sm:flex items-center gap-4">
         <a
           href="https://github.com/Arunjay4213/Cortexa"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-sm font-medium transition-colors"
-          style={{ color: 'var(--text)' }}
+          className="flex items-center transition-colors"
+          style={navLink}
         >
           <Github size={16} />
         </a>
@@ -641,7 +652,7 @@ function HowItWorks() {
   ]
 
   return (
-    <section className="py-28 px-6" ref={ref}>
+    <section id="how-it-works" className="py-28 px-6" ref={ref}>
       <div className="max-w-5xl mx-auto">
         <Label>Integration</Label>
         <h2 className="font-bold mb-4 tracking-tight"
@@ -867,7 +878,7 @@ function FAQ() {
   const { ref, inView } = useInView(0.08)
 
   return (
-    <section className="py-28 px-6" ref={ref}>
+    <section id="faq" className="py-28 px-6" ref={ref}>
       <div className={`max-w-3xl mx-auto transition-opacity duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
         <Label>FAQ</Label>
         <h2 className="font-bold mb-3 tracking-tight"
