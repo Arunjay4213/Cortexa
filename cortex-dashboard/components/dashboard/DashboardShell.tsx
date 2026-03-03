@@ -15,7 +15,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
 
-  // Redirect unauthenticated users to login (skip if on /login or landing page)
+  // Redirect unauthenticated users to login (but not from the public landing page)
   useEffect(() => {
     if (!isAuthenticated && pathname !== "/login" && pathname !== "/") {
       router.replace("/login");
