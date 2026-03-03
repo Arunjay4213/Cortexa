@@ -23,37 +23,37 @@ const StatusIcon = ({ status }: { status: 'active' | 'error' | 'idle' | 'warning
   if (status === 'active') {
     return (
       <motion.svg width="14" height="14" viewBox="0 0 14 14" className="inline-block" animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}>
-        <circle cx="7" cy="7" r="6" fill="none" stroke="#00D9FF" strokeWidth="1.5" strokeDasharray="2 2" />
-        <circle cx="7" cy="7" r="2.5" fill="#00D9FF" className="drop-shadow-[0_0_6px_rgba(0,217,255,0.8)]" />
+        <circle cx="7" cy="7" r="6" fill="none" stroke="#7A8C00" strokeWidth="1.5" strokeDasharray="2 2" />
+        <circle cx="7" cy="7" r="2.5" fill="#7A8C00" className="drop-shadow-[0_0_6px_rgba(122,140,0,0.8)]" />
       </motion.svg>
     );
   }
   if (status === 'error') {
     return (
       <motion.svg width="14" height="14" viewBox="0 0 14 14" className="inline-block" animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>
-        <path d="M7 1.5 L12.5 12.5 L1.5 12.5 Z" fill="none" stroke="#FF3A5E" strokeWidth="1.5" />
-        <circle cx="7" cy="9" r="1.2" fill="#FF3A5E" className="drop-shadow-[0_0_8px_rgba(255,58,94,0.8)]" />
+        <path d="M7 1.5 L12.5 12.5 L1.5 12.5 Z" fill="none" stroke="#CC2940" strokeWidth="1.5" />
+        <circle cx="7" cy="9" r="1.2" fill="#CC2940" className="drop-shadow-[0_0_8px_rgba(204,41,64,0.8)]" />
       </motion.svg>
     );
   }
   if (status === 'warning') {
     return (
       <motion.svg width="14" height="14" viewBox="0 0 14 14" className="inline-block" animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
-        <circle cx="7" cy="7" r="6" fill="none" stroke="#FFB800" strokeWidth="1.5" />
-        <line x1="7" y1="4" x2="7" y2="8" stroke="#FFB800" strokeWidth="1.5" />
-        <circle cx="7" cy="10" r="0.8" fill="#FFB800" />
+        <circle cx="7" cy="7" r="6" fill="none" stroke="#B07000" strokeWidth="1.5" />
+        <line x1="7" y1="4" x2="7" y2="8" stroke="#B07000" strokeWidth="1.5" />
+        <circle cx="7" cy="10" r="0.8" fill="#B07000" />
       </motion.svg>
     );
   }
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" className="inline-block opacity-30">
-      <circle cx="7" cy="7" r="5" fill="none" stroke="#555" strokeWidth="1.5" />
+      <circle cx="7" cy="7" r="5" fill="none" stroke="#8A8580" strokeWidth="1.5" />
     </svg>
   );
 };
 
 // Mini Sparkline
-const MiniChart = ({ data, color = '#00D9FF', threshold }: { data: number[], color?: string, threshold?: number }) => {
+const MiniChart = ({ data, color = '#7A8C00', threshold }: { data: number[], color?: string, threshold?: number }) => {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const points = data.map((v, i) => {
@@ -64,7 +64,7 @@ const MiniChart = ({ data, color = '#00D9FF', threshold }: { data: number[], col
 
   return (
     <svg width="50" height="16" className="inline-block align-middle">
-      {threshold && <line x1="0" y1={16 - ((threshold - min) / (max - min || 1)) * 16} x2="50" y2={16 - ((threshold - min) / (max - min || 1)) * 16} stroke="#FF3A5E" strokeWidth="0.5" strokeDasharray="2 1" opacity="0.5" />}
+      {threshold && <line x1="0" y1={16 - ((threshold - min) / (max - min || 1)) * 16} x2="50" y2={16 - ((threshold - min) / (max - min || 1)) * 16} stroke="#CC2940" strokeWidth="0.5" strokeDasharray="2 1" opacity="0.5" />}
       <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" />
     </svg>
   );
@@ -72,7 +72,7 @@ const MiniChart = ({ data, color = '#00D9FF', threshold }: { data: number[], col
 
 // Efficiency Badge
 const EfficiencyBadge = ({ score }: { score: number }) => {
-  const color = score >= 90 ? '#00FF88' : score >= 70 ? '#00D9FF' : score >= 50 ? '#FFB800' : '#FF3A5E';
+  const color = score >= 90 ? '#4D7A00' : score >= 70 ? '#7A8C00' : score >= 50 ? '#B07000' : '#CC2940';
   const label = score >= 90 ? 'OPTIMAL' : score >= 70 ? 'GOOD' : score >= 50 ? 'FAIR' : 'POOR';
   return (
     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[12px] font-bold" style={{ backgroundColor: `${color}20`, border: `1px solid ${color}40`, color }}>
@@ -90,28 +90,28 @@ const ActionMenu = ({ show, onClose }: { show: boolean, onClose: () => void }) =
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="absolute top-full right-0 mt-1 bg-[#1C1C1E] border border-white/20 rounded shadow-xl z-50 min-w-[160px]"
+      className="absolute top-full right-0 mt-1 bg-[#F0EDE5] border border-[#1C1C1E]/20 rounded shadow-xl z-50 min-w-[160px]"
     >
-      <button className="w-full px-3 py-2 text-left text-[13px] text-white/80 hover:bg-white/10 flex items-center gap-2">
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#1C1C1E]/80 hover:bg-[#1C1C1E]/10 flex items-center gap-2">
         <span>🔍</span> View Details
       </button>
-      <button className="w-full px-3 py-2 text-left text-[13px] text-white/80 hover:bg-white/10 flex items-center gap-2">
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#1C1C1E]/80 hover:bg-[#1C1C1E]/10 flex items-center gap-2">
         <span>📊</span> Attribution Graph
       </button>
-      <button className="w-full px-3 py-2 text-left text-[13px] text-white/80 hover:bg-white/10 flex items-center gap-2">
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#1C1C1E]/80 hover:bg-[#1C1C1E]/10 flex items-center gap-2">
         <span>🔧</span> Optimize Memory
       </button>
-      <button className="w-full px-3 py-2 text-left text-[13px] text-white/80 hover:bg-white/10 flex items-center gap-2">
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#1C1C1E]/80 hover:bg-[#1C1C1E]/10 flex items-center gap-2">
         <span>📝</span> View Logs
       </button>
-      <div className="border-t border-white/10 my-1" />
-      <button className="w-full px-3 py-2 text-left text-[13px] text-white/80 hover:bg-white/10 flex items-center gap-2">
+      <div className="border-t border-[#1C1C1E]/10 my-1" />
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#1C1C1E]/80 hover:bg-[#1C1C1E]/10 flex items-center gap-2">
         <span>🔄</span> Restart Agent
       </button>
-      <button className="w-full px-3 py-2 text-left text-[13px] text-[#FF3A5E] hover:bg-[#FF3A5E]/10 flex items-center gap-2">
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#CC2940] hover:bg-[#CC2940]/10 flex items-center gap-2">
         <span>⚠️</span> Force Archive
       </button>
-      <button className="w-full px-3 py-2 text-left text-[13px] text-[#FF3A5E] hover:bg-[#FF3A5E]/10 flex items-center gap-2">
+      <button className="w-full px-3 py-2 text-left text-[13px] text-[#CC2940] hover:bg-[#CC2940]/10 flex items-center gap-2">
         <span>🗑️</span> Delete (GDPR)
       </button>
     </motion.div>
@@ -264,7 +264,7 @@ export default function CortexHUD() {
   const selectedAgent = agents.find(a => a.id === selectedAgentId);
 
   return (
-    <div className="relative min-h-screen bg-[#0A0A0A] text-white/70 font-mono overflow-hidden">
+    <div className="relative min-h-screen bg-[#E8E3D5] text-[#1C1C1E]/80 font-mono overflow-hidden">
       <Navigation />
 
       {/* CRT Atmosphere */}
@@ -275,20 +275,20 @@ export default function CortexHUD() {
         }} />
         {/* Scanlines */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
-          background: 'repeating-linear-gradient(0deg, transparent 0px, rgba(255,255,255,0.03) 1px, transparent 2px)'
+          background: 'repeating-linear-gradient(0deg, transparent 0px, rgba(28,28,30,0.03) 1px, transparent 2px)'
         }} />
       </div>
 
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/90 backdrop-blur-sm px-4 py-2 flex justify-between items-center sticky top-0 z-30">
+      <div className="border-b border-[#1C1C1E]/10 bg-[#E8E3D5]/95 backdrop-blur-sm px-4 py-2 flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center gap-6">
-          <span className="text-[13px] font-bold text-white">CORTEX INTELLIGENCE</span>
-          <span className="text-[14px] text-[#00D9FF] tabular-nums">{time.toISOString().slice(11, 19)}</span>
+          <span className="text-[13px] font-bold text-[#1C1C1E]">CORTEX INTELLIGENCE</span>
+          <span className="text-[14px] text-[#7A8C00] tabular-nums">{time.toISOString().slice(11, 19)}</span>
           <div className="flex items-center gap-3 text-[13px]">
-            <span className="text-white/90"><span className="text-white/80">$/HR</span> <span className="text-white font-bold tabular-nums">${costPerHour.toFixed(2)}</span></span>
-            <span className="text-white/90"><span className="text-white/80">TOKENS</span> <span className="text-white font-bold tabular-nums">{(total.totalTokens / 1000000).toFixed(1)}M</span></span>
-            <span className="text-white/90"><span className="text-white/80">CACHE</span> <span className="text-white font-bold tabular-nums">{cacheHitRate.toFixed(0)}%</span></span>
-            <span className="text-white/90"><span className="text-white/80">HALL</span> <span className={`font-bold tabular-nums ${total.avgHallucination < 3 ? 'text-white' : 'text-white'}`} style={total.avgHallucination >= 5 ? { textShadow: '0 0 10px rgba(255,184,0,0.8)' } : {}}>{total.avgHallucination.toFixed(1)}%</span></span>
+            <span className="text-[#1C1C1E]/90"><span className="text-[#1C1C1E]/80">$/HR</span> <span className="text-[#1C1C1E] font-bold tabular-nums">${costPerHour.toFixed(2)}</span></span>
+            <span className="text-[#1C1C1E]/90"><span className="text-[#1C1C1E]/80">TOKENS</span> <span className="text-[#1C1C1E] font-bold tabular-nums">{(total.totalTokens / 1000000).toFixed(1)}M</span></span>
+            <span className="text-[#1C1C1E]/90"><span className="text-[#1C1C1E]/80">CACHE</span> <span className="text-[#1C1C1E] font-bold tabular-nums">{cacheHitRate.toFixed(0)}%</span></span>
+            <span className="text-[#1C1C1E]/90"><span className="text-[#1C1C1E]/80">HALL</span> <span className={`font-bold tabular-nums ${total.avgHallucination < 3 ? 'text-[#1C1C1E]' : 'text-[#1C1C1E]'}`} style={total.avgHallucination >= 5 ? { textShadow: '0 0 10px rgba(176,112,0,0.8)' } : {}}>{total.avgHallucination.toFixed(1)}%</span></span>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -296,15 +296,15 @@ export default function CortexHUD() {
             href="https://github.com/Arunjay4213/Cortexa"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/20 rounded text-[12px] font-bold text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 bg-[#1C1C1E]/10 hover:bg-[#1C1C1E]/20 border border-[#1C1C1E]/20 rounded text-[12px] font-bold text-[#1C1C1E] transition-colors"
           >
             <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
             </svg>
             View on GitHub
           </a>
-          <span className="text-[12px] text-white/85">REAL-TIME</span>
-          <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse shadow-[0_0_8px_rgba(0,255,136,0.6)]" />
+          <span className="text-[12px] text-[#1C1C1E]/85">REAL-TIME</span>
+          <div className="w-2 h-2 rounded-full bg-[#4D7A00] animate-pulse shadow-[0_0_8px_rgba(77,122,0,0.6)]" />
         </div>
       </div>
 
@@ -312,25 +312,25 @@ export default function CortexHUD() {
       <div className="grid gap-0 min-h-[calc(100vh-90px)]" style={{ gridTemplateColumns: selectedAgent ? '320px 1fr 340px 300px' : '320px 1fr 340px' }}>
 
         {/* LEFT COLUMN */}
-        <div className="flex flex-col gap-0 border-r border-white/10">
+        <div className="flex flex-col gap-0 border-r border-[#1C1C1E]/10">
 
           {/* Executive Summary */}
           <motion.div
-            className="bg-[#0A0A0A] border-b border-white/10 p-3 relative overflow-hidden rounded-none"
+            className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-3 relative overflow-hidden rounded-none"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
           >
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-[0.02]" style={{
-              backgroundImage: 'radial-gradient(circle at 2px 2px, #00D9FF 1px, transparent 0)',
+              backgroundImage: 'radial-gradient(circle at 2px 2px, #7A8C00 1px, transparent 0)',
               backgroundSize: '24px 24px'
             }} />
 
             <div className="flex items-center justify-between mb-3 relative z-10">
-              <span className="text-[14px] font-bold text-white/90 tracking-wide">EXECUTIVE SUMMARY</span>
+              <span className="text-[14px] font-bold text-[#1C1C1E]/90 tracking-wide">EXECUTIVE SUMMARY</span>
               <motion.div
-                className="text-[12px] text-[#00D9FF] font-bold px-2 py-0.5 bg-[#00D9FF]/10 rounded border border-[#00D9FF]/20"
+                className="text-[12px] text-[#7A8C00] font-bold px-2 py-0.5 bg-[#7A8C00]/10 rounded border border-[#7A8C00]/20"
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
@@ -341,43 +341,43 @@ export default function CortexHUD() {
             <div className="space-y-0 relative z-10">
               {/* Token Economics */}
               <motion.div
-                className="bg-[#0A0A0A] border-b border-white/10 p-2.5 hover:bg-white/[0.02] transition-colors"
-                whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2.5 hover:bg-[#1C1C1E]/[0.02] transition-colors"
+                whileHover={{ backgroundColor: 'rgba(28,28,30,0.02)' }}
                 transition={{ duration: 0.15 }}
               >
-                <div className="text-[12px] text-white/85 mb-1.5 uppercase tracking-wider">Token Usage (24H)</div>
+                <div className="text-[12px] text-[#1C1C1E]/85 mb-1.5 uppercase tracking-wider">Token Usage (24H)</div>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <AnimatedNumber value={total.totalTokens / 1000000} decimals={2} suffix="M" fontSize="20px" className="text-[#00D9FF] font-bold" />
-                  <span className="text-[13px] text-white/80">tokens</span>
+                  <AnimatedNumber value={total.totalTokens / 1000000} decimals={2} suffix="M" fontSize="20px" className="text-[#7A8C00] font-bold" />
+                  <span className="text-[13px] text-[#1C1C1E]/80">tokens</span>
                 </div>
                 <div className="flex items-center gap-2 text-[12px]">
-                  <span className="text-white/90">Cache Hit:</span>
-                  <div className="flex-1 h-1.5 bg-black/30 rounded-full overflow-hidden">
+                  <span className="text-[#1C1C1E]/90">Cache Hit:</span>
+                  <div className="flex-1 h-1.5 bg-[#1C1C1E]/8 rounded-full overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-[#00FF88] to-[#00D9FF] rounded-full"
+                      className="h-full bg-gradient-to-r from-[#4D7A00] to-[#7A8C00] rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${cacheHitRate}%` }}
                       transition={{ duration: 1, ease: "easeOut" }}
                     />
                   </div>
-                  <span className="text-[#00FF88] font-bold tabular-nums w-10 text-right">{cacheHitRate.toFixed(0)}%</span>
+                  <span className="text-[#4D7A00] font-bold tabular-nums w-10 text-right">{cacheHitRate.toFixed(0)}%</span>
                 </div>
               </motion.div>
 
               {/* Hallucination Risk */}
               <motion.div
-                className="bg-[#0A0A0A] border-b border-white/10 p-2.5 hover:bg-white/[0.02] transition-colors"
-                whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2.5 hover:bg-[#1C1C1E]/[0.02] transition-colors"
+                whileHover={{ backgroundColor: 'rgba(28,28,30,0.02)' }}
                 transition={{ duration: 0.15 }}
               >
-                <div className="text-[12px] text-white/80 mb-1.5 uppercase tracking-wider">Hallucination Risk</div>
+                <div className="text-[12px] text-[#1C1C1E]/80 mb-1.5 uppercase tracking-wider">Hallucination Risk</div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-baseline gap-2">
                     <motion.div
-                      className="text-[20px] font-bold tabular-nums text-white"
-                      style={total.avgHallucination > 5 ? { textShadow: '0 0 12px rgba(255,184,0,0.9)' } : {}}
+                      className="text-[20px] font-bold tabular-nums text-[#1C1C1E]"
+                      style={total.avgHallucination > 5 ? { textShadow: '0 0 12px rgba(176,112,0,0.9)' } : {}}
                       animate={total.avgHallucination > 5 ? {
-                        textShadow: ['0 0 12px rgba(255,184,0,0.9)', '0 0 20px rgba(255,184,0,1)', '0 0 12px rgba(255,184,0,0.9)']
+                        textShadow: ['0 0 12px rgba(176,112,0,0.9)', '0 0 20px rgba(176,112,0,1)', '0 0 12px rgba(176,112,0,0.9)']
                       } : {}}
                       transition={{ duration: 0.8, repeat: total.avgHallucination > 5 ? Infinity : 0 }}
                     >
@@ -386,23 +386,23 @@ export default function CortexHUD() {
                   </div>
                   <EfficiencyBadge score={total.avgHallucination < 3 ? 90 : total.avgHallucination < 5 ? 70 : 40} />
                 </div>
-                <div className="text-[12px] text-white/80 mt-1.5">{highHallucinationAgents.length} agents above threshold</div>
+                <div className="text-[12px] text-[#1C1C1E]/80 mt-1.5">{highHallucinationAgents.length} agents above threshold</div>
               </motion.div>
 
               {/* GDPR Compliance */}
               <motion.div
-                className="bg-[#0A0A0A] border-b border-white/10 p-2.5 hover:bg-white/[0.02] transition-colors"
-                whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2.5 hover:bg-[#1C1C1E]/[0.02] transition-colors"
+                whileHover={{ backgroundColor: 'rgba(28,28,30,0.02)' }}
                 transition={{ duration: 0.15 }}
               >
-                <div className="text-[12px] text-white/80 mb-1.5 uppercase tracking-wider">GDPR Deletions</div>
+                <div className="text-[12px] text-[#1C1C1E]/80 mb-1.5 uppercase tracking-wider">GDPR Deletions</div>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <AnimatedNumber value={total.gdprPending} decimals={0} fontSize="20px" className="text-white font-bold tabular-nums" />
-                  <span className="text-[13px] text-white/80">pending</span>
+                  <AnimatedNumber value={total.gdprPending} decimals={0} fontSize="20px" className="text-[#1C1C1E] font-bold tabular-nums" />
+                  <span className="text-[13px] text-[#1C1C1E]/80">pending</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[12px] text-white/80">
+                <div className="flex items-center gap-1.5 text-[12px] text-[#1C1C1E]/80">
                   <motion.div
-                    className="w-1 h-1 bg-[#FFB800]"
+                    className="w-1 h-1 bg-[#B07000]"
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
@@ -412,47 +412,47 @@ export default function CortexHUD() {
 
               {/* Key Actions */}
               <div className="space-y-0">
-                <div className="text-[13px] font-bold text-white/80 mb-2 uppercase tracking-wider">RECOMMENDED ACTIONS</div>
+                <div className="text-[13px] font-bold text-[#1C1C1E]/80 mb-2 uppercase tracking-wider">RECOMMENDED ACTIONS</div>
 
                 {highHallucinationAgents.length > 0 && (
                   <motion.div
-                    className="bg-[#0A0A0A] border-b border-[#FF3A5E]/30 p-2 text-[13px]"
-                    animate={{ borderColor: ['rgba(255,58,94,0.3)', 'rgba(255,58,94,0.6)', 'rgba(255,58,94,0.3)'] }}
+                    className="bg-[#E8E3D5] border-b border-[#CC2940]/30 p-2 text-[13px]"
+                    animate={{ borderColor: ['rgba(204,41,64,0.3)', 'rgba(204,41,64,0.6)', 'rgba(204,41,64,0.3)'] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
                       <StatusIcon status="error" />
-                      <span className="text-white font-bold">{highHallucinationAgents.length} HIGH HALLUCINATION</span>
+                      <span className="text-[#1C1C1E] font-bold">{highHallucinationAgents.length} HIGH HALLUCINATION</span>
                     </div>
-                    <div className="text-white/80 text-[12px]">Review memory quality & contradictions</div>
+                    <div className="text-[#1C1C1E]/80 text-[12px]">Review memory quality & contradictions</div>
                   </motion.div>
                 )}
 
                 {total.totalContradictions > 10 && (
                   <motion.div
-                    className="bg-[#0A0A0A] border-b border-[#FFB800]/30 p-2 text-[13px]"
-                    animate={{ borderColor: ['rgba(255,184,0,0.3)', 'rgba(255,184,0,0.6)', 'rgba(255,184,0,0.3)'] }}
+                    className="bg-[#E8E3D5] border-b border-[#B07000]/30 p-2 text-[13px]"
+                    animate={{ borderColor: ['rgba(176,112,0,0.3)', 'rgba(176,112,0,0.6)', 'rgba(176,112,0,0.3)'] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
                       <StatusIcon status="warning" />
-                      <span className="text-white font-bold">{total.totalContradictions} CONTRADICTIONS</span>
+                      <span className="text-[#1C1C1E] font-bold">{total.totalContradictions} CONTRADICTIONS</span>
                     </div>
-                    <div className="text-white/80 text-[12px]">Cross-reference & merge memories</div>
+                    <div className="text-[#1C1C1E]/80 text-[12px]">Cross-reference & merge memories</div>
                   </motion.div>
                 )}
 
                 {total.gdprPending > 0 && (
                   <motion.div
-                    className="bg-[#0A0A0A] border-b border-[#00D9FF]/30 p-2 text-[13px]"
-                    animate={{ borderColor: ['rgba(0,217,255,0.3)', 'rgba(0,217,255,0.6)', 'rgba(0,217,255,0.3)'] }}
+                    className="bg-[#E8E3D5] border-b border-[#7A8C00]/30 p-2 text-[13px]"
+                    animate={{ borderColor: ['rgba(122,140,0,0.3)', 'rgba(122,140,0,0.6)', 'rgba(122,140,0,0.3)'] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
                       <StatusIcon status="active" />
-                      <span className="text-white font-bold">GDPR: {total.gdprPending} PENDING</span>
+                      <span className="text-[#1C1C1E] font-bold">GDPR: {total.gdprPending} PENDING</span>
                     </div>
-                    <div className="text-white/80 text-[12px]">Complete before 30-day deadline</div>
+                    <div className="text-[#1C1C1E]/80 text-[12px]">Complete before 30-day deadline</div>
                   </motion.div>
                 )}
               </div>
@@ -460,23 +460,23 @@ export default function CortexHUD() {
           </motion.div>
 
           {/* Attribution Engines */}
-          <div className="bg-[#0A0A0A] border-b border-white/10">
-            <div className="border-b border-white/10 px-3 py-2 bg-white/[0.02]">
-              <span className="text-[14px] font-bold text-white/80 uppercase tracking-wider">ATTRIBUTION ENGINES</span>
+          <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10">
+            <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/[0.02]">
+              <span className="text-[14px] font-bold text-[#1C1C1E]/80 uppercase tracking-wider">ATTRIBUTION ENGINES</span>
             </div>
             <div className="p-2 space-y-0">
               {[
-                { method: 'Shapley Values', agents: agents.filter(a => a.attribution.method.includes('Shapley')).length, avgConf: agents.filter(a => a.attribution.method.includes('Shapley')).reduce((s, a) => s + a.attribution.confidence, 0) / agents.filter(a => a.attribution.method.includes('Shapley')).length, color: '#00D9FF' },
-                { method: 'ContextCite', agents: agents.filter(a => a.attribution.method === 'ContextCite').length, avgConf: agents.filter(a => a.attribution.method === 'ContextCite').reduce((s, a) => s + a.attribution.confidence, 0) / agents.filter(a => a.attribution.method === 'ContextCite').length, color: '#00FF88' },
+                { method: 'Shapley Values', agents: agents.filter(a => a.attribution.method.includes('Shapley')).length, avgConf: agents.filter(a => a.attribution.method.includes('Shapley')).reduce((s, a) => s + a.attribution.confidence, 0) / agents.filter(a => a.attribution.method.includes('Shapley')).length, color: '#7A8C00' },
+                { method: 'ContextCite', agents: agents.filter(a => a.attribution.method === 'ContextCite').length, avgConf: agents.filter(a => a.attribution.method === 'ContextCite').reduce((s, a) => s + a.attribution.confidence, 0) / agents.filter(a => a.attribution.method === 'ContextCite').length, color: '#4D7A00' },
               ].map((engine, i) => (
-                <div key={i} className="bg-[#0A0A0A] border-b border-white/10 p-2">
+                <div key={i} className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[13px] text-white/80 font-bold uppercase">{engine.method}</span>
-                    <span className="text-[12px] text-white/80">{engine.agents} agents</span>
+                    <span className="text-[13px] text-[#1C1C1E]/80 font-bold uppercase">{engine.method}</span>
+                    <span className="text-[12px] text-[#1C1C1E]/80">{engine.agents} agents</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] text-white/80">LDS:</span>
-                    <div className="flex-1 h-1 bg-white/5">
+                    <span className="text-[12px] text-[#1C1C1E]/80">LDS:</span>
+                    <div className="flex-1 h-1 bg-[#1C1C1E]/5">
                       <motion.div
                         className="h-full"
                         style={{ background: engine.color }}
@@ -485,7 +485,7 @@ export default function CortexHUD() {
                         transition={{ duration: 1, ease: "easeOut" }}
                       />
                     </div>
-                    <span className="text-[13px] font-bold tabular-nums text-white">{(engine.avgConf * 100).toFixed(0)}%</span>
+                    <span className="text-[13px] font-bold tabular-nums text-[#1C1C1E]">{(engine.avgConf * 100).toFixed(0)}%</span>
                   </div>
                 </div>
               ))}
@@ -493,22 +493,22 @@ export default function CortexHUD() {
           </div>
 
           {/* Memory Lifecycle */}
-          <div className="bg-[#0A0A0A] border-b border-white/10 flex-1">
-            <div className="border-b border-white/10 px-3 py-2 bg-white/[0.02]">
-              <span className="text-[14px] font-bold text-white/80 uppercase tracking-wider">MEMORY LIFECYCLE</span>
+          <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 flex-1">
+            <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/[0.02]">
+              <span className="text-[14px] font-bold text-[#1C1C1E]/80 uppercase tracking-wider">MEMORY LIFECYCLE</span>
             </div>
             <div className="p-2 space-y-0">
               {[
-                { tier: 'HOT', count: agents.reduce((s, a) => s + a.memoryTier.hot, 0), color: '#FF3A5E', pct: (agents.reduce((s, a) => s + a.memoryTier.hot, 0) / total.totalMemories) * 100 },
-                { tier: 'WARM', count: agents.reduce((s, a) => s + a.memoryTier.warm, 0), color: '#FFB800', pct: (agents.reduce((s, a) => s + a.memoryTier.warm, 0) / total.totalMemories) * 100 },
-                { tier: 'COLD', count: agents.reduce((s, a) => s + a.memoryTier.cold, 0), color: '#00D9FF', pct: (agents.reduce((s, a) => s + a.memoryTier.cold, 0) / total.totalMemories) * 100 },
+                { tier: 'HOT', count: agents.reduce((s, a) => s + a.memoryTier.hot, 0), color: '#CC2940', pct: (agents.reduce((s, a) => s + a.memoryTier.hot, 0) / total.totalMemories) * 100 },
+                { tier: 'WARM', count: agents.reduce((s, a) => s + a.memoryTier.warm, 0), color: '#B07000', pct: (agents.reduce((s, a) => s + a.memoryTier.warm, 0) / total.totalMemories) * 100 },
+                { tier: 'COLD', count: agents.reduce((s, a) => s + a.memoryTier.cold, 0), color: '#7A8C00', pct: (agents.reduce((s, a) => s + a.memoryTier.cold, 0) / total.totalMemories) * 100 },
               ].map((tier, i) => (
-                <div key={i} className="border-b border-white/10 p-2">
+                <div key={i} className="border-b border-[#1C1C1E]/10 p-2">
                   <div className="flex justify-between text-[12px] mb-1">
-                    <span className="text-white/80 font-bold">{tier.tier}</span>
-                    <span className="text-white tabular-nums font-bold">{(tier.count / 1000).toFixed(1)}K ({tier.pct.toFixed(0)}%)</span>
+                    <span className="text-[#1C1C1E]/80 font-bold">{tier.tier}</span>
+                    <span className="text-[#1C1C1E] tabular-nums font-bold">{(tier.count / 1000).toFixed(1)}K ({tier.pct.toFixed(0)}%)</span>
                   </div>
-                  <div className="h-1 bg-white/5">
+                  <div className="h-1 bg-[#1C1C1E]/5">
                     <motion.div
                       className="h-full"
                       style={{ background: tier.color }}
@@ -519,7 +519,7 @@ export default function CortexHUD() {
                   </div>
                 </div>
               ))}
-              <div className="text-[12px] text-white/80 mt-2 text-center font-bold tabular-nums">
+              <div className="text-[12px] text-[#1C1C1E]/80 mt-2 text-center font-bold tabular-nums">
                 TOTAL: {(total.totalMemories / 1000).toFixed(1)}K MEMORIES
               </div>
             </div>
@@ -527,26 +527,26 @@ export default function CortexHUD() {
         </div>
 
         {/* CENTER COLUMN - Agent Table */}
-        <div className="bg-[#0A0A0A] border-r border-white/10 overflow-hidden flex flex-col">
-          <div className="border-b border-white/10 px-3 py-2 bg-white/[0.02] backdrop-blur-md sticky top-0 z-20 flex justify-between items-center">
-            <span className="text-[14px] font-bold text-white/80 uppercase tracking-wider">AGENT PERFORMANCE MONITOR</span>
-            <span className="text-[12px] text-white/80 tabular-nums">20 AGENTS • 100ms REFRESH</span>
+        <div className="bg-[#E8E3D5] border-r border-[#1C1C1E]/10 overflow-hidden flex flex-col">
+          <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/[0.02] backdrop-blur-md sticky top-0 z-20 flex justify-between items-center">
+            <span className="text-[14px] font-bold text-[#1C1C1E]/80 uppercase tracking-wider">AGENT PERFORMANCE MONITOR</span>
+            <span className="text-[12px] text-[#1C1C1E]/80 tabular-nums">20 AGENTS • 100ms REFRESH</span>
           </div>
 
           <div className="overflow-auto flex-1">
             <table className="w-full border-collapse text-[13px]">
-              <thead className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-md z-10">
-                <tr className="border-b border-white/30">
-                  <th className="text-left text-white/90 font-bold px-2 py-2 text-[13px] uppercase tracking-wider">AGENT</th>
-                  <th className="text-right text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">Q</th>
-                  <th className="text-right text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">LAT</th>
-                  <th className="text-right text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">ATR</th>
-                  <th className="text-right text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">TOK</th>
-                  <th className="text-right text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">HALL</th>
-                  <th className="text-right text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">EFF</th>
-                  <th className="text-left text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">TREND</th>
-                  <th className="text-center text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">ST</th>
-                  <th className="text-center text-white/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">ACT</th>
+              <thead className="sticky top-0 bg-[#E8E3D5]/95 backdrop-blur-md z-10">
+                <tr className="border-b border-[#1C1C1E]/30">
+                  <th className="text-left text-[#1C1C1E]/90 font-bold px-2 py-2 text-[13px] uppercase tracking-wider">AGENT</th>
+                  <th className="text-right text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">Q</th>
+                  <th className="text-right text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">LAT</th>
+                  <th className="text-right text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">ATR</th>
+                  <th className="text-right text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">TOK</th>
+                  <th className="text-right text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">HALL</th>
+                  <th className="text-right text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">EFF</th>
+                  <th className="text-left text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">TREND</th>
+                  <th className="text-center text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">ST</th>
+                  <th className="text-center text-[#1C1C1E]/90 font-bold px-1.5 py-2 text-[13px] uppercase tracking-wider">ACT</th>
                 </tr>
               </thead>
               <tbody>
@@ -554,32 +554,32 @@ export default function CortexHUD() {
                   <motion.tr
                     key={a.id}
                     onClick={() => setSelectedAgentId(selectedAgentId === a.id ? null : a.id)}
-                    className={`border-b border-white/5 cursor-pointer ${selectedAgentId === a.id ? 'bg-[#00D9FF]/10' : i % 2 === 0 ? 'bg-[#0A0A0A]' : 'bg-white/[0.02]'}`}
-                    whileHover={{ backgroundColor: 'rgba(0, 217, 255, 0.08)', transition: { duration: 0.15 } }}
+                    className={`border-b border-[#1C1C1E]/5 cursor-pointer ${selectedAgentId === a.id ? 'bg-[#7A8C00]/10' : i % 2 === 0 ? 'bg-[#E8E3D5]' : 'bg-[#1C1C1E]/[0.02]'}`}
+                    whileHover={{ backgroundColor: 'rgba(122, 140, 0, 0.08)', transition: { duration: 0.15 } }}
                     whileTap={{ scale: 0.998 }}
                   >
                     <td className="px-2 py-1.5">
-                      <div className="text-[#00D9FF] text-[13px]">{a.agent}</div>
-                      <div className="text-[8px] text-white/85">{a.attribution.method}</div>
+                      <div className="text-[#7A8C00] text-[13px]">{a.agent}</div>
+                      <div className="text-[8px] text-[#1C1C1E]/85">{a.attribution.method}</div>
                     </td>
-                    <td className="text-right text-white tabular-nums px-1.5 py-1.5 text-[14px] font-bold">{a.q}</td>
-                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[14px] font-bold text-white" style={a.lat > 50 ? { textShadow: '0 0 10px rgba(255,58,94,0.8)' } : {}}>
+                    <td className="text-right text-[#1C1C1E] tabular-nums px-1.5 py-1.5 text-[14px] font-bold">{a.q}</td>
+                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[14px] font-bold text-[#1C1C1E]" style={a.lat > 50 ? { textShadow: '0 0 10px rgba(204,41,64,0.8)' } : {}}>
                       {a.lat.toFixed(1)}
                     </td>
-                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[13px]" style={{ color: a.attribution.confidence > 0.85 ? '#00FF88' : a.attribution.confidence > 0.7 ? '#FFB800' : '#FF3A5E' }}>
+                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[13px]" style={{ color: a.attribution.confidence > 0.85 ? '#4D7A00' : a.attribution.confidence > 0.7 ? '#B07000' : '#CC2940' }}>
                       {(a.attribution.confidence * 100).toFixed(0)}%
                     </td>
-                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[13px] text-white/70">
+                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[13px] text-[#1C1C1E]/70">
                       {((a.tokens.input + a.tokens.output) / 1000).toFixed(0)}K
                     </td>
-                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[14px] font-bold text-white" style={a.hallucination > 5 ? { textShadow: '0 0 10px rgba(255,184,0,0.8)' } : {}}>
+                    <td className="text-right tabular-nums px-1.5 py-1.5 text-[14px] font-bold text-[#1C1C1E]" style={a.hallucination > 5 ? { textShadow: '0 0 10px rgba(176,112,0,0.8)' } : {}}>
                       {a.hallucination.toFixed(1)}
                     </td>
                     <td className="text-right px-1.5 py-1.5 text-[12px]">
                       <EfficiencyBadge score={a.efficiency} />
                     </td>
                     <td className="px-1.5 py-1.5">
-                      <MiniChart data={a.latHist.slice(-15)} color={a.lat > 15 ? '#FF3A5E' : '#00FF88'} threshold={15} />
+                      <MiniChart data={a.latHist.slice(-15)} color={a.lat > 15 ? '#CC2940' : '#4D7A00'} threshold={15} />
                     </td>
                     <td className="text-center px-1.5 py-1.5">
                       <StatusIcon status={a.status} />
@@ -590,7 +590,7 @@ export default function CortexHUD() {
                           e.stopPropagation();
                           setShowActionMenu(showActionMenu === a.id ? null : a.id);
                         }}
-                        className="text-white/60 hover:text-white text-[12px]"
+                        className="text-[#1C1C1E]/60 hover:text-[#1C1C1E] text-[12px]"
                       >
                         ⋮
                       </button>
@@ -608,46 +608,46 @@ export default function CortexHUD() {
         </div>
 
         {/* RIGHT COLUMN - Analytics */}
-        <div className="flex flex-col gap-px bg-[#0F0F0F]">
+        <div className="flex flex-col gap-px bg-[#EDE8DA]">
 
           {/* Contradictions & Cross-Refs */}
-          <div className="bg-[#0A0A0A] border border-white/10">
-            <div className="border-b border-white/10 px-3 py-2 bg-white/5">
-              <span className="text-[14px] font-bold text-white/70">CONTRADICTIONS</span>
+          <div className="bg-[#E8E3D5] border border-[#1C1C1E]/10">
+            <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/5">
+              <span className="text-[14px] font-bold text-[#1C1C1E]/70">CONTRADICTIONS</span>
             </div>
             <div className="p-3 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] text-white/90">Total Detected</span>
-                <span className="text-[16px] font-bold text-[#FF3A5E] tabular-nums">{total.totalContradictions}</span>
+                <span className="text-[13px] text-[#1C1C1E]/90">Total Detected</span>
+                <span className="text-[16px] font-bold text-[#CC2940] tabular-nums">{total.totalContradictions}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[13px] text-white/90">Avg per Agent</span>
-                <span className="text-[14px] font-bold text-[#FFB800] tabular-nums">{(total.totalContradictions / agents.length).toFixed(1)}</span>
+                <span className="text-[13px] text-[#1C1C1E]/90">Avg per Agent</span>
+                <span className="text-[14px] font-bold text-[#B07000] tabular-nums">{(total.totalContradictions / agents.length).toFixed(1)}</span>
               </div>
-              <div className="text-[12px] text-white/85 mt-2">
+              <div className="text-[12px] text-[#1C1C1E]/85 mt-2">
                 Cross-reference {agents.filter(a => a.contradictions > 0).length} agents for memory conflicts
               </div>
             </div>
           </div>
 
           {/* Token Analytics */}
-          <div className="bg-[#0A0A0A] border-b border-white/10">
-            <div className="border-b border-white/10 px-3 py-2 bg-white/[0.02]">
-              <span className="text-[14px] font-bold text-white/80 uppercase tracking-wider">TOKEN ANALYTICS</span>
+          <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10">
+            <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/[0.02]">
+              <span className="text-[14px] font-bold text-[#1C1C1E]/80 uppercase tracking-wider">TOKEN ANALYTICS</span>
             </div>
             <div className="p-2 space-y-0">
               {[
-                { label: 'Input', value: agents.reduce((s, a) => s + a.tokens.input, 0), color: '#00D9FF' },
-                { label: 'Output', value: agents.reduce((s, a) => s + a.tokens.output, 0), color: '#00FF88' },
-                { label: 'Context', value: agents.reduce((s, a) => s + a.tokens.context, 0), color: '#FFB800' },
-                { label: 'Cached', value: agents.reduce((s, a) => s + a.tokens.cached, 0), color: '#FF3A5E' },
+                { label: 'Input', value: agents.reduce((s, a) => s + a.tokens.input, 0), color: '#7A8C00' },
+                { label: 'Output', value: agents.reduce((s, a) => s + a.tokens.output, 0), color: '#4D7A00' },
+                { label: 'Context', value: agents.reduce((s, a) => s + a.tokens.context, 0), color: '#B07000' },
+                { label: 'Cached', value: agents.reduce((s, a) => s + a.tokens.cached, 0), color: '#CC2940' },
               ].map((tok, i) => (
-                <div key={i} className="border-b border-white/10 p-2">
+                <div key={i} className="border-b border-[#1C1C1E]/10 p-2">
                   <div className="flex justify-between text-[12px] mb-1">
-                    <span className="text-white/80 font-bold uppercase">{tok.label}</span>
-                    <span className="text-white tabular-nums font-bold">{(tok.value / 1000000).toFixed(2)}M</span>
+                    <span className="text-[#1C1C1E]/80 font-bold uppercase">{tok.label}</span>
+                    <span className="text-[#1C1C1E] tabular-nums font-bold">{(tok.value / 1000000).toFixed(2)}M</span>
                   </div>
-                  <div className="h-1 bg-white/5">
+                  <div className="h-1 bg-[#1C1C1E]/5">
                     <motion.div
                       className="h-full"
                       style={{ background: tok.color }}
@@ -662,20 +662,20 @@ export default function CortexHUD() {
           </div>
 
           {/* Live Log */}
-          <div className="bg-[#0A0A0A] border-b border-white/10 flex-1 flex flex-col">
-            <div className="border-b border-white/10 px-3 py-2 bg-white/[0.02]">
-              <span className="text-[14px] font-bold text-white/80 uppercase tracking-wider">LIVE TELEMETRY</span>
+          <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 flex-1 flex flex-col">
+            <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/[0.02]">
+              <span className="text-[14px] font-bold text-[#1C1C1E]/80 uppercase tracking-wider">LIVE TELEMETRY</span>
             </div>
             <div className="overflow-auto flex-1 p-2 text-[12px] space-y-0 font-mono">
               {logStream.map((log, i) => (
-                <div key={i} className="border-b border-white/5 py-1">
-                  <span className="text-white/80 tabular-nums">{log.time}</span>
+                <div key={i} className="border-b border-[#1C1C1E]/5 py-1">
+                  <span className="text-[#1C1C1E]/80 tabular-nums">{log.time}</span>
                   {' '}
-                  <span className="font-bold text-white" style={log.level === 'ERRO' ? { textShadow: '0 0 8px rgba(255,58,94,0.8)' } : log.level === 'WARN' ? { textShadow: '0 0 8px rgba(255,184,0,0.8)' } : {}}>
+                  <span className="font-bold text-[#1C1C1E]" style={log.level === 'ERRO' ? { textShadow: '0 0 8px rgba(204,41,64,0.8)' } : log.level === 'WARN' ? { textShadow: '0 0 8px rgba(176,112,0,0.8)' } : {}}>
                     {log.level}
                   </span>
                   {' '}
-                  <span className="text-white/60">{log.msg}</span>
+                  <span className="text-[#1C1C1E]/60">{log.msg}</span>
                 </div>
               ))}
             </div>
@@ -685,33 +685,33 @@ export default function CortexHUD() {
         {/* FOURTH COLUMN - Agent Details */}
         {selectedAgent && (
           <motion.div
-            className="flex flex-col gap-0 bg-[#0A0A0A]"
+            className="flex flex-col gap-0 bg-[#E8E3D5]"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
           >
-            <div className="bg-[#0A0A0A] border-l border-white/10">
-              <div className="border-b border-white/10 px-3 py-2 bg-white/[0.02] flex justify-between items-center">
-                <span className="text-[14px] font-bold text-white/80 uppercase tracking-wider">{selectedAgent.agent.toUpperCase()}</span>
-                <button onClick={() => setSelectedAgentId(null)} className="text-white/80 hover:text-white text-[14px]">✕</button>
+            <div className="bg-[#E8E3D5] border-l border-[#1C1C1E]/10">
+              <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/[0.02] flex justify-between items-center">
+                <span className="text-[14px] font-bold text-[#1C1C1E]/80 uppercase tracking-wider">{selectedAgent.agent.toUpperCase()}</span>
+                <button onClick={() => setSelectedAgentId(null)} className="text-[#1C1C1E]/80 hover:text-[#1C1C1E] text-[14px]">✕</button>
               </div>
               <div className="p-3 space-y-0 text-[13px]">
                 {/* Attribution Details */}
-                <div className="bg-[#0A0A0A] border-b border-white/10 p-2">
-                  <div className="text-white/80 mb-1 text-[12px] font-bold uppercase tracking-wider">ATTRIBUTION ENGINE</div>
-                  <div className="font-bold text-white">{selectedAgent.attribution.method}</div>
+                <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2">
+                  <div className="text-[#1C1C1E]/80 mb-1 text-[12px] font-bold uppercase tracking-wider">ATTRIBUTION ENGINE</div>
+                  <div className="font-bold text-[#1C1C1E]">{selectedAgent.attribution.method}</div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[12px] text-white/80">LDS Confidence:</span>
-                    <span className="font-bold tabular-nums text-white">
+                    <span className="text-[12px] text-[#1C1C1E]/80">LDS Confidence:</span>
+                    <span className="font-bold tabular-nums text-[#1C1C1E]">
                       {(selectedAgent.attribution.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
-                  <div className="text-[12px] text-white/80 mt-1">{selectedAgent.attribution.memoryCount} memories analyzed</div>
+                  <div className="text-[12px] text-[#1C1C1E]/80 mt-1">{selectedAgent.attribution.memoryCount} memories analyzed</div>
                 </div>
 
                 {/* Token Breakdown */}
-                <div className="bg-[#0A0A0A] border-b border-white/10 p-2">
-                  <div className="text-white/80 mb-1 text-[12px] font-bold uppercase tracking-wider">TOKEN USAGE</div>
+                <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2">
+                  <div className="text-[#1C1C1E]/80 mb-1 text-[12px] font-bold uppercase tracking-wider">TOKEN USAGE</div>
                   <div className="space-y-1">
                     {[
                       { label: 'Input', value: selectedAgent.tokens.input },
@@ -720,8 +720,8 @@ export default function CortexHUD() {
                       { label: 'Cached', value: selectedAgent.tokens.cached, highlight: true },
                     ].map((t, i) => (
                       <div key={i} className="flex justify-between text-[12px]">
-                        <span className="text-white/80 uppercase">{t.label}</span>
-                        <span className="font-bold tabular-nums text-white">
+                        <span className="text-[#1C1C1E]/80 uppercase">{t.label}</span>
+                        <span className="font-bold tabular-nums text-[#1C1C1E]">
                           {(t.value / 1000).toFixed(0)}K
                         </span>
                       </div>
@@ -730,18 +730,18 @@ export default function CortexHUD() {
                 </div>
 
                 {/* Hallucination & Contradictions */}
-                <div className="bg-[#0A0A0A] border-b border-white/10 p-2">
-                  <div className="text-white/80 mb-1 text-[12px] font-bold uppercase tracking-wider">QUALITY METRICS</div>
+                <div className="bg-[#E8E3D5] border-b border-[#1C1C1E]/10 p-2">
+                  <div className="text-[#1C1C1E]/80 mb-1 text-[12px] font-bold uppercase tracking-wider">QUALITY METRICS</div>
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-white/80 text-[12px] uppercase">Hallucination</span>
-                      <span className="font-bold tabular-nums text-white" style={selectedAgent.hallucination > 5 ? { textShadow: '0 0 8px rgba(255,58,94,0.8)' } : {}}>
+                      <span className="text-[#1C1C1E]/80 text-[12px] uppercase">Hallucination</span>
+                      <span className="font-bold tabular-nums text-[#1C1C1E]" style={selectedAgent.hallucination > 5 ? { textShadow: '0 0 8px rgba(204,41,64,0.8)' } : {}}>
                         {selectedAgent.hallucination.toFixed(1)}%
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-white/80 text-[12px] uppercase">Contradictions</span>
-                      <span className="font-bold tabular-nums text-white" style={selectedAgent.contradictions > 0 ? { textShadow: '0 0 8px rgba(255,58,94,0.8)' } : {}}>
+                      <span className="text-[#1C1C1E]/80 text-[12px] uppercase">Contradictions</span>
+                      <span className="font-bold tabular-nums text-[#1C1C1E]" style={selectedAgent.contradictions > 0 ? { textShadow: '0 0 8px rgba(204,41,64,0.8)' } : {}}>
                         {selectedAgent.contradictions}
                       </span>
                     </div>
@@ -749,78 +749,78 @@ export default function CortexHUD() {
                 </div>
 
                 {/* Memory Tiers */}
-                <div className="bg-white/5 rounded p-2">
-                  <div className="text-white/90 mb-1 text-[12px]">MEMORY TIERS</div>
+                <div className="bg-[#1C1C1E]/5 rounded p-2">
+                  <div className="text-[#1C1C1E]/90 mb-1 text-[12px]">MEMORY TIERS</div>
                   {[
-                    { tier: 'Hot', count: selectedAgent.memoryTier.hot, color: '#FF3A5E' },
-                    { tier: 'Warm', count: selectedAgent.memoryTier.warm, color: '#FFB800' },
-                    { tier: 'Cold', count: selectedAgent.memoryTier.cold, color: '#00D9FF' },
+                    { tier: 'Hot', count: selectedAgent.memoryTier.hot, color: '#CC2940' },
+                    { tier: 'Warm', count: selectedAgent.memoryTier.warm, color: '#B07000' },
+                    { tier: 'Cold', count: selectedAgent.memoryTier.cold, color: '#7A8C00' },
                   ].map((m, i) => (
                     <div key={i} className="flex justify-between text-[12px] mb-0.5">
-                      <span className="text-white/90">{m.tier}</span>
+                      <span className="text-[#1C1C1E]/90">{m.tier}</span>
                       <span className="font-bold tabular-nums" style={{ color: m.color }}>{m.count}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* GDPR Status */}
-                <div className={`rounded p-2 ${selectedAgent.gdpr.pending > 0 ? 'bg-[#FFB800]/10 border border-[#FFB800]/30' : 'bg-white/5'}`}>
-                  <div className="text-white/90 mb-1 text-[12px]">GDPR COMPLIANCE</div>
+                <div className={`rounded p-2 ${selectedAgent.gdpr.pending > 0 ? 'bg-[#B07000]/10 border border-[#B07000]/30' : 'bg-[#1C1C1E]/5'}`}>
+                  <div className="text-[#1C1C1E]/90 mb-1 text-[12px]">GDPR COMPLIANCE</div>
                   <div className="flex justify-between text-[12px]">
-                    <span className="text-white/90">Pending Deletions</span>
-                    <span className={`font-bold tabular-nums ${selectedAgent.gdpr.pending > 0 ? 'text-[#FFB800]' : 'text-[#00FF88]'}`}>
+                    <span className="text-[#1C1C1E]/90">Pending Deletions</span>
+                    <span className={`font-bold tabular-nums ${selectedAgent.gdpr.pending > 0 ? 'text-[#B07000]' : 'text-[#4D7A00]'}`}>
                       {selectedAgent.gdpr.pending}
                     </span>
                   </div>
                   <div className="flex justify-between text-[12px] mt-0.5">
-                    <span className="text-white/90">Completed (30d)</span>
-                    <span className="font-bold tabular-nums text-white/70">{selectedAgent.gdpr.completed}</span>
+                    <span className="text-[#1C1C1E]/90">Completed (30d)</span>
+                    <span className="font-bold tabular-nums text-[#1C1C1E]/70">{selectedAgent.gdpr.completed}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Latency Graph */}
-            <div className="bg-[#0A0A0A] border border-white/10">
-              <div className="border-b border-white/10 px-3 py-2 bg-white/5">
-                <span className="text-[14px] font-bold text-white/70">LATENCY (60s)</span>
+            <div className="bg-[#E8E3D5] border border-[#1C1C1E]/10">
+              <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/5">
+                <span className="text-[14px] font-bold text-[#1C1C1E]/70">LATENCY (60s)</span>
               </div>
               <div className="p-3">
                 <svg width="100%" height="80">
                   <polyline
                     points={selectedAgent.latHist.map((v, i) => `${(i / 60) * 260},${80 - v * 3}`).join(' ')}
                     fill="none"
-                    stroke={selectedAgent.lat > 15 ? '#FF3A5E' : '#00FF88'}
+                    stroke={selectedAgent.lat > 15 ? '#CC2940' : '#4D7A00'}
                     strokeWidth="2"
-                    className="drop-shadow-[0_0_4px_rgba(0,255,136,0.3)]"
+                    className="drop-shadow-[0_0_4px_rgba(77,122,0,0.3)]"
                   />
-                  <line x1="0" y1="40" x2="260" y2="40" stroke="#FFB800" strokeWidth="1" strokeDasharray="4 2" opacity="0.3" />
+                  <line x1="0" y1="40" x2="260" y2="40" stroke="#B07000" strokeWidth="1" strokeDasharray="4 2" opacity="0.3" />
                 </svg>
               </div>
             </div>
 
             {/* Enhanced Actions */}
-            <div className="bg-[#0A0A0A] border border-white/10 flex-1">
-              <div className="border-b border-white/10 px-3 py-2 bg-white/5">
-                <span className="text-[14px] font-bold text-white/70">ACTIONS</span>
+            <div className="bg-[#E8E3D5] border border-[#1C1C1E]/10 flex-1">
+              <div className="border-b border-[#1C1C1E]/10 px-3 py-2 bg-[#1C1C1E]/5">
+                <span className="text-[14px] font-bold text-[#1C1C1E]/70">ACTIONS</span>
               </div>
               <div className="p-2 space-y-1.5">
-                <motion.button className="w-full py-1.5 px-2 bg-white/5 border border-white/20 text-[#00D9FF] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(0, 217, 255, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <motion.button className="w-full py-1.5 px-2 bg-[#1C1C1E]/5 border border-[#1C1C1E]/20 text-[#7A8C00] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(122, 140, 0, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <span>🎯</span> View Attribution Graph
                 </motion.button>
-                <motion.button className="w-full py-1.5 px-2 bg-white/5 border border-white/20 text-[#00D9FF] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(0, 217, 255, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <motion.button className="w-full py-1.5 px-2 bg-[#1C1C1E]/5 border border-[#1C1C1E]/20 text-[#7A8C00] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(122, 140, 0, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <span>🔗</span> Cross-Reference Memories
                 </motion.button>
-                <motion.button className="w-full py-1.5 px-2 bg-white/5 border border-white/20 text-[#00D9FF] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(0, 217, 255, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <motion.button className="w-full py-1.5 px-2 bg-[#1C1C1E]/5 border border-[#1C1C1E]/20 text-[#7A8C00] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(122, 140, 0, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <span>⚡</span> Optimize Tier Migration
                 </motion.button>
-                <motion.button className="w-full py-1.5 px-2 bg-white/5 border border-white/20 text-[#00D9FF] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(0, 217, 255, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <motion.button className="w-full py-1.5 px-2 bg-[#1C1C1E]/5 border border-[#1C1C1E]/20 text-[#7A8C00] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(122, 140, 0, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <span>📊</span> Export Token Report
                 </motion.button>
-                <motion.button className="w-full py-1.5 px-2 bg-white/5 border border-white/20 text-[#00D9FF] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(0, 217, 255, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <motion.button className="w-full py-1.5 px-2 bg-[#1C1C1E]/5 border border-[#1C1C1E]/20 text-[#7A8C00] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(122, 140, 0, 0.1)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <span>🔄</span> Restart Agent
                 </motion.button>
-                <motion.button className="w-full py-1.5 px-2 bg-[#FF3A5E]/20 border border-[#FF3A5E]/40 text-[#FF3A5E] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(255, 58, 94, 0.15)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <motion.button className="w-full py-1.5 px-2 bg-[#CC2940]/20 border border-[#CC2940]/40 text-[#CC2940] text-[13px] font-mono rounded text-left flex items-center gap-2" whileHover={{ backgroundColor: 'rgba(204, 41, 64, 0.15)', scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <span>🗑️</span> GDPR Delete Request
                 </motion.button>
               </div>
@@ -830,17 +830,17 @@ export default function CortexHUD() {
       </div>
 
       {/* Command Terminal */}
-      <div className="border-t border-white/10 bg-black/95 backdrop-blur-sm fixed bottom-0 left-0 right-0 z-30">
+      <div className="border-t border-[#1C1C1E]/10 bg-[#E8E3D5]/98 backdrop-blur-sm fixed bottom-0 left-0 right-0 z-30">
         <div className="px-4 py-2 flex items-center gap-3 text-[13px]">
-          <span className="text-[#00D9FF]">$</span>
+          <span className="text-[#7A8C00]">$</span>
           <input
             type="text"
             value={commandInput}
             onChange={(e) => setCommandInput(e.target.value)}
             placeholder="Commands: attribution <id> | gdpr delete <id> | optimize tiers | analyze hallucinations | export report"
-            className="flex-1 bg-transparent border-none text-[#00D9FF] font-mono text-[13px] outline-none placeholder:text-white/80"
+            className="flex-1 bg-transparent border-none text-[#7A8C00] font-mono text-[13px] outline-none placeholder:text-[#1C1C1E]/80"
           />
-          <span className="text-white/85 tabular-nums">
+          <span className="text-[#1C1C1E]/85 tabular-nums">
             {agents.length} AGENTS • {total.totalContradictions} CONTRADICTIONS • {(total.totalTokens / 1000000).toFixed(1)}M TOK
           </span>
         </div>
