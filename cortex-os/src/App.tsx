@@ -3,7 +3,7 @@ import {
   Search, Shield, Zap, ArrowRight, AlertTriangle,
   CheckCircle, XCircle, Clock, DollarSign, TrendingUp,
   Eye, FileCheck, ChevronDown, Terminal, Activity,
-  Trash2, ExternalLink, Layers,
+  Trash2, ExternalLink, Layers, Github,
 } from 'lucide-react'
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -92,6 +92,17 @@ function Nav() {
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
           Manifesto
+        </a>
+        <a
+          href="https://github.com/Arunjay4213/Cortexa"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-sm font-medium transition-colors"
+          style={{ color: 'var(--muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+        >
+          <Github size={16} />
         </a>
         <button
           className="btn-primary text-xs px-4 py-2"
