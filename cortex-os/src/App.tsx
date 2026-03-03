@@ -82,15 +82,11 @@ function Nav() {
       <Logo className="logo-img-nav" />
       <div className="hidden sm:flex items-center gap-7">
         <a href="#demo" className="text-sm font-medium transition-colors"
-          style={{ color: 'var(--muted)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+          style={{ color: 'var(--text)' }}>
           Demo
         </a>
         <a href="#manifesto" className="text-sm font-medium transition-colors"
-          style={{ color: 'var(--muted)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
+          style={{ color: 'var(--text)' }}>
           Manifesto
         </a>
         <a
@@ -98,9 +94,7 @@ function Nav() {
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-sm font-medium transition-colors"
-          style={{ color: 'var(--muted)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+          style={{ color: 'var(--text)' }}
         >
           <Github size={16} />
         </a>
@@ -817,7 +811,7 @@ function CostSection() {
                 style={{
                   background: c.bad ? 'rgba(122,140,0,0.08)' : 'rgba(122,140,0,0.10)',
                   border: `1px solid ${c.bad ? 'rgba(122,140,0,0.20)' : 'rgba(122,140,0,0.22)'}`,
-                  color: c.bad ? '#fde047' : 'var(--lime)',
+                  color: 'var(--lime)',
                 }}>
                 {c.bad ? <Zap size={11} /> : <CheckCircle size={11} />}
                 {c.tag}
@@ -876,7 +870,7 @@ function WaitlistCTA() {
             Cortexa is in early access for teams running agents at scale.
             Join the waitlist — we'll reach out when your slot opens.
           </p>
-          <p className="mb-10 text-sm font-mono" style={{ color: 'rgba(28,28,30,0.25)' }}>
+          <p className="mb-10 text-sm font-mono" style={{ color: 'var(--text)' }}>
             or start now:{' '}
             <span style={{ color: 'var(--lime)' }}>pip install cortexos</span>
           </p>
@@ -923,11 +917,11 @@ function Footer() {
   return (
     <footer className="py-8 px-6 border-t" style={{ borderColor: 'var(--border)' }}>
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm font-mono" style={{ color: 'rgba(28,28,30,0.25)' }}>
+        <div className="flex items-center gap-2 text-sm font-mono" style={{ color: 'var(--text)' }}>
           <Logo className="logo-img-sm" />
           © 2026 Cortexa
         </div>
-        <div className="flex items-center gap-6 text-xs" style={{ color: 'rgba(28,28,30,0.30)' }}>
+        <div className="flex items-center gap-6 text-xs" style={{ color: 'var(--text)' }}>
           <a href="#demo" className="hover:text-[#1C1C1E] transition-colors">How It Works</a>
           <a href="#manifesto" className="hover:text-[#1C1C1E] transition-colors">Manifesto</a>
           <a href="https://github.com/Arunjay4213/Cortexa" target="_blank" rel="noopener noreferrer"
