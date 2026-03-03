@@ -1,20 +1,75 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { SWRProvider } from "@/lib/providers/SWRProvider";
+import { WebSocketProvider } from "@/lib/providers/WebSocketProvider";
+import { ToastProvider } from "@/components/primitives/Toast";
+import { WebSocketToastBridge } from "@/components/WebSocketToastBridge";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "CortexOS - Memory Observability",
-  description: "The only memory infrastructure that can tell you which memory caused your agent's last mistake",
+  metadataBase: new URL("https://cortexa.ink"),
+  title: {
+    default: "Cortexa – Memory Observability for AI Agents",
+    template: "%s | Cortexa",
+  },
+  description:
+    "The only memory infrastructure that tells you which memory caused your AI agent's last mistake. Real-time attribution, GDPR compliance, hallucination detection, and memory lifecycle management.",
+  keywords: [
+    "AI agent memory",
+    "memory observability",
+    "LLM memory management",
+    "agent attribution",
+    "hallucination detection",
+    "GDPR AI compliance",
+    "Shapley values",
+    "ContextCite",
+    "AI infrastructure",
+    "memory lifecycle",
+  ],
+  authors: [{ name: "Cortexa", url: "https://cortexa.ink" }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    url: "https://cortexa.ink",
+    title: "Cortexa – Memory Observability for AI Agents",
+    description:
+      "The only memory infrastructure that tells you which memory caused your AI agent's last mistake.",
+    siteName: "Cortexa",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Cortexa – Memory Observability for AI Agents",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cortexa – Memory Observability for AI Agents",
+    description:
+      "Real-time attribution, hallucination detection, and memory lifecycle management for AI agents.",
+    images: ["/og-image.png"],
+  },
+  alternates: {
+    canonical: "https://cortexa.ink",
+  },
 };
 
 export default function RootLayout({
@@ -23,11 +78,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="font-sans antialiased grain">
+        <SWRProvider>
+          <ToastProvider>
+            <WebSocketProvider>
+              <WebSocketToastBridge />
+              {children}
+            </WebSocketProvider>
+          </ToastProvider>
+        </SWRProvider>
       </body>
     </html>
   );
