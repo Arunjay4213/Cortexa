@@ -138,7 +138,7 @@ function Hero() {
         {/* Pill badge */}
         <div className="flex justify-center mb-8 anim-fade-up hidden-init d-2">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono border"
-            style={{ background: 'rgba(198,226,39,0.07)', borderColor: 'rgba(198,226,39,0.2)', color: 'var(--lime)' }}>
+            style={{ background: 'rgba(122,140,0,0.10)', borderColor: 'rgba(122,140,0,0.22)', color: 'var(--lime)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
             Early Access — Now Open
           </span>
@@ -230,7 +230,7 @@ function TraceDemo() {
             {step >= 1 && (
               <div className="anim-fade-up hidden-init mb-6">
                 <div className="text-xs mb-2" style={{ color: 'var(--muted)' }}>AGENT RESPONSE</div>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
                   <p style={{ color: 'var(--text)' }}>
                     "Your subscription renews on{' '}
                     <span style={{ color: '#f87171', textDecoration: 'underline', textDecorationColor: 'rgba(248,113,113,0.4)' }}>
@@ -289,16 +289,16 @@ function TraceDemo() {
 
             {step >= 5 && (
               <div className="anim-slide-left hidden-init mb-5">
-                <div className="rounded-xl p-4" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(198,226,39,0.18)' }}>
+                <div className="rounded-xl p-4" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.20)' }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span style={{ color: 'var(--muted)' }}>→</span>
                       <span style={{ color: 'var(--text)' }}>Memory #198</span>
-                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(198,226,39,0.12)', color: 'var(--lime)', border: '1px solid rgba(198,226,39,0.25)' }}>
+                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(122,140,0,0.14)', color: 'var(--lime)', border: '1px solid rgba(122,140,0,0.25)' }}>
                         attribution: 0.12
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(198,226,39,0.12)', color: 'var(--lime)', border: '1px solid rgba(198,226,39,0.25)' }}>
+                    <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(122,140,0,0.14)', color: 'var(--lime)', border: '1px solid rgba(122,140,0,0.25)' }}>
                       <CheckCircle size={10} /> CURRENT
                     </span>
                   </div>
@@ -315,7 +315,7 @@ function TraceDemo() {
 
             {step >= 6 && (
               <div className="anim-fade-up hidden-init mb-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(253,224,71,0.18)' }}>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid rgba(253,224,71,0.18)' }}>
                   <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#fde047' }}>
                     <Eye size={13} /> DIAGNOSIS
                   </div>
@@ -331,7 +331,7 @@ function TraceDemo() {
 
             {step >= 7 && (
               <div className="anim-fade-up hidden-init mb-4">
-                <div className="rounded-xl p-4 anim-pulse-lime" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(198,226,39,0.22)' }}>
+                <div className="rounded-xl p-4 anim-pulse-lime" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.22)' }}>
                   <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--lime)' }}>
                     <Zap size={13} /> RECOMMENDED FIX
                   </div>
@@ -387,7 +387,7 @@ function ThreeQuestions() {
           {/* Card 1: Memory P&L */}
           <div className={`card p-7 transition-all duration-700 ${inView ? 'anim-fade-up' : 'hidden-init'}`}>
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(198,226,39,0.1)' }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(122,140,0,0.12)' }}>
                 <DollarSign size={17} style={{ color: 'var(--lime)' }} />
               </div>
               <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>
@@ -414,7 +414,7 @@ function ThreeQuestions() {
                 </div>
               ))}
             </div>
-            <div className="rounded-lg p-3 text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+            <div className="rounded-lg p-3 text-xs" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid var(--border)' }}>
               <span style={{ color: 'var(--muted)' }}>
                 <strong style={{ color: 'var(--lime)' }}>23 memories</strong> have negative ROI.
                 Archiving them saves <strong style={{ color: 'var(--lime)' }}>$285/mo</strong>.
@@ -425,7 +425,7 @@ function ThreeQuestions() {
           {/* Card 2: Health */}
           <div className={`card p-7 transition-all duration-700 delay-150 ${inView ? 'anim-fade-up' : 'hidden-init'}`}>
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(198,226,39,0.1)' }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(122,140,0,0.12)' }}>
                 <Activity size={17} style={{ color: 'var(--lime)' }} />
               </div>
               <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>
@@ -443,7 +443,7 @@ function ThreeQuestions() {
                     {r.icon} {r.label}
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                    <div className="w-20 h-1 rounded-full" style={{ background: 'rgba(28,28,30,0.09)' }}>
                       <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: r.color }} />
                     </div>
                     <span className="font-mono text-sm w-5 text-right" style={{ color: 'var(--text)' }}>{r.val}</span>
@@ -460,7 +460,7 @@ function ThreeQuestions() {
           {/* Card 3: Compliance */}
           <div className={`card p-7 transition-all duration-700 delay-300 ${inView ? 'anim-fade-up' : 'hidden-init'}`}>
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(198,226,39,0.1)' }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(122,140,0,0.12)' }}>
                 <Shield size={17} style={{ color: 'var(--lime)' }} />
               </div>
               <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>
@@ -468,7 +468,7 @@ function ThreeQuestions() {
               </h3>
             </div>
             <ProvenanceGraph />
-            <div className="rounded-lg p-3 text-xs mt-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+            <div className="rounded-lg p-3 text-xs mt-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid var(--border)' }}>
               <span style={{ color: 'var(--muted)' }}>
                 <FileCheck size={11} className="inline mr-1" style={{ color: 'var(--lime)' }} />
                 Compliance certificate generated in{' '}
@@ -493,7 +493,7 @@ function ProvenanceGraph() {
     return () => clearInterval(iv)
   }, [])
 
-  const lineColor = deleted ? '#ef4444' : 'rgba(255,255,255,0.12)'
+  const lineColor = deleted ? '#ef4444' : 'rgba(28,28,30,0.18)'
   const dash = deleted ? '4 3' : 'none'
 
   return (
@@ -506,20 +506,20 @@ function ProvenanceGraph() {
             className="transition-all duration-500" />
         ))}
         <circle cx="60" cy="60" r="14"
-          fill={deleted ? '#7f1d1d' : 'rgba(198,226,39,0.1)'}
+          fill={deleted ? '#7f1d1d' : 'rgba(122,140,0,0.12)'}
           stroke={deleted ? '#ef4444' : 'var(--lime)'}
           strokeWidth="1.5" className="transition-all duration-500" />
         <text x="60" y="64" textAnchor="middle" fill="white" fontSize="7" fontFamily="monospace">USER</text>
         {[[140,30],[140,60],[140,90],[220,45],[220,80]].map(([cx,cy], i) => (
           <g key={i}>
             <circle cx={cx} cy={cy} r="10"
-              fill={deleted ? '#450a0a' : 'rgba(255,255,255,0.04)'}
-              stroke={deleted ? '#ef4444' : 'rgba(255,255,255,0.1)'}
+              fill={deleted ? '#450a0a' : 'rgba(28,28,30,0.05)'}
+              stroke={deleted ? '#ef4444' : 'rgba(28,28,30,0.15)'}
               strokeWidth="1.5"
               opacity={deleted ? 0.35 : 1}
               className="transition-all duration-500" />
             <text x={cx} y={cy+3} textAnchor="middle"
-              fill={deleted ? '#ef4444' : 'rgba(255,255,255,0.4)'}
+              fill={deleted ? '#ef4444' : 'rgba(28,28,30,0.55)'}
               fontSize="6" fontFamily="monospace">
               {i < 3 ? 'MEM' : 'RSP'}
             </text>
@@ -585,7 +585,7 @@ function BeforeAfter() {
             </div>
           </div>
 
-          <div className="card p-7" style={{ borderColor: 'rgba(198,226,39,0.15)', background: 'rgba(198,226,39,0.02)' }}>
+          <div className="card p-7" style={{ borderColor: 'rgba(122,140,0,0.15)', background: 'rgba(122,140,0,0.02)' }}>
             <div className="flex items-center gap-2 mb-7">
               <div className="w-2 h-2 rounded-full" style={{ background: 'var(--lime)' }} />
               <h3 className="text-base font-semibold" style={{ color: 'var(--lime)' }}>With Cortexa</h3>
@@ -657,7 +657,7 @@ function HowItWorks() {
             <div key={s.n} className="card p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-mono font-bold"
-                  style={{ background: 'rgba(198,226,39,0.1)', border: '1px solid rgba(198,226,39,0.25)', color: 'var(--lime)' }}>
+                  style={{ background: 'rgba(122,140,0,0.12)', border: '1px solid rgba(122,140,0,0.25)', color: 'var(--lime)' }}>
                   {s.n}
                 </div>
                 <div style={{ color: 'var(--lime)' }}>{s.icon}</div>
@@ -665,7 +665,7 @@ function HowItWorks() {
               <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text)' }}>{s.title}</h3>
               <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--muted)' }}>{s.desc}</p>
               <pre className="rounded-xl p-4 text-xs font-mono overflow-x-auto"
-                style={{ background: 'rgba(0,0,0,0.4)', color: 'rgba(198,226,39,0.75)', border: '1px solid var(--border)' }}>
+                style={{ background: 'rgba(28,28,30,0.88)', color: 'rgba(122,140,0,0.85)', border: '1px solid var(--border)' }}>
                 {s.code}
               </pre>
             </div>
@@ -676,7 +676,7 @@ function HowItWorks() {
           <span className="text-xs font-mono" style={{ color: 'var(--muted)' }}>Works with:</span>
           {['Mem0', 'SuperMemory', 'LangChain', 'LlamaIndex', 'Custom Memory'].map(n => (
             <span key={n} className="px-3 py-1.5 rounded-lg text-xs font-mono"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'rgba(240,237,232,0.5)' }}>
+              style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)', color: 'rgba(28,28,30,0.50)' }}>
               {n}
             </span>
           ))}
@@ -701,7 +701,7 @@ function Manifesto() {
           Memory without observability is liability.
         </h2>
 
-        <div className="space-y-6 text-base leading-[1.75]" style={{ color: 'rgba(240,237,232,0.7)' }}>
+        <div className="space-y-6 text-base leading-[1.75]" style={{ color: 'rgba(28,28,30,0.70)' }}>
           <p>
             Every AI engineering team is building memory into their agents. Persistent context,
             user history, retrieved knowledge — it makes agents smarter, more personalized, more useful.
@@ -721,7 +721,7 @@ function Manifesto() {
           <p>
             Database engineers solved this decades ago. You wouldn't run Postgres without
             <code className="px-1.5 py-0.5 rounded text-sm mx-1 font-mono"
-              style={{ background: 'rgba(198,226,39,0.1)', color: 'var(--lime)' }}>
+              style={{ background: 'rgba(122,140,0,0.12)', color: 'var(--lime)' }}>
               EXPLAIN ANALYZE
             </code>.
             You wouldn't ship an API without distributed tracing. You wouldn't run a service
@@ -749,7 +749,7 @@ function Manifesto() {
             </p>
           </blockquote>
 
-          <p className="text-sm" style={{ color: 'rgba(240,237,232,0.35)' }}>
+          <p className="text-sm" style={{ color: 'rgba(28,28,30,0.35)' }}>
             We're building for teams running agents at scale — 10K queries/day, hundreds of
             memories per user, real compliance requirements. If that's you, we'd love to talk.
           </p>
@@ -799,7 +799,7 @@ function CostSection() {
         <div className={`grid md:grid-cols-2 gap-5 transition-opacity duration-700 ${inView ? 'opacity-100' : 'opacity-0'}`}>
           {cards.map(c => (
             <div key={c.title} className="card p-7"
-              style={{ borderColor: c.bad ? 'rgba(239,68,68,0.12)' : 'rgba(198,226,39,0.12)' }}>
+              style={{ borderColor: c.bad ? 'rgba(239,68,68,0.12)' : 'rgba(122,140,0,0.14)' }}>
               <div className="flex items-center gap-2 mb-4">
                 {c.bad
                   ? <AlertTriangle size={15} style={{ color: '#f87171' }} />
@@ -815,8 +815,8 @@ function CostSection() {
               <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--muted)' }}>{c.desc}</p>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono"
                 style={{
-                  background: c.bad ? 'rgba(253,224,71,0.07)' : 'rgba(198,226,39,0.08)',
-                  border: `1px solid ${c.bad ? 'rgba(253,224,71,0.2)' : 'rgba(198,226,39,0.2)'}`,
+                  background: c.bad ? 'rgba(122,140,0,0.08)' : 'rgba(122,140,0,0.10)',
+                  border: `1px solid ${c.bad ? 'rgba(122,140,0,0.20)' : 'rgba(122,140,0,0.22)'}`,
                   color: c.bad ? '#fde047' : 'var(--lime)',
                 }}>
                 {c.bad ? <Zap size={11} /> : <CheckCircle size={11} />}
@@ -863,7 +863,7 @@ function WaitlistCTA() {
       {/* Lime glow above CTA */}
       <div className="relative max-w-2xl mx-auto text-center">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-40 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse, rgba(198,226,39,0.1) 0%, transparent 70%)', filter: 'blur(30px)' }} />
+          style={{ background: 'radial-gradient(ellipse, rgba(122,140,0,0.12) 0%, transparent 70%)', filter: 'blur(30px)' }} />
 
         <div className="relative z-10">
           <Logo className="logo-img mx-auto mb-8" />
@@ -876,7 +876,7 @@ function WaitlistCTA() {
             Cortexa is in early access for teams running agents at scale.
             Join the waitlist — we'll reach out when your slot opens.
           </p>
-          <p className="mb-10 text-sm font-mono" style={{ color: 'rgba(240,237,232,0.25)' }}>
+          <p className="mb-10 text-sm font-mono" style={{ color: 'rgba(28,28,30,0.25)' }}>
             or start now:{' '}
             <span style={{ color: 'var(--lime)' }}>pip install cortexos</span>
           </p>
@@ -897,11 +897,11 @@ function WaitlistCTA() {
                 disabled={loading}
                 className="flex-1 px-4 py-3 rounded-xl text-sm font-mono disabled:opacity-50 outline-none transition-all"
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'rgba(28,28,30,0.05)',
                   border: '1px solid var(--border-md)',
                   color: 'var(--text)',
                 }}
-                onFocus={e => (e.target.style.borderColor = 'rgba(198,226,39,0.5)')}
+                onFocus={e => (e.target.style.borderColor = 'rgba(122,140,0,0.5)')}
                 onBlur={e => (e.target.style.borderColor = 'var(--border-md)')}
               />
               <button type="submit" className={`btn-primary whitespace-nowrap ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
@@ -923,15 +923,15 @@ function Footer() {
   return (
     <footer className="py-8 px-6 border-t" style={{ borderColor: 'var(--border)' }}>
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm font-mono" style={{ color: 'rgba(240,237,232,0.25)' }}>
+        <div className="flex items-center gap-2 text-sm font-mono" style={{ color: 'rgba(28,28,30,0.25)' }}>
           <Logo className="logo-img-sm" />
           © 2026 Cortexa
         </div>
-        <div className="flex items-center gap-6 text-xs" style={{ color: 'rgba(240,237,232,0.3)' }}>
-          <a href="#demo" className="hover:text-white transition-colors">How It Works</a>
-          <a href="#manifesto" className="hover:text-white transition-colors">Manifesto</a>
+        <div className="flex items-center gap-6 text-xs" style={{ color: 'rgba(28,28,30,0.30)' }}>
+          <a href="#demo" className="hover:text-[#1C1C1E] transition-colors">How It Works</a>
+          <a href="#manifesto" className="hover:text-[#1C1C1E] transition-colors">Manifesto</a>
           <a href="https://github.com/Arunjay4213/Cortexa" target="_blank" rel="noopener noreferrer"
-            className="hover:text-white transition-colors flex items-center gap-1">
+            className="hover:text-[#1C1C1E] transition-colors flex items-center gap-1">
             GitHub <ExternalLink size={11} />
           </a>
         </div>
