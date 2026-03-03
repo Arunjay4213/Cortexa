@@ -146,7 +146,7 @@ export class ContextCite {
         // Compute partial residual (excluding feature j)
         const residual = y.map((yi, i) => {
           const prediction = Z[i].reduce((sum, zij, jj) =>
-            jj === j ? sum : sum + zij * w[jj], 0
+            jj === j ? sum : sum + zij * w[jj], 0 as number
           )
           return yi - prediction
         })
@@ -186,7 +186,7 @@ export class ContextCite {
   private computeLDS(masks: boolean[][], logProbs: number[], weights: number[]): number {
     const Z = masks.map(mask => mask.map(b => b ? 1 : 0))
     const predictions = Z.map(row =>
-      row.reduce((sum, zij, j) => sum + zij * weights[j], 0)
+      row.reduce((sum, zij, j) => sum + zij * weights[j], 0 as number)
     )
 
     return this.pearsonCorrelation(predictions, logProbs)

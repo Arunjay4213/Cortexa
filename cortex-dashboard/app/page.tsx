@@ -180,7 +180,7 @@ export default function CortexHUD() {
     acc: Math.random() * 10 + 90,
     mem: Math.floor(Math.random() * 60) + 20,
     cpu: Math.floor(Math.random() * 60) + 15,
-    status: ['active', 'warning', 'idle'][Math.floor(Math.random() * 3)] as const,
+    status: (['active', 'warning', 'idle'] as const)[Math.floor(Math.random() * 3)],
     sla: Math.floor(Math.random() * 20) + 80,
     efficiency: Math.floor(Math.random() * 50) + 50,
     costPerQ: Math.random() * 0.01 + 0.001,
@@ -191,7 +191,8 @@ export default function CortexHUD() {
     memoryTier: { hot: Math.floor(Math.random() * 8000) + 1000, warm: Math.floor(Math.random() * 10000) + 2000, cold: Math.floor(Math.random() * 15000) + 3000 },
     gdpr: { pending: Math.floor(Math.random() * 10), completed: Math.floor(Math.random() * 20) },
     qHist: generateHistory(60), latHist: generateHistory(60), memHist: generateHistory(60)
-  }))));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  })) as any[]));
 
   // Real-time updates - Enhanced for YC demo
   React.useEffect(() => {
