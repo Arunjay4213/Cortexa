@@ -126,7 +126,7 @@ function Hero() {
 
       {/* Radial vignette — darkens edges, focuses on center */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 40%, transparent 30%, rgba(15,14,13,0.85) 100%)' }} />
+        style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 40%, transparent 40%, rgba(28,28,30,0.04) 100%)' }} />
 
       <div className="relative z-10 max-w-5xl mx-auto">
 
@@ -233,7 +233,7 @@ function TraceDemo() {
                 <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
                   <p style={{ color: 'var(--text)' }}>
                     "Your subscription renews on{' '}
-                    <span style={{ color: '#f87171', textDecoration: 'underline', textDecorationColor: 'rgba(248,113,113,0.4)' }}>
+                    <span style={{ color: '#B91C1C', textDecoration: 'underline', textDecorationColor: 'rgba(248,113,113,0.4)' }}>
                       March 15th
                     </span>."
                   </p>
@@ -243,7 +243,7 @@ function TraceDemo() {
 
             {step >= 2 && (
               <div className="anim-fade-up hidden-init mb-6">
-                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#f87171' }}>
+                <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#B91C1C' }}>
                   <XCircle size={13} /> GROUND TRUTH MISMATCH
                 </div>
                 <div className="rounded-xl p-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.2)' }}>
@@ -268,11 +268,11 @@ function TraceDemo() {
                     <div className="flex items-center gap-2">
                       <span style={{ color: 'var(--muted)' }}>→</span>
                       <span style={{ color: 'var(--text)' }}>Memory #47</span>
-                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                      <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(239,68,68,0.15)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.3)' }}>
                         attribution: 0.73
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                    <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(239,68,68,0.15)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.3)' }}>
                       <AlertTriangle size={10} /> STALE
                     </span>
                   </div>
@@ -407,10 +407,10 @@ function ThreeQuestions() {
               ].map(r => (
                 <div key={r.name} className={`grid grid-cols-4 gap-2 py-1.5 rounded ${!r.good ? '-mx-1 px-1' : ''}`}
                   style={{ background: !r.good ? 'rgba(239,68,68,0.07)' : 'transparent' }}>
-                  <span className="truncate" style={{ color: r.good ? 'var(--text)' : '#f87171' }}>{r.name}</span>
+                  <span className="truncate" style={{ color: r.good ? 'var(--text)' : '#B91C1C' }}>{r.name}</span>
                   <span className="text-right" style={{ color: 'var(--muted)' }}>{r.cost}</span>
-                  <span className="text-right" style={{ color: r.good ? 'var(--lime)' : '#f87171' }}>{r.attr}</span>
-                  <span className="text-right" style={{ color: r.good ? 'var(--lime)' : '#f87171' }}>{r.roi}</span>
+                  <span className="text-right" style={{ color: r.good ? 'var(--lime)' : '#B91C1C' }}>{r.attr}</span>
+                  <span className="text-right" style={{ color: r.good ? 'var(--lime)' : '#B91C1C' }}>{r.roi}</span>
                 </div>
               ))}
             </div>
@@ -434,7 +434,7 @@ function ThreeQuestions() {
             </div>
             <div className="space-y-4 mb-5">
               {[
-                { icon: <XCircle size={14} style={{ color: '#f87171' }} />, label: 'Contradictions', val: 2, pct: 14, color: '#f87171' },
+                { icon: <XCircle size={14} style={{ color: '#B91C1C' }} />, label: 'Contradictions', val: 2, pct: 14, color: '#B91C1C' },
                 { icon: <Clock size={14} style={{ color: '#fbbf24' }} />, label: 'Stale memories', val: 14, pct: 98, color: '#fbbf24' },
                 { icon: <AlertTriangle size={14} style={{ color: '#fb923c' }} />, label: 'Coverage gaps', val: 3, pct: 21, color: '#fb923c' },
               ].map(r => (
@@ -452,7 +452,7 @@ function ThreeQuestions() {
               ))}
             </div>
             <div className="rounded-lg p-3 text-xs border-l-2" style={{ background: 'rgba(239,68,68,0.07)', borderLeftColor: '#ef4444' }}>
-              <span className="font-semibold" style={{ color: '#f87171' }}>4 memories are actively causing wrong answers.</span>
+              <span className="font-semibold" style={{ color: '#B91C1C' }}>4 memories are actively causing wrong answers.</span>
               <span className="block mt-1" style={{ color: 'var(--muted)' }}>Memory #47, #112, #203, #89 — contradicted by newer data.</span>
             </div>
           </div>
@@ -538,7 +538,7 @@ function ProvenanceGraph() {
         <button onClick={() => setDeleted(true)}
           className="absolute bottom-0 right-0 flex items-center gap-1 text-xs font-mono transition-colors"
           style={{ color: 'var(--muted)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
+          onMouseEnter={e => (e.currentTarget.style.color = '#B91C1C')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}>
           <Trash2 size={11} /> simulate deletion
         </button>
@@ -565,14 +565,14 @@ function BeforeAfter() {
           <div className="card p-7" style={{ borderColor: 'rgba(239,68,68,0.15)', background: 'rgba(239,68,68,0.03)' }}>
             <div className="flex items-center gap-2 mb-7">
               <div className="w-2 h-2 rounded-full bg-red-500" />
-              <h3 className="text-base font-semibold" style={{ color: '#f87171' }}>Without Cortexa</h3>
+              <h3 className="text-base font-semibold" style={{ color: '#B91C1C' }}>Without Cortexa</h3>
             </div>
             <div className="space-y-6">
               {[
-                { icon: <XCircle size={15} style={{ color: '#f87171' }} />, t: 'Agent gives wrong answer', d: "You know something's wrong. Which memory? You dig through logs for 45 minutes. Maybe you find it." },
-                { icon: <Clock size={15} style={{ color: '#f87171' }} />, t: '45 minutes to root cause', d: "Manually diffing retrieved memories against outputs. Hoping you can reproduce the query." },
-                { icon: <DollarSign size={15} style={{ color: '#f87171' }} />, t: '$38K/yr on dead memories', d: "Injecting memories that contribute nothing. They crowd context, add latency. No way to know which." },
-                { icon: <Shield size={15} style={{ color: '#f87171' }} />, t: '"We think we deleted everything"', d: "GDPR request arrives. You delete the row. But the embeddings? Summaries? Cached responses?" },
+                { icon: <XCircle size={15} style={{ color: '#B91C1C' }} />, t: 'Agent gives wrong answer', d: "You know something's wrong. Which memory? You dig through logs for 45 minutes. Maybe you find it." },
+                { icon: <Clock size={15} style={{ color: '#B91C1C' }} />, t: '45 minutes to root cause', d: "Manually diffing retrieved memories against outputs. Hoping you can reproduce the query." },
+                { icon: <DollarSign size={15} style={{ color: '#B91C1C' }} />, t: '$38K/yr on dead memories', d: "Injecting memories that contribute nothing. They crowd context, add latency. No way to know which." },
+                { icon: <Shield size={15} style={{ color: '#B91C1C' }} />, t: '"We think we deleted everything"', d: "GDPR request arrives. You delete the row. But the embeddings? Summaries? Cached responses?" },
               ].map(r => (
                 <div key={r.t} className="flex gap-3">
                   <div className="mt-0.5 flex-shrink-0">{r.icon}</div>
@@ -802,12 +802,12 @@ function CostSection() {
               style={{ borderColor: c.bad ? 'rgba(239,68,68,0.12)' : 'rgba(122,140,0,0.14)' }}>
               <div className="flex items-center gap-2 mb-4">
                 {c.bad
-                  ? <AlertTriangle size={15} style={{ color: '#f87171' }} />
+                  ? <AlertTriangle size={15} style={{ color: '#B91C1C' }} />
                   : <CheckCircle size={15} style={{ color: 'var(--lime)' }} />}
                 <h3 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{c.title}</h3>
               </div>
               <div className="mb-4">
-                <div className="stat-number" style={{ color: c.bad ? '#f87171' : 'var(--lime)' }}>
+                <div className="stat-number" style={{ color: c.bad ? '#B91C1C' : 'var(--lime)' }}>
                   {c.metric}
                 </div>
                 <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>{c.sub}</p>
@@ -910,7 +910,7 @@ function WaitlistCTA() {
               </button>
             </form>
           )}
-          {err && <p className="text-xs font-mono mt-3" style={{ color: '#f87171' }}>{err}</p>}
+          {err && <p className="text-xs font-mono mt-3" style={{ color: '#B91C1C' }}>{err}</p>}
         </div>
       </div>
     </section>
