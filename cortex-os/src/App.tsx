@@ -194,7 +194,7 @@ function Hero() {
 
 function TraceDemo() {
   const { ref, inView } = useInView(0.1)
-  const step = useStagger(inView, 10, 500)
+  const step = useStagger(inView, 5, 550)
 
   return (
     <section id="demo" className="py-28 px-6" ref={ref}>
@@ -202,12 +202,11 @@ function TraceDemo() {
         <Label>Live Trace</Label>
         <h2 className="font-bold mb-4 tracking-tight"
           style={{ fontSize: 'clamp(1.8rem, 2.5vw + 0.8rem, 2.8rem)', color: 'var(--text)' }}>
-          Claude Code caught mid-hallucination
+          Wrong answer. Root cause in 2 seconds.
         </h2>
         <p className="mb-12 max-w-xl" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>
-          The agent confidently calls a function renamed six months ago. Cortexa traces
-          the stale memory, steers the agent to the correct API, and approves the write —
-          before a single line of bad code ships.
+          An AI agent gives a customer the wrong shipping date. Cortexa finds exactly
+          which memory caused it — and fixes it before anyone else is affected.
         </p>
 
         <div className="terminal-win">
@@ -216,169 +215,112 @@ function TraceDemo() {
             <div className="dot dot-y" />
             <div className="dot dot-g" />
             <span className="text-xs font-mono ml-3" style={{ color: 'var(--muted)' }}>
-              cortexa monitor --agent claude-code --project api-service
+              cortexa monitor --agent support-bot
             </span>
           </div>
 
-          <div className="p-7 sm:p-10 font-mono text-sm space-y-0">
+          <div className="p-7 sm:p-10 font-mono text-sm space-y-5">
 
-            {/* Step 1 — agent invocation */}
+            {/* Step 1 — wrong answer */}
             {step >= 1 && (
-              <div className="anim-fade-up hidden-init mb-5">
-                <div className="text-xs mb-2" style={{ color: 'var(--muted)' }}>CLAUDE CODE — TASK</div>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
-                  <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>$ claude <span style={{ color: 'var(--text)' }}>"fix the token refresh bug in api/auth.ts"</span></p>
-                  <p className="text-xs" style={{ color: 'var(--muted)' }}>● Analyzing codebase&nbsp;&nbsp;● Writing fix to api/auth.ts…</p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2 — agent output (wrong) */}
-            {step >= 2 && (
-              <div className="anim-fade-up hidden-init mb-5">
+              <div className="anim-fade-up hidden-init">
                 <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#B91C1C' }}>
-                  <AlertTriangle size={13} /> CORTEXA INTERCEPTED — WRITE BLOCKED
+                  <XCircle size={13} /> HALLUCINATION DETECTED
                 </div>
                 <div className="rounded-xl p-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.22)' }}>
-                  <div className="text-xs mb-2" style={{ color: '#9F1239' }}>api/auth.ts:47 — proposed write:</div>
-                  <pre className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>{`await auth.refreshToken(userId, { force: true, silent: true })`}</pre>
-                  <div className="mt-2 flex items-center gap-2 text-xs" style={{ color: '#9F1239' }}>
-                    <XCircle size={11} />
-                    <span><code style={{ background: 'rgba(239,68,68,0.15)', padding: '1px 5px', borderRadius: 4 }}>auth.refreshToken()</code> does not exist in current codebase</span>
-                  </div>
+                  <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Agent told the customer:</p>
+                  <p style={{ color: '#B91C1C' }}>"Your order will arrive in <strong>2 business days</strong>. Standard shipping is free!"</p>
+                  <p className="text-xs mt-2" style={{ color: '#9F1239' }}>
+                    <AlertTriangle size={10} className="inline mr-1" />
+                    Conflicts with current policy — shipping is now 5–7 days
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Step 3 — attribution trace header */}
-            {step >= 3 && (
-              <div className="anim-fade-up hidden-init mb-4">
-                <div className="flex items-center gap-2 text-xs pt-3 border-t" style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}>
-                  <Search size={12} />
-                  ATTRIBUTION TRACE — 6 memories retrieved, 2 causal
+            {/* Step 2 — attribution trace */}
+            {step >= 2 && (
+              <div className="anim-fade-up hidden-init">
+                <div className="flex items-center gap-2 text-xs mb-3" style={{ color: 'var(--muted)', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                  <Search size={12} /> ATTRIBUTION TRACE — culprit found
                 </div>
-              </div>
-            )}
-
-            {/* Step 4 — stale memory (culprit) */}
-            {step >= 4 && (
-              <div className="anim-slide-left hidden-init mb-3">
                 <div className="rounded-xl p-4 anim-pulse-red" style={{ background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.22)' }}>
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span style={{ color: 'var(--muted)' }}>→</span>
-                      <span style={{ color: 'var(--text)' }}>Memory #312</span>
+                      <span style={{ color: 'var(--text)' }}>Memory #47</span>
                       <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(239,68,68,0.15)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.3)' }}>
-                        attribution: 0.81
+                        attribution: 0.86
                       </span>
                     </div>
                     <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(239,68,68,0.15)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.3)' }}>
                       <AlertTriangle size={10} /> STALE
                     </span>
                   </div>
-                  <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
-                    "auth.refreshToken(userId, opts) — refreshes JWT, returns new token pair"
-                  </p>
-                  <p className="text-xs ml-5" style={{ color: '#9F1239' }}>
+                  <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>"Standard shipping: 2 business days, free over $35"</p>
+                  <p className="text-xs" style={{ color: '#9F1239' }}>
                     <Clock size={10} className="inline mr-1" />
-                    Last verified: 8 months ago — predates v2.3 auth module refactor
+                    Last updated 9 months ago — predates Jan 15 policy change
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Step 5 — current memory (buried) */}
-            {step >= 5 && (
-              <div className="anim-slide-left hidden-init mb-5">
+            {/* Step 3 — correct memory was there, just buried */}
+            {step >= 3 && (
+              <div className="anim-slide-left hidden-init">
                 <div className="rounded-xl p-4" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.20)' }}>
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span style={{ color: 'var(--muted)' }}>→</span>
-                      <span style={{ color: 'var(--text)' }}>Memory #601</span>
+                      <span style={{ color: 'var(--text)' }}>Memory #203</span>
                       <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(122,140,0,0.14)', color: 'var(--lime)', border: '1px solid rgba(122,140,0,0.25)' }}>
-                        attribution: 0.09
+                        attribution: 0.07
                       </span>
                     </div>
                     <span className="px-2 py-0.5 rounded text-xs flex items-center gap-1" style={{ background: 'rgba(122,140,0,0.14)', color: 'var(--lime)', border: '1px solid rgba(122,140,0,0.25)' }}>
                       <CheckCircle size={10} /> CURRENT
                     </span>
                   </div>
-                  <p className="text-xs ml-5 mb-1" style={{ color: 'var(--muted)' }}>
-                    "v2.3 refactor: auth.refreshToken() → auth.rotateCredentials(userId)"
-                  </p>
-                  <p className="text-xs ml-5" style={{ color: '#78350F' }}>
+                  <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>"Shipping policy updated Jan 15: standard delivery now 5–7 days"</p>
+                  <p className="text-xs" style={{ color: '#78350F' }}>
                     <AlertTriangle size={10} className="inline mr-1" />
-                    Retrieval rank: 5th — correct API buried behind stale entry
+                    Retrieved but ranked 4th — correct memory was buried
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Step 6 — diagnosis */}
-            {step >= 6 && (
-              <div className="anim-fade-up hidden-init mb-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid rgba(28,28,30,0.12)' }}>
-                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: '#92400E' }}>
-                    <Eye size={13} /> DIAGNOSIS
+            {/* Step 4 — fix */}
+            {step >= 4 && (
+              <div className="anim-fade-up hidden-init">
+                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.04)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--lime)' }}>
+                    <Zap size={13} /> CORTEXA FIX
                   </div>
-                  <p className="text-sm" style={{ color: 'var(--text)', lineHeight: 1.65 }}>
-                    Stale API memory outranked the refactor note. Memory #312 has high
-                    embedding similarity to the query ("token refresh") but documents a
-                    function removed in v2.3. Memory #601, which records the rename to{' '}
-                    <code style={{ fontSize: '0.78em', background: 'rgba(28,28,30,0.08)', padding: '1px 5px', borderRadius: 4 }}>rotateCredentials()</code>,
-                    was retrieved 5th and never surfaced to the agent.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 7 — Cortexa steers */}
-            {step >= 7 && (
-              <div className="anim-fade-up hidden-init mb-4">
-                <div className="rounded-xl p-4" style={{ background: 'rgba(28,28,30,0.05)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center gap-2 text-xs mb-3" style={{ color: 'var(--muted)' }}>
-                    <Zap size={13} style={{ color: 'var(--lime)' }} />
-                    <span style={{ color: 'var(--lime)' }}>CORTEXA STEERING</span>
-                    <span style={{ color: 'var(--muted)' }}>— re-prompting with corrected context</span>
-                  </div>
-                  <ul className="text-xs space-y-1.5" style={{ color: 'var(--muted)' }}>
-                    <li>→ Invalidating Memory #312 (deprecated API signature)</li>
-                    <li>→ Promoting Memory #601 to retrieval rank 1</li>
-                    <li>→ Flagging 4 similar pre-v2.3 memories for review</li>
+                  <ul className="text-xs space-y-1" style={{ color: 'var(--muted)' }}>
+                    <li>→ Memory #47 invalidated (contradicted by Jan 15 update)</li>
+                    <li>→ Memory #203 promoted to rank 1</li>
+                    <li>→ 6 similar outdated shipping memories flagged for review</li>
                   </ul>
                 </div>
               </div>
             )}
 
-            {/* Step 8 — corrected agent output */}
-            {step >= 8 && (
-              <div className="anim-fade-up hidden-init mb-4">
+            {/* Step 5 — corrected + time */}
+            {step >= 5 && (
+              <div className="anim-fade-up hidden-init">
                 <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--lime)' }}>
-                  <CheckCircle size={13} /> CLAUDE CODE — CORRECTED OUTPUT
+                  <CheckCircle size={13} /> CORRECTED RESPONSE
                 </div>
                 <div className="rounded-xl p-4 anim-pulse-lime" style={{ background: 'var(--lime-dim)', border: '1px solid rgba(122,140,0,0.22)' }}>
-                  <div className="text-xs mb-2" style={{ color: 'var(--lime)' }}>api/auth.ts:47 — approved write:</div>
-                  <pre className="text-xs leading-relaxed" style={{ color: 'var(--text)' }}>{`await auth.rotateCredentials(userId)`}</pre>
-                  <div className="mt-2 flex items-center gap-2 text-xs" style={{ color: 'var(--lime)' }}>
-                    <CheckCircle size={11} />
-                    <span>Verified against current codebase — write approved</span>
+                  <p style={{ color: 'var(--text)' }}>"Your order will arrive in <strong>5–7 business days</strong>. Standard shipping is free over $35!"</p>
+                </div>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex items-center gap-2">
+                    <Activity size={14} style={{ color: 'var(--lime)' }} />
+                    <span className="text-xs" style={{ color: 'var(--lime)' }}>Root cause found in <strong>2.3 seconds</strong></span>
                   </div>
+                  <span className="text-xs" style={{ color: 'var(--muted)' }}>previously: 45 min of log archaeology</span>
                 </div>
-              </div>
-            )}
-
-            {/* Step 9 — result footer */}
-            {step >= 9 && (
-              <div className="anim-fade-up hidden-init flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-                <div className="flex items-center gap-2">
-                  <Activity size={15} style={{ color: 'var(--lime)' }} />
-                  <span style={{ color: 'var(--lime)' }}>
-                    Root cause found: <strong>2.1 seconds</strong>
-                  </span>
-                </div>
-                <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                  0 bad lines shipped · 4 stale memories flagged
-                </span>
               </div>
             )}
           </div>
