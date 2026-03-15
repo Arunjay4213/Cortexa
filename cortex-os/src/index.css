@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-lime-400: #8AA810;
+  --color-lime-500: #7A8C00;
+  --color-lime-600: #6A7800;
+  --color-lime-700: #4D7A00;
+  --color-lime-900: #1e2600;
+  --color-lime-950: #0e1200;
+
+  --color-stone-750: #2a2825;
+  --color-stone-850: #1c1a18;
+  --color-stone-950: #131210;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --font-size-display-xl: clamp(2.8rem, 5vw + 1rem, 5.5rem);
+  --font-size-display-lg: clamp(2rem, 3vw + 1rem, 3.5rem);
+  --font-size-display-md: clamp(1.5rem, 2vw + 0.5rem, 2.25rem);
+  --font-size-body-lg: clamp(1.05rem, 0.5vw + 0.9rem, 1.25rem);
+}
