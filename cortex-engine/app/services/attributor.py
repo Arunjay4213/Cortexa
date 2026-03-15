@@ -70,7 +70,7 @@ class AttributionService:
     def __init__(self, nli_service: NLIService):
         self.nli = nli_service
 
-    def compute(
+    async def compute(
         self,
         claim: str,
         sources: list[str],
@@ -98,7 +98,7 @@ class AttributionService:
         call_count = 0
 
         # Step 1: Score with ALL sources combined
-        score_full, calls = self._best_entailment_score(claim, sources)
+        score_full, calls = await self._best_entailment_score(claim, sources)
         call_count += calls
 
         # Step 2: Score with each source removed (leave-one-out)
@@ -111,7 +111,7 @@ class AttributionService:
                 score_minus_i = 0.0
                 # No NLI calls needed
             else:
-                score_minus_i, calls = self._best_entailment_score(
+                score_minus_i, calls = await self._best_entailment_score(
                     claim, sources_minus_i
                 )
                 call_count += calls
@@ -162,7 +162,7 @@ class AttributionService:
             computation_calls=call_count,
         )
 
-    def compute_batch(
+    async def compute_batch(
         self,
         claims: list[str],
         sources: list[str],
@@ -177,9 +177,13 @@ class AttributionService:
         Returns:
             List of AttributionResult, one per claim.
         """
-        return [self.compute(claim, sources) for claim in claims]
+        results = []
+        for claim in claims:
+            result = await self.compute(claim, sources)
+            results.append(result)
+        return results
 
-    def _best_entailment_score(
+    async def _best_entailment_score(
         self,
         claim: str,
         sources: list[str],
@@ -201,7 +205,7 @@ class AttributionService:
             sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
 
             for sentence in sentences:
-                result = self.nli.predict(sentence, claim)
+                result = await self.nli.predict(sentence, claim)
                 call_count += 1
                 score = result["entailment"]
                 best = max(best, score)

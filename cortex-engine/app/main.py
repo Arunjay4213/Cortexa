@@ -9,7 +9,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import Settings
 from app.limiter import limiter
-from app.routes import check, gate, health, stream
+from app.routes import check, gate, health, memory, shield, stream
 
 logger = logging.getLogger("cortexos")
 settings = Settings()
@@ -77,4 +77,6 @@ app.add_middleware(
 app.include_router(check.router)
 app.include_router(gate.router)
 app.include_router(health.router)
+app.include_router(memory.router)
+app.include_router(shield.router)
 app.include_router(stream.router)

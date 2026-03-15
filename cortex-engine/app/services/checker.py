@@ -60,7 +60,7 @@ def is_opinion(text: str) -> bool:
     return any(marker in text_lower for marker in opinion_markers)
 
 
-def _run_attribution(
+async def _run_attribution(
     claim_text: str,
     sources: list[str],
     attributor: AttributionService,
@@ -74,7 +74,7 @@ def _run_attribution(
         (attribution_data, primary_source_index, nli_call_count)
     """
     capped_sources = sources[:max_sources]
-    attr_result = attributor.compute(claim_text, capped_sources)
+    attr_result = await attributor.compute(claim_text, capped_sources)
 
     attribution_data = [
         {
@@ -153,7 +153,7 @@ async def run_check(
             if do_attribution:
                 if attribution_start is None:
                     attribution_start = time.time()
-                attr_data, attr_primary, calls = _run_attribution(
+                attr_data, attr_primary, calls = await _run_attribution(
                     claim_text, request.sources, attributor,
                     attr_threshold, attr_max_sources,
                 )
@@ -190,7 +190,7 @@ async def run_check(
             continue
 
         # 4. NLI gate
-        nli_grounded, nli_conf, best_sentence = check_nli(
+        nli_grounded, nli_conf, best_sentence = await check_nli(
             claim_text,
             request.sources,
             nli_service,
@@ -204,7 +204,7 @@ async def run_check(
             if do_attribution:
                 if attribution_start is None:
                     attribution_start = time.time()
-                attr_data, attr_primary, calls = _run_attribution(
+                attr_data, attr_primary, calls = await _run_attribution(
                     claim_text, request.sources, attributor,
                     attr_threshold, attr_max_sources,
                 )

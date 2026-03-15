@@ -1,75 +1,91 @@
+"""NLI classification via Groq LLM (async)."""
+
+from __future__ import annotations
+
 import re
 
 import httpx
 
 from app.config import Settings
 
-_settings = Settings()
-
-# Groq API endpoint (same pattern as decomposer.py)
 _GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-_NLI_MODEL = "llama-3.1-8b-instant"
 
-_NLI_PROMPT = """Classify the relationship between the premise and hypothesis.
+_NLI_PROMPT = """Classify the relationship between the premise and hypothesis as ENTAILMENT, CONTRADICTION, or NEUTRAL.
+Also rate your confidence from 0.0 to 1.0.
 
 Premise: {premise}
 Hypothesis: {hypothesis}
 
-Reply with exactly one word: ENTAILMENT, CONTRADICTION, or NEUTRAL"""
+Reply in exactly this format, nothing else:
+LABEL: <ENTAILMENT|CONTRADICTION|NEUTRAL>
+CONFIDENCE: <0.0 to 1.0>"""
 
 
 class NLIService:
-    """
-    NLI classification via Groq LLM (replaces local ONNX DeBERTa).
+    def __init__(self, settings: Settings | None = None) -> None:
+        s = settings or Settings()
+        if not s.groq_api_key:
+            raise RuntimeError("CORTEX_GROQ_API_KEY is required for NLI service")
+        self._api_key = s.groq_api_key
+        self.model = s.nli_model
 
-    Zero memory footprint — all inference happens server-side on Groq.
-    """
-
-    def __init__(self):
-        if not _settings.groq_api_key:
-            raise RuntimeError(
-                "CORTEX_GROQ_API_KEY is required for NLI service"
-            )
-        self._api_key = _settings.groq_api_key
-
-    def predict(self, premise: str, hypothesis: str) -> dict:
-        """
-        Returns {"entailment": float, "neutral": float, "contradiction": float}
-        """
+    async def predict(self, premise: str, hypothesis: str) -> dict:
+        """Returns {"entailment": float, "contradiction": float, "neutral": float}."""
         prompt = _NLI_PROMPT.format(premise=premise, hypothesis=hypothesis)
-
-        with httpx.Client(timeout=30.0) as client:
-            resp = client.post(
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
                 _GROQ_URL,
                 headers={
                     "Authorization": f"Bearer {self._api_key}",
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": _NLI_MODEL,
+                    "model": self.model,
                     "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0,
-                    "max_tokens": 10,
+                    "max_tokens": 50,
+                    "temperature": 0.0,
                 },
             )
             resp.raise_for_status()
             data = resp.json()
 
-        label = data["choices"][0]["message"]["content"].strip().upper()
+        text = data["choices"][0]["message"]["content"].strip()
 
-        if "ENTAILMENT" in label:
-            return {"entailment": 0.95, "contradiction": 0.02, "neutral": 0.03}
-        elif "CONTRADICTION" in label:
-            return {"entailment": 0.02, "contradiction": 0.95, "neutral": 0.03}
+        label_match = re.search(r"LABEL:\s*(ENTAILMENT|CONTRADICTION|NEUTRAL)", text, re.IGNORECASE)
+        label = label_match.group(1).upper() if label_match else "NEUTRAL"
+
+        conf_match = re.search(r"CONFIDENCE:\s*([\d.]+)", text)
+        raw_conf = float(conf_match.group(1)) if conf_match else 0.5
+        conf = max(0.0, min(1.0, raw_conf))
+
+        if label == "ENTAILMENT":
+            return {
+                "entailment": conf,
+                "contradiction": (1.0 - conf) * 0.3,
+                "neutral": (1.0 - conf) * 0.7,
+            }
+        elif label == "CONTRADICTION":
+            return {
+                "entailment": (1.0 - conf) * 0.3,
+                "contradiction": conf,
+                "neutral": (1.0 - conf) * 0.7,
+            }
         else:
-            return {"entailment": 0.15, "contradiction": 0.15, "neutral": 0.70}
+            return {
+                "entailment": (1.0 - conf) * 0.4,
+                "contradiction": (1.0 - conf) * 0.4,
+                "neutral": conf,
+            }
 
-    def predict_batch(self, pairs: list[tuple[str, str]]) -> list[dict]:
-        """Batch predict for efficiency."""
-        return [self.predict(p, h) for p, h in pairs]
+    async def predict_batch(self, pairs: list[tuple[str, str]]) -> list[dict]:
+        results = []
+        for premise, hypothesis in pairs:
+            result = await self.predict(premise, hypothesis)
+            results.append(result)
+        return results
 
 
-def check_nli(
+async def check_nli(
     claim: str,
     sources: list[str],
     nli_service: NLIService,
@@ -77,12 +93,6 @@ def check_nli(
 ) -> tuple[bool, float, str | None]:
     """
     Check if any source sentence entails the claim.
-
-    Strategy:
-      1. Split each source into sentences
-      2. For each sentence, run NLI(sentence, claim)
-      3. If any sentence has entailment > threshold, GROUNDED
-      4. Otherwise, UNSUPPORTED
 
     Returns: (grounded, confidence, best_source_sentence)
     """
@@ -94,8 +104,7 @@ def check_nli(
         sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
 
         for sentence in sentences:
-            result = nli_service.predict(sentence, claim)
-
+            result = await nli_service.predict(sentence, claim)
             if result["entailment"] > best_score:
                 best_score = result["entailment"]
                 best_sentence = sentence
