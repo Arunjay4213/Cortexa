@@ -38,7 +38,7 @@ function useStagger(inView: boolean, steps: number, ms = 420) {
 function Logo({ className = 'logo-img-nav' }: { className?: string }) {
   return (
     <img
-      src="/cortexalogo.jpeg"
+      src={`${import.meta.env.BASE_URL}cortexalogo.jpeg`}
       alt="Cortexa"
       className={`${className} rounded-lg anim-logo`}
     />
