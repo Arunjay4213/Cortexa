@@ -1,12 +1,12 @@
-"""Asynchronous CortexOS client — same interface as Cortex but fully async."""
+"""Asynchronous CortexOS client for the v2 verification API."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from cortexos._http import AsyncHTTP
-from cortexos.client import _memory_payload, _DEFAULT_BASE_URL, _API_PREFIX, _DEFAULT_TIMEOUT, _DEFAULT_RETRIES
-from cortexos.types import Attribution, CAMAAttribution, Memory, Page, RecallAndAttributeResult, RecallResult
+from cortexos.client import _DEFAULT_BASE_URL, _DEFAULT_TIMEOUT, _DEFAULT_RETRIES
+from cortexos.models import CheckResult, GateResult, MemoryHealthResult, MemoryWriteResult, TraceResult
 
 
 class AsyncCortex:
@@ -17,32 +17,24 @@ class AsyncCortex:
 
         from cortexos import AsyncCortex
 
-        async with AsyncCortex(api_key="sk-...", agent_id="my-agent") as cx:
-            mem = await cx.remember("User prefers dark mode", importance=0.8)
-            results = await cx.recall("UI preferences?", top_k=5)
+        async with AsyncCortex(api_key="cx-...") as cx:
+            result = await cx.check(
+                response="The return window is 30 days",
+                sources=["Return policy: 30-day window for all items."],
+            )
+            print(result.hallucination_index)
     """
 
     def __init__(
         self,
-        agent_id: str,
         api_key: str | None = None,
         base_url: str = _DEFAULT_BASE_URL,
+        agent_id: str = "default",
         timeout: float = _DEFAULT_TIMEOUT,
         max_retries: int = _DEFAULT_RETRIES,
     ):
-        """
-        Args:
-            agent_id:    The default agent namespace for all operations.
-            api_key:     Bearer token sent as ``Authorization: Bearer <key>``.
-            base_url:    Root URL of the CortexOS engine.
-            timeout:     Per-request timeout in seconds.
-            max_retries: Number of retry attempts on transient errors.
-        """
         self.agent_id = agent_id
         self._http = AsyncHTTP(base_url, api_key, timeout, max_retries)
-        self._prefix = _API_PREFIX
-
-    # ── Context manager support ────────────────────────────────────────────
 
     async def __aenter__(self) -> "AsyncCortex":
         return self
@@ -54,201 +46,140 @@ class AsyncCortex:
         """Close the underlying async HTTP connection pool."""
         await self._http.aclose()
 
-    # ── Memory CRUD ────────────────────────────────────────────────────────
-
-    async def remember(
+    async def check(
         self,
-        content: str,
+        response: str,
+        sources: list[str],
         *,
-        importance: float = 0.5,
-        tags: list[str] | None = None,
-        metadata: dict[str, Any] | None = None,
-        tier: str = "warm",
-        ttl: int | None = None,
         agent_id: str | None = None,
-    ) -> Memory:
-        """Store a new memory. See :meth:`~cortexos.Cortex.remember` for full docs."""
-        payload = _memory_payload(
-            content=content,
-            agent_id=agent_id or self.agent_id,
-            importance=importance,
-            tags=tags or [],
-            metadata=metadata or {},
-            tier=tier,
-            ttl=ttl,
-        )
-        resp = await self._http.post(f"{self._prefix}/memories", json=payload)
-        return Memory._from_api(resp.json())
+        config: dict[str, Any] | None = None,
+    ) -> CheckResult:
+        """
+        Run full verification: decompose -> numerical -> fuzzy -> NLI.
 
-    async def get(self, memory_id: str) -> Memory:
-        """Fetch a memory by ID. Raises :class:`~cortexos.errors.MemoryNotFoundError` if missing."""
-        resp = await self._http.get(
-            f"{self._prefix}/memories/{memory_id}",
-            memory_id=memory_id,
-        )
-        return Memory._from_api(resp.json()["memory"])
+        Args:
+            response: The text to verify.
+            sources:  Ground-truth source documents.
+            agent_id: Override the client-level agent_id.
+            config:   Optional overrides.
 
-    async def update(
-        self,
-        memory_id: str,
-        *,
-        importance: float | None = None,
-        tags: list[str] | None = None,
-        metadata: dict[str, Any] | None = None,
-        tier: str | None = None,
-    ) -> Memory:
-        """Update memory fields. See :meth:`~cortexos.Cortex.update` for full docs."""
-        values: dict[str, Any] = {}
-        if importance is not None:
-            values["criticality"] = importance
-        if tier is not None:
-            values["tier"] = tier
-        if tags is not None or metadata is not None:
-            current = await self.get(memory_id)
-            merged_meta = dict(current.metadata)
-            if tags is not None:
-                merged_meta["_tags"] = tags
-            if metadata is not None:
-                merged_meta.update(metadata)
-            values["metadata"] = merged_meta
-        resp = await self._http.patch(
-            f"{self._prefix}/memories/{memory_id}",
-            json=values,
-            memory_id=memory_id,
-        )
-        return Memory._from_api(resp.json())
-
-    async def forget(self, memory_id: str) -> None:
-        """Soft-delete a memory. Raises :class:`~cortexos.errors.MemoryNotFoundError` if missing."""
-        await self._http.delete(
-            f"{self._prefix}/memories/{memory_id}",
-            memory_id=memory_id,
-        )
-
-    async def list(
-        self,
-        *,
-        limit: int = 50,
-        offset: int = 0,
-        tier: str | None = None,
-        sort_by: str = "created_at",
-        order: str = "desc",
-        agent_id: str | None = None,
-    ) -> Page:
-        """List memories with pagination. See :meth:`~cortexos.Cortex.list` for full docs."""
-        params: dict[str, Any] = {
+        Returns:
+            CheckResult with per-claim verdicts and hallucination index.
+        """
+        payload: dict[str, Any] = {
+            "response": response,
+            "sources": sources,
             "agent_id": agent_id or self.agent_id,
-            "limit": limit,
-            "offset": offset,
-            "sort_by": sort_by,
-            "order": order,
         }
-        if tier is not None:
-            params["tier"] = tier
-        resp = await self._http.get(f"{self._prefix}/memories", params=params)
-        data = resp.json()
-        return Page(
-            items=[Memory._from_api(m) for m in data["items"]],
-            total=data["total"],
-            offset=data["offset"],
-            limit=data["limit"],
-        )
+        if config:
+            payload["config"] = config
+        resp = await self._http.post("/v1/check", json=payload)
+        return CheckResult._from_api(resp.json())
 
-    # ── Recall ─────────────────────────────────────────────────────────────
+    async def gate(
+        self,
+        memory: str,
+        sources: list[str],
+        *,
+        agent_id: str | None = None,
+    ) -> GateResult:
+        """
+        Gate check: should this memory be stored?
 
-    async def recall(
+        Args:
+            memory:   The candidate memory text.
+            sources:  Source documents to verify against.
+            agent_id: Override the client-level agent_id.
+
+        Returns:
+            GateResult with grounded flag and flagged claims.
+        """
+        payload: dict[str, Any] = {
+            "candidate_memory": memory,
+            "sources": sources,
+            "agent_id": agent_id or self.agent_id,
+        }
+        resp = await self._http.post("/v1/gate", json=payload)
+        return GateResult._from_api(resp.json())
+
+    async def memory_write(
+        self,
+        memory: str,
+        *,
+        agent_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> MemoryWriteResult:
+        """
+        Write a memory with automatic duplicate detection.
+
+        Args:
+            memory:   The memory text to store.
+            agent_id: Override the client-level agent_id.
+            metadata: Optional key-value metadata to attach.
+
+        Returns:
+            MemoryWriteResult with status 'written' | 'duplicate' | 'merged'.
+        """
+        payload: dict[str, Any] = {
+            "memory": memory,
+            "agent_id": agent_id or self.agent_id,
+        }
+        if metadata:
+            payload["metadata"] = metadata
+        resp = await self._http.post("/v1/memory/write", json=payload)
+        return MemoryWriteResult._from_api(resp.json())
+
+    async def memory_health(self, agent_id: str | None = None) -> MemoryHealthResult:
+        """
+        Get memory health stats for an agent.
+
+        Returns duplicate %, unique memory count, and token burn savings.
+
+        Args:
+            agent_id: Override the client-level agent_id.
+        """
+        aid = agent_id or self.agent_id
+        resp = await self._http.get(f"/v1/memory/health/{aid}")
+        return MemoryHealthResult._from_api(resp.json())
+
+    async def trace(
         self,
         query: str,
         *,
-        top_k: int = 10,
-        min_score: float = 0.0,
-        tags: list[str] | None = None,
         agent_id: str | None = None,
-    ) -> list[RecallResult]:
-        """Semantic search. See :meth:`~cortexos.Cortex.recall` for full docs."""
-        params: dict[str, Any] = {
-            "q": query,
+        top_k: int = 5,
+    ) -> TraceResult:
+        """
+        Trace which memories are most relevant to a query.
+
+        When an agent gives a wrong answer, run cx.trace(answer) to find
+        which stored memory caused it.
+
+        Args:
+            query:    The text to trace (e.g. the wrong agent answer).
+            agent_id: Override the client-level agent_id.
+            top_k:    Maximum number of matching memories to return.
+        """
+        payload: dict[str, Any] = {
+            "query": query,
             "agent_id": agent_id or self.agent_id,
             "top_k": top_k,
         }
-        resp = await self._http.get(f"{self._prefix}/memories/search", params=params)
-        results = [
-            RecallResult(memory=Memory._from_api(item["memory"]), score=item["similarity"])
-            for item in resp.json()
-            if item["similarity"] >= min_score
-        ]
-        if tags:
-            tag_set = set(tags)
-            results = [r for r in results if tag_set.intersection(r.memory.tags)]
-        return results
+        resp = await self._http.post("/v1/memory/trace", json=payload)
+        return TraceResult._from_api(resp.json())
 
-    # ── Attribution ─────────────────────────────────────────────────────────
-
-    async def attribute(
-        self,
-        query: str,
-        response: str,
-        memory_ids: list[str],
-        *,
-        agent_id: str | None = None,
-    ) -> Attribution:
-        """Run EAS attribution. See :meth:`~cortexos.Cortex.attribute` for full docs."""
-        payload = {
-            "query_text": query,
-            "response_text": response,
-            "retrieved_memory_ids": memory_ids,
-            "agent_id": agent_id or self.agent_id,
-        }
-        resp = await self._http.post(f"{self._prefix}/transactions", json=payload)
-        return Attribution._from_api(resp.json(), query=query, response=response)
-
-    async def cama_attribute(
-        self,
-        transaction_id: str,
-    ) -> CAMAAttribution:
-        """Run CAMA attribution on an existing transaction.
-
-        See :meth:`~cortexos.Cortex.cama_attribute` for full docs.
+    async def memory_clear(self, agent_id: str | None = None) -> dict:
         """
-        resp = await self._http.post(f"{self._prefix}/attribution/{transaction_id}/cama")
-        return CAMAAttribution._from_api(resp.json(), transaction_id=transaction_id)
+        Clear all memories for an agent.
 
-    async def check(
-        self,
-        query: str,
-        response: str,
-        memory_ids: list[str],
-        *,
-        agent_id: str | None = None,
-    ) -> CAMAAttribution:
-        """One-shot hallucination check. See :meth:`~cortexos.Cortex.check` for full docs."""
-        attr = await self.attribute(query, response, memory_ids, agent_id=agent_id)
-        return await self.cama_attribute(attr.transaction_id)
-
-    async def forget_all(self, *, agent_id: str | None = None) -> int:
-        """Delete all memories for the given agent. Returns count deleted."""
-        count = 0
-        while True:
-            page = await self.list(agent_id=agent_id, limit=50, offset=0)
-            if not page.items:
-                break
-            for mem in page.items:
-                await self.forget(mem.id)
-                count += 1
-        return count
-
-    async def recall_and_attribute(
-        self,
-        query: str,
-        response: str,
-        *,
-        top_k: int = 10,
-        min_score: float = 0.0,
-        agent_id: str | None = None,
-    ) -> RecallAndAttributeResult:
-        """Recall then attribute. See :meth:`~cortexos.Cortex.recall_and_attribute` for full docs."""
+        Args:
+            agent_id: Override the client-level agent_id.
+        """
         aid = agent_id or self.agent_id
-        recall_results = await self.recall(query, top_k=top_k, min_score=min_score, agent_id=aid)
-        memory_ids = [r.memory.id for r in recall_results]
-        attribution = await self.attribute(query, response, memory_ids, agent_id=aid)
-        return RecallAndAttributeResult(memories=recall_results, attribution=attribution)
+        resp = await self._http.delete(f"/v1/memory/{aid}")
+        return resp.json()
+
+    async def health(self) -> dict:
+        """Check server health."""
+        resp = await self._http.get("/healthz")
+        return resp.json()

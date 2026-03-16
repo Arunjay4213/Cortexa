@@ -6,424 +6,398 @@ Uses respx to mock the httpx transport — no real server required.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 
 import httpx
 import pytest
 import respx
 
 from cortexos import AsyncCortex, Cortex
-from cortexos.errors import AuthError, CortexError, MemoryNotFoundError, RateLimitError, ServerError
+from cortexos.errors import AuthError, CortexError, RateLimitError, ServerError
 
 # ── Shared fixtures ────────────────────────────────────────────────────────
 
 BASE_URL = "http://test-cortex"
-AGENT_ID = "test-agent"
-NOW = datetime.now(timezone.utc).isoformat()
 
-_MEMORY_DICT = {
-    "id": "mem-001",
-    "content": "User prefers email over Slack",
-    "agent_id": AGENT_ID,
-    "tier": "warm",
-    "criticality": 0.85,
-    "metadata": {"_tags": ["preferences", "communication"]},
-    "retrieval_count": 0,
-    "created_at": NOW,
-    "last_accessed": None,
-    "deleted_at": None,
-    "tokens": 6,
-    "embedding": [],
-}
-
-_MEMORY_RESPONSE = {"memory": _MEMORY_DICT, "profile": None}
-
-_TXN_RESPONSE = {
-    "transaction": {
-        "id": "txn-001",
-        "query_text": "how to contact user?",
-        "response_text": "Contact via email.",
-        "agent_id": AGENT_ID,
-        "created_at": NOW,
-    },
-    "scores": [
-        {"memory_id": "mem-001", "score": 0.82},
-        {"memory_id": "mem-002", "score": 0.18},
+_CHECK_RESPONSE = {
+    "hallucination_index": 0.0,
+    "total_claims": 1,
+    "grounded_count": 1,
+    "hallucinated_count": 0,
+    "opinion_count": 0,
+    "claims": [
+        {
+            "text": "The return window is 30 days",
+            "grounded": True,
+            "verdict": "GROUNDED",
+            "reason": "",
+            "source_quote": "30-day return policy for all items",
+            "confidence": 0.95,
+        }
     ],
-    "cost": {},
+    "latency_ms": 123.4,
 }
 
+_HALLUCINATION_RESPONSE = {
+    "hallucination_index": 1.0,
+    "total_claims": 1,
+    "grounded_count": 0,
+    "hallucinated_count": 1,
+    "opinion_count": 0,
+    "claims": [
+        {
+            "text": "The return window is 60 days",
+            "grounded": False,
+            "verdict": "NUM_MISMATCH",
+            "reason": "NUM_MISMATCH: claim has 60 but source has 30",
+            "confidence": 0.0,
+        }
+    ],
+    "latency_ms": 100.0,
+}
 
-# ── Sync client tests ──────────────────────────────────────────────────────
+_GATE_GROUNDED = {
+    "grounded": True,
+    "hallucination_index": 0.0,
+    "flagged_claims": [],
+    "suggested_corrections": None,
+}
+
+_GATE_BLOCKED = {
+    "grounded": False,
+    "hallucination_index": 1.0,
+    "flagged_claims": [
+        {
+            "text": "Revenue grew 500%",
+            "verdict": "UNSUPPORTED",
+            "reason": "No source sentence entails this claim",
+        }
+    ],
+    "suggested_corrections": None,
+}
+
+_HEALTHZ = {"status": "ok"}
+
+
+# ── Sync client: check ────────────────────────────────────────────────────
 
 
 @respx.mock
-def test_remember_creates_memory():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
-        return_value=httpx.Response(201, json=_MEMORY_DICT)
+def test_check_grounded():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    mem = cx.remember("User prefers email over Slack", importance=0.85, tags=["preferences", "communication"])
-
-    assert mem.id == "mem-001"
-    assert mem.content == "User prefers email over Slack"
-    assert mem.importance == 0.85
-    assert "preferences" in mem.tags
-    assert "communication" in mem.tags
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
+    result = cx.check(
+        response="The return window is 30 days",
+        sources=["30-day return policy for all items"],
+    )
+    assert result.hallucination_index == 0.0
+    assert result.grounded_count == 1
+    assert result.passed is True
+    assert len(result.claims) == 1
+    assert result.claims[0].verdict == "GROUNDED"
+    cx.close()
 
 
 @respx.mock
-def test_remember_sends_correct_payload():
-    route = respx.post(f"{BASE_URL}/api/v1/memories").mock(
-        return_value=httpx.Response(201, json=_MEMORY_DICT)
+def test_check_hallucination():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_HALLUCINATION_RESPONSE)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    cx.remember("hello", importance=0.9, tags=["t1"], metadata={"source": "test"}, tier="hot")
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
+    result = cx.check(
+        response="The return window is 60 days",
+        sources=["30-day return policy for all items"],
+    )
+    assert result.hallucination_index == 1.0
+    assert result.hallucinated_count == 1
+    assert result.passed is False
+    assert result.claims[0].verdict == "NUM_MISMATCH"
+    cx.close()
+
+
+@respx.mock
+def test_check_sends_correct_payload():
+    route = respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
+    )
+    cx = Cortex(base_url=BASE_URL, agent_id="my-agent", max_retries=1)
+    cx.check(response="test", sources=["source1", "source2"])
 
     sent = json.loads(route.calls[0].request.content)
-    assert sent["criticality"] == 0.9
-    assert sent["tier"] == "hot"
-    assert sent["metadata"]["_tags"] == ["t1"]
-    assert sent["metadata"]["source"] == "test"
-    assert sent["agent_id"] == AGENT_ID
+    assert sent["response"] == "test"
+    assert sent["sources"] == ["source1", "source2"]
+    assert sent["agent_id"] == "my-agent"
+    cx.close()
 
 
 @respx.mock
-def test_get_memory():
-    respx.get(f"{BASE_URL}/api/v1/memories/mem-001").mock(
-        return_value=httpx.Response(200, json=_MEMORY_RESPONSE)
+def test_check_with_config():
+    route = respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    mem = cx.get("mem-001")
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
+    cx.check(
+        response="test",
+        sources=["source"],
+        config={"attribution": True},
+    )
+    sent = json.loads(route.calls[0].request.content)
+    assert sent["config"]["attribution"] is True
+    cx.close()
 
-    assert mem.id == "mem-001"
-    assert mem.tier == "warm"
+
+# ── Sync client: gate ─────────────────────────────────────────────────────
 
 
 @respx.mock
-def test_get_memory_not_found():
-    respx.get(f"{BASE_URL}/api/v1/memories/bad-id").mock(
-        return_value=httpx.Response(404, json={"detail": "Memory not found"})
+def test_gate_grounded():
+    respx.post(f"{BASE_URL}/v1/gate").mock(
+        return_value=httpx.Response(200, json=_GATE_GROUNDED)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    with pytest.raises(MemoryNotFoundError) as exc_info:
-        cx.get("bad-id")
-    assert exc_info.value.memory_id == "bad-id"
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
+    result = cx.gate(
+        memory="The return window is 30 days",
+        sources=["30-day return policy"],
+    )
+    assert result.grounded is True
+    assert result.hallucination_index == 0.0
+    assert result.flagged_claims == []
+    cx.close()
 
 
 @respx.mock
-def test_forget_memory():
-    respx.delete(f"{BASE_URL}/api/v1/memories/mem-001").mock(
-        return_value=httpx.Response(204)
+def test_gate_blocked():
+    respx.post(f"{BASE_URL}/v1/gate").mock(
+        return_value=httpx.Response(200, json=_GATE_BLOCKED)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    cx.forget("mem-001")  # Should not raise
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
+    result = cx.gate(
+        memory="Revenue grew 500%",
+        sources=["Revenue grew 10% last quarter"],
+    )
+    assert result.grounded is False
+    assert result.hallucination_index == 1.0
+    assert len(result.flagged_claims) == 1
+    cx.close()
 
 
 @respx.mock
-def test_forget_not_found():
-    respx.delete(f"{BASE_URL}/api/v1/memories/bad-id").mock(
-        return_value=httpx.Response(404, json={"detail": "not found"})
+def test_gate_sends_correct_payload():
+    route = respx.post(f"{BASE_URL}/v1/gate").mock(
+        return_value=httpx.Response(200, json=_GATE_GROUNDED)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    with pytest.raises(MemoryNotFoundError):
-        cx.forget("bad-id")
+    cx = Cortex(base_url=BASE_URL, agent_id="bot-1", max_retries=1)
+    cx.gate(memory="some memory", sources=["source"])
+
+    sent = json.loads(route.calls[0].request.content)
+    assert sent["candidate_memory"] == "some memory"
+    assert sent["sources"] == ["source"]
+    assert sent["agent_id"] == "bot-1"
+    cx.close()
+
+
+# ── Sync client: health ───────────────────────────────────────────────────
 
 
 @respx.mock
-def test_update_importance_only():
-    # GET for metadata merge
-    respx.get(f"{BASE_URL}/api/v1/memories/mem-001").mock(
-        return_value=httpx.Response(200, json=_MEMORY_RESPONSE)
+def test_health():
+    respx.get(f"{BASE_URL}/healthz").mock(
+        return_value=httpx.Response(200, json=_HEALTHZ)
     )
-    updated = {**_MEMORY_DICT, "criticality": 0.95}
-    respx.patch(f"{BASE_URL}/api/v1/memories/mem-001").mock(
-        return_value=httpx.Response(200, json=updated)
-    )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    mem = cx.update("mem-001", importance=0.95)
-    assert mem.importance == 0.95
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
+    result = cx.health()
+    assert result["status"] == "ok"
+    cx.close()
+
+
+# ── Context manager ───────────────────────────────────────────────────────
 
 
 @respx.mock
-def test_list_memories():
-    page_data = {
-        "items": [_MEMORY_DICT],
-        "total": 1,
-        "offset": 0,
-        "limit": 50,
-    }
-    respx.get(f"{BASE_URL}/api/v1/memories").mock(
-        return_value=httpx.Response(200, json=page_data)
+def test_context_manager():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    page = cx.list(limit=50)
-
-    assert page.total == 1
-    assert len(page.items) == 1
-    assert not page.has_more
+    with Cortex(base_url=BASE_URL, max_retries=1) as cx:
+        result = cx.check(response="test", sources=["source"])
+    assert result.hallucination_index == 0.0
+    cx.close()  # idempotent
 
 
-@respx.mock
-def test_recall_semantic_search():
-    search_results = [
-        {"memory": _MEMORY_DICT, "similarity": 0.91},
-        {"memory": {**_MEMORY_DICT, "id": "mem-002", "content": "Other memory"}, "similarity": 0.42},
-    ]
-    respx.get(f"{BASE_URL}/api/v1/memories/search").mock(
-        return_value=httpx.Response(200, json=search_results)
-    )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    results = cx.recall("how to contact user?", top_k=5)
-
-    assert len(results) == 2
-    assert results[0].score == 0.91
-    assert results[0].memory.id == "mem-001"
-
-
-@respx.mock
-def test_recall_min_score_filter():
-    search_results = [
-        {"memory": _MEMORY_DICT, "similarity": 0.91},
-        {"memory": {**_MEMORY_DICT, "id": "mem-002"}, "similarity": 0.2},
-    ]
-    respx.get(f"{BASE_URL}/api/v1/memories/search").mock(
-        return_value=httpx.Response(200, json=search_results)
-    )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    results = cx.recall("query", min_score=0.5)
-
-    assert len(results) == 1
-    assert results[0].score == 0.91
-
-
-@respx.mock
-def test_recall_tag_filter():
-    mem_with_tag = {**_MEMORY_DICT, "metadata": {"_tags": ["preferences"]}}
-    mem_without_tag = {**_MEMORY_DICT, "id": "mem-002", "metadata": {}}
-    search_results = [
-        {"memory": mem_with_tag, "similarity": 0.9},
-        {"memory": mem_without_tag, "similarity": 0.8},
-    ]
-    respx.get(f"{BASE_URL}/api/v1/memories/search").mock(
-        return_value=httpx.Response(200, json=search_results)
-    )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    results = cx.recall("query", tags=["preferences"])
-
-    assert len(results) == 1
-    assert "preferences" in results[0].memory.tags
-
-
-@respx.mock
-def test_attribute():
-    respx.post(f"{BASE_URL}/api/v1/transactions").mock(
-        return_value=httpx.Response(201, json=_TXN_RESPONSE)
-    )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    attr = cx.attribute(
-        query="how to contact user?",
-        response="Contact via email.",
-        memory_ids=["mem-001", "mem-002"],
-    )
-
-    assert attr.transaction_id == "txn-001"
-    assert attr.scores["mem-001"] == pytest.approx(0.82)
-    assert attr.scores["mem-002"] == pytest.approx(0.18)
-
-
-@respx.mock
-def test_recall_and_attribute():
-    search_results = [
-        {"memory": _MEMORY_DICT, "similarity": 0.91},
-        {"memory": {**_MEMORY_DICT, "id": "mem-002", "content": "Other"}, "similarity": 0.6},
-    ]
-    respx.get(f"{BASE_URL}/api/v1/memories/search").mock(
-        return_value=httpx.Response(200, json=search_results)
-    )
-    respx.post(f"{BASE_URL}/api/v1/transactions").mock(
-        return_value=httpx.Response(201, json=_TXN_RESPONSE)
-    )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
-    result = cx.recall_and_attribute(
-        query="how to contact user?",
-        response="Contact via email.",
-        top_k=5,
-    )
-
-    assert len(result.memories) == 2
-    assert result.attribution.transaction_id == "txn-001"
-    assert result.attribution.scores["mem-001"] == pytest.approx(0.82)
-
-
-# ── Error handling ─────────────────────────────────────────────────────────
+# ── Error handling ────────────────────────────────────────────────────────
 
 
 @respx.mock
 def test_auth_error_401():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
+    respx.post(f"{BASE_URL}/v1/check").mock(
         return_value=httpx.Response(401, json={"detail": "Unauthorized"})
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
     with pytest.raises(AuthError):
-        cx.remember("test")
+        cx.check(response="test", sources=["source"])
+    cx.close()
 
 
 @respx.mock
 def test_rate_limit_error():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
+    respx.post(f"{BASE_URL}/v1/check").mock(
         return_value=httpx.Response(429, headers={"Retry-After": "2.0"}, json={"detail": "slow down"})
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
     with pytest.raises(RateLimitError) as exc_info:
-        cx.remember("test")
+        cx.check(response="test", sources=["source"])
     assert exc_info.value.retry_after == pytest.approx(2.0)
+    cx.close()
 
 
 @respx.mock
 def test_server_error_500():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
+    respx.post(f"{BASE_URL}/v1/check").mock(
         return_value=httpx.Response(500, json={"detail": "Internal error"})
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1)
+    cx = Cortex(base_url=BASE_URL, max_retries=1)
     with pytest.raises(ServerError):
-        cx.remember("test")
+        cx.check(response="test", sources=["source"])
+    cx.close()
 
 
-# ── Retry logic ────────────────────────────────────────────────────────────
+# ── Retry logic ───────────────────────────────────────────────────────────
 
 
 @respx.mock
 def test_retry_on_503_then_success():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
+    respx.post(f"{BASE_URL}/v1/check").mock(
         side_effect=[
             httpx.Response(503, json={"detail": "temporarily unavailable"}),
-            httpx.Response(201, json=_MEMORY_DICT),
+            httpx.Response(200, json=_CHECK_RESPONSE),
         ]
     )
-    cx = Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=2)
-    mem = cx.remember("test")
-    assert mem.id == "mem-001"
-
-
-# ── Async client tests ─────────────────────────────────────────────────────
-
-
-@respx.mock
-@pytest.mark.asyncio
-async def test_async_remember():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
-        return_value=httpx.Response(201, json=_MEMORY_DICT)
-    )
-    async with AsyncCortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1) as cx:
-        mem = await cx.remember("User prefers email", importance=0.85, tags=["preferences"])
-
-    assert mem.id == "mem-001"
-    assert "preferences" in mem.tags
-
-
-@respx.mock
-@pytest.mark.asyncio
-async def test_async_get_not_found():
-    respx.get(f"{BASE_URL}/api/v1/memories/bad-id").mock(
-        return_value=httpx.Response(404, json={"detail": "not found"})
-    )
-    async with AsyncCortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1) as cx:
-        with pytest.raises(MemoryNotFoundError):
-            await cx.get("bad-id")
-
-
-@respx.mock
-@pytest.mark.asyncio
-async def test_async_recall():
-    search_results = [{"memory": _MEMORY_DICT, "similarity": 0.88}]
-    respx.get(f"{BASE_URL}/api/v1/memories/search").mock(
-        return_value=httpx.Response(200, json=search_results)
-    )
-    async with AsyncCortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1) as cx:
-        results = await cx.recall("contact the user")
-
-    assert len(results) == 1
-    assert results[0].score == pytest.approx(0.88)
-
-
-@respx.mock
-@pytest.mark.asyncio
-async def test_async_attribute():
-    respx.post(f"{BASE_URL}/api/v1/transactions").mock(
-        return_value=httpx.Response(201, json=_TXN_RESPONSE)
-    )
-    async with AsyncCortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1) as cx:
-        attr = await cx.attribute(
-            query="how to contact user?",
-            response="Via email.",
-            memory_ids=["mem-001", "mem-002"],
-        )
-
-    assert attr.transaction_id == "txn-001"
-    assert "mem-001" in attr.scores
-
-
-@respx.mock
-@pytest.mark.asyncio
-async def test_async_forget():
-    respx.delete(f"{BASE_URL}/api/v1/memories/mem-001").mock(
-        return_value=httpx.Response(204)
-    )
-    async with AsyncCortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1) as cx:
-        await cx.forget("mem-001")  # Should not raise
-
-
-# ── Context manager (sync) ────────────────────────────────────────────────
-
-
-@respx.mock
-def test_context_manager_closes_cleanly():
-    respx.post(f"{BASE_URL}/api/v1/memories").mock(
-        return_value=httpx.Response(201, json=_MEMORY_DICT)
-    )
-    with Cortex(agent_id=AGENT_ID, base_url=BASE_URL, max_retries=1) as cx:
-        mem = cx.remember("test")
-    assert mem.id == "mem-001"
-    # After exit, calling close again is idempotent
+    cx = Cortex(base_url=BASE_URL, max_retries=2)
+    result = cx.check(response="test", sources=["source"])
+    assert result.hallucination_index == 0.0
     cx.close()
 
 
-# ── Types ─────────────────────────────────────────────────────────────────
+# ── Async client tests ────────────────────────────────────────────────────
 
 
-def test_memory_from_api_extracts_tags():
-    from cortexos.types import Memory
-    data = {
-        "id": "m1",
-        "content": "hello",
-        "agent_id": "a1",
-        "tier": "hot",
-        "criticality": 1.0,
-        "metadata": {"_tags": ["a", "b"], "source": "test"},
-        "retrieval_count": 3,
-        "created_at": NOW,
-        "last_accessed": None,
-    }
-    mem = Memory._from_api(data)
-    assert mem.tags == ["a", "b"]
-    assert mem.metadata == {"source": "test"}  # _tags removed from metadata
-    assert mem.importance == 1.0
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_check():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
+    )
+    async with AsyncCortex(base_url=BASE_URL, max_retries=1) as cx:
+        result = await cx.check(
+            response="The return window is 30 days",
+            sources=["30-day return policy"],
+        )
+    assert result.hallucination_index == 0.0
+    assert result.grounded_count == 1
 
 
-def test_page_has_more():
-    from cortexos.types import Memory, Page
-    mem = Memory._from_api({**_MEMORY_DICT})
-    page = Page(items=[mem], total=10, offset=0, limit=1)
-    assert page.has_more is True
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_gate():
+    respx.post(f"{BASE_URL}/v1/gate").mock(
+        return_value=httpx.Response(200, json=_GATE_GROUNDED)
+    )
+    async with AsyncCortex(base_url=BASE_URL, max_retries=1) as cx:
+        result = await cx.gate(
+            memory="The return window is 30 days",
+            sources=["30-day return policy"],
+        )
+    assert result.grounded is True
 
-    full_page = Page(items=[mem], total=1, offset=0, limit=50)
-    assert full_page.has_more is False
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_health():
+    respx.get(f"{BASE_URL}/healthz").mock(
+        return_value=httpx.Response(200, json=_HEALTHZ)
+    )
+    async with AsyncCortex(base_url=BASE_URL, max_retries=1) as cx:
+        result = await cx.health()
+    assert result["status"] == "ok"
 
 
-def test_attribution_from_api():
-    from cortexos.types import Attribution
-    attr = Attribution._from_api(_TXN_RESPONSE, query="q", response="r")
-    assert attr.transaction_id == "txn-001"
-    assert attr.scores == {"mem-001": 0.82, "mem-002": 0.18}
-    assert attr.query == "q"
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_auth_error():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(401, json={"detail": "Unauthorized"})
+    )
+    async with AsyncCortex(base_url=BASE_URL, max_retries=1) as cx:
+        with pytest.raises(AuthError):
+            await cx.check(response="test", sources=["source"])
+
+
+# ── CheckResult properties ────────────────────────────────────────────────
+
+
+def test_check_result_passed_at():
+    from cortexos.models import CheckResult
+
+    result = CheckResult._from_api({
+        "hallucination_index": 0.25,
+        "total_claims": 4,
+        "grounded_count": 3,
+        "hallucinated_count": 1,
+        "opinion_count": 0,
+        "claims": [],
+        "latency_ms": 100.0,
+    })
+    assert result.passed is True  # < 0.3
+    assert result.passed_at(0.2) is False  # 0.25 >= 0.2
+    assert result.passed_at(0.3) is True   # 0.25 < 0.3
+
+
+# ── Top-level API ─────────────────────────────────────────────────────────
+
+
+@respx.mock
+def test_top_level_check():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
+    )
+    import cortexos
+
+    result = cortexos.check(
+        response="The return window is 30 days",
+        sources=["30-day return policy"],
+        base_url=BASE_URL,
+    )
+    assert result.hallucination_index == 0.0
+
+
+@respx.mock
+def test_top_level_gate():
+    respx.post(f"{BASE_URL}/v1/gate").mock(
+        return_value=httpx.Response(200, json=_GATE_GROUNDED)
+    )
+    import cortexos
+
+    result = cortexos.gate(
+        memory="30-day return window",
+        sources=["30-day return policy"],
+        base_url=BASE_URL,
+    )
+    assert result.grounded is True
+
+
+@respx.mock
+def test_top_level_configure():
+    respx.post(f"{BASE_URL}/v1/check").mock(
+        return_value=httpx.Response(200, json=_CHECK_RESPONSE)
+    )
+    import cortexos
+
+    cortexos.configure(api_key="test-key", base_url=BASE_URL)
+    result = cortexos.check(
+        response="The return window is 30 days",
+        sources=["30-day return policy"],
+    )
+    assert result.hallucination_index == 0.0
+    # Reset config
+    cortexos._config.clear()

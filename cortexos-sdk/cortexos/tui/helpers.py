@@ -21,7 +21,9 @@ def hi_bar(hi: float) -> str:
     filled = round(hi * 6)
     empty = 6 - filled
     color = hi_color(hi)
-    return f"[{color}]{'\u2588' * filled}[/{color}][dim]{'\u2591' * empty}[/dim]"
+    fill_char = "\u2588"
+    empty_char = "\u2591"
+    return f"[{color}]{fill_char * filled}[/{color}][dim]{empty_char * empty}[/dim]"
 
 
 def sparkline(values: list[float]) -> str:

@@ -6,11 +6,17 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 
+_VALID_EVENT_TYPES = (
+    "check", "gate", "shield",
+    "memory_write", "memory_duplicate",
+)
+
+
 @dataclass
 class EventRecord:
     """Typed record parsed from an SSE event."""
 
-    type: str  # "check" | "gate" | "shield"
+    type: str  # "check" | "gate" | "shield" | "memory_write" | "memory_duplicate"
     ts: datetime
     hi: float
     total_claims: int
@@ -27,11 +33,16 @@ class EventRecord:
     flagged_claims: list[dict]
     suggested_corrections: list[dict] | None
     raw: dict
+    # Memory-specific fields
+    memory_id: str | None = None
+    duplicate_of: str | None = None
+    duplicate_pct: float | None = None
+    total_memories: int = 0
 
     @classmethod
     def from_sse(cls, data: dict) -> EventRecord | None:
         event_type = data.get("type", "")
-        if event_type not in ("check", "gate", "shield"):
+        if event_type not in _VALID_EVENT_TYPES:
             return None
         try:
             ts = datetime.fromisoformat(data.get("ts", ""))
@@ -44,6 +55,13 @@ class EventRecord:
             grounded_int = 0
         else:
             grounded_int = int(grounded_val)
+
+        # For memory events, preview comes from memory_preview field
+        preview = (
+            data.get("response_preview", "")
+            or data.get("candidate_preview", "")
+            or data.get("memory_preview", "")
+        )
 
         return cls(
             type=event_type,
@@ -58,12 +76,15 @@ class EventRecord:
             claims=data.get("claims", []),
             api_key_id=data.get("api_key_id"),
             agent_id=data.get("agent_id", "unknown"),
-            response_preview=data.get("response_preview", "")
-            or data.get("candidate_preview", ""),
+            response_preview=preview,
             flagged=int(data.get("flagged", 0)),
             flagged_claims=data.get("flagged_claims", []),
             suggested_corrections=data.get("suggested_corrections"),
             raw=data,
+            memory_id=data.get("memory_id"),
+            duplicate_of=data.get("duplicate_of"),
+            duplicate_pct=data.get("duplicate_pct"),
+            total_memories=int(data.get("total_memories", 0)),
         )
 
 
@@ -97,6 +118,8 @@ class SessionState:
     _latencies: list[float] = field(default_factory=list)
     blocked_count: int = 0
     injection_count: int = 0
+    memory_write_count: int = 0
+    memory_duplicate_count: int = 0
 
     def add_event(self, record: EventRecord) -> None:
         self.events.append(record)
@@ -107,17 +130,22 @@ class SessionState:
             self.blocked_count += 1
         if record.type == "shield" and record.raw.get("safe") is False:
             self.injection_count += 1
+        if record.type == "memory_write":
+            self.memory_write_count += 1
+        if record.type == "memory_duplicate":
+            self.memory_duplicate_count += 1
 
-        # Update agent stats (prefer agent_id, fall back to api_key_id)
-        agent_id = record.agent_id if record.agent_id != "unknown" else (record.api_key_id or "unknown")
-        if agent_id not in self.agents:
-            self.agents[agent_id] = AgentStats(api_key_id=agent_id)
-        agent = self.agents[agent_id]
-        agent.checks += 1
-        agent.total_hi += record.hi
-        agent.total_hallucinated += record.hallucinated
-        agent.total_claims += record.total_claims
-        agent.last_seen = record.ts
+        # Only update agent stats for non-memory events (or include memory events)
+        if record.type in ("check", "gate", "shield"):
+            agent_id = record.agent_id if record.agent_id != "unknown" else (record.api_key_id or "unknown")
+            if agent_id not in self.agents:
+                self.agents[agent_id] = AgentStats(api_key_id=agent_id)
+            agent = self.agents[agent_id]
+            agent.checks += 1
+            agent.total_hi += record.hi
+            agent.total_hallucinated += record.hallucinated
+            agent.total_claims += record.total_claims
+            agent.last_seen = record.ts
 
     @property
     def total_checks(self) -> int:
@@ -171,6 +199,14 @@ class SessionState:
     def gate_events(self) -> list[EventRecord]:
         return [e for e in self.events if e.type in ("gate", "shield")]
 
+    def memory_events(self) -> list[EventRecord]:
+        return [e for e in self.events if e.type in ("memory_write", "memory_duplicate")]
+
+    @property
+    def memory_duplicate_pct(self) -> float:
+        total = self.memory_write_count + self.memory_duplicate_count
+        return self.memory_duplicate_count / total * 100 if total > 0 else 0.0
+
     def clear(self) -> None:
         self.events.clear()
         self.agents.clear()
@@ -178,3 +214,5 @@ class SessionState:
         self._latencies.clear()
         self.blocked_count = 0
         self.injection_count = 0
+        self.memory_write_count = 0
+        self.memory_duplicate_count = 0

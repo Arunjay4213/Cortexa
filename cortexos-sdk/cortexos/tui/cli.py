@@ -9,25 +9,29 @@ _DEFAULT_URL = os.environ.get("CORTEX_URL", "https://api.cortexa.ink")
 
 @click.command()
 @click.option(
-    "--url",
-    default=None,
-    envvar="CORTEX_URL",
-    help=f"CortexOS Engine base URL (default: {_DEFAULT_URL}).",
-)
-@click.option(
-    "--api-key",
-    default=None,
+    "--api-key", "-k",
     envvar="CORTEX_API_KEY",
+    required=True,
     help="API key (or set CORTEX_API_KEY).",
 )
-def monitor(url: str | None, api_key: str | None) -> None:
-    """Launch the CortexOS real-time verification monitor."""
+@click.option(
+    "--url", "-u",
+    envvar="CORTEX_URL",
+    default=_DEFAULT_URL,
+    help=f"CortexOS Engine base URL (default: {_DEFAULT_URL}).",
+)
+def monitor(api_key: str, url: str) -> None:
+    """Launch the Cortexa real-time verification monitor."""
     from cortexos.tui.app import CortexMonitor
 
-    base_url = url or _DEFAULT_URL
-    app = CortexMonitor(base_url=base_url, api_key=api_key)
+    app = CortexMonitor(base_url=url, api_key=api_key)
     app.run()
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the cortexos CLI."""
     monitor()
+
+
+if __name__ == "__main__":
+    main()

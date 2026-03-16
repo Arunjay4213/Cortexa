@@ -20,6 +20,7 @@ class InspectTab(TabPane):
     BINDINGS = [
         ("e", "export_json", "Export"),
         ("r", "re_verify", "Re-verify"),
+        ("t", "show_trace_cmd", "Trace"),
     ]
 
     def __init__(self, **kwargs) -> None:
@@ -38,15 +39,19 @@ class InspectTab(TabPane):
                 yield RichLog(highlight=False, markup=True, wrap=True, id="inspect-claims-log")
             yield Static(
                 "[#00FF88][e][/] [#444444]export JSON[/]  "
-                "[#00FF88][r][/] [#444444]re-verify[/]",
+                "[#00FF88][r][/] [#444444]re-verify[/]  "
+                "[#00FF88][t][/] [#444444]trace[/]",
                 id="inspect-actions",
             )
+        with VerticalScroll(id="inspect-trace-section"):
+            yield RichLog(highlight=False, markup=True, wrap=True, id="inspect-trace-log")
 
     def on_mount(self) -> None:
         self.query_one("#inspect-header-bar").display = False
         self.query_one("#inspect-claims-title").display = False
         self.query_one("#inspect-claims-section").display = False
         self.query_one("#inspect-actions").display = False
+        self.query_one("#inspect-trace-section").display = False
 
     def show_event(self, record: EventRecord) -> None:
         self._record = record
@@ -85,6 +90,10 @@ class InspectTab(TabPane):
         has_attribution = False
 
         # ── Section 1: Claims ──────────────────────────────────
+        claims_log.write(f"[bold #00DDFF]\u25a6 CLAIMS[/]  [#333333]{len(record.claims)} extracted[/]")
+        claims_log.write(f"[#333333]{'─' * 50}[/]")
+        claims_log.write("")
+
         for i, claim in enumerate(record.claims, 1):
             verdict = claim.get("verdict", "?")
             grounded = claim.get("grounded", False)
@@ -107,7 +116,9 @@ class InspectTab(TabPane):
             bar_fill = int(conf * 16)
             bar_empty = 16 - bar_fill
             conf_c = conf_color(conf)
-            conf_bar = f"[{bar_color}]{'\u2588' * bar_fill}[/][dim]{'\u2591' * bar_empty}[/]"
+            fill = "\u2588"
+            empty = "\u2591"
+            conf_bar = f"[{bar_color}]{fill * bar_fill}[/][dim]{empty * bar_empty}[/]"
             claims_log.write(
                 f"         [#555555]conf:[/] [{conf_c}]{conf:.2f}[/]  {conf_bar}"
             )
@@ -130,8 +141,8 @@ class InspectTab(TabPane):
 
         if attributed_claims:
             claims_log.write("")
-            claims_log.write("[bold #AA44FF]\u25c8 SHAPLEY ATTRIBUTION[/]")
-            claims_log.write(f"[#222222]{'─' * 50}[/]")
+            claims_log.write("[bold #AA44FF]\u25c8 SHAPLEY ATTRIBUTION[/]  [#333333]source influence scores[/]")
+            claims_log.write(f"[#333333]{'─' * 50}[/]")
 
             for claim in attributed_claims:
                 attr = claim["attribution"]
@@ -160,7 +171,9 @@ class InspectTab(TabPane):
                     # Influence bar (24 chars)
                     bar_fill = round(abs(phi) * 24)
                     bar_empty = 24 - bar_fill
-                    inf_bar = f"[#AA44FF]{'\u2588' * bar_fill}[/][dim]{'\u2591' * bar_empty}[/]"
+                    fill = "\u2588"
+                    empty = "\u2591"
+                    inf_bar = f"[#AA44FF]{fill * bar_fill}[/][dim]{empty * bar_empty}[/]"
 
                     claims_log.write(
                         f"    \u2192 src[{src_idx}]  "
@@ -180,8 +193,8 @@ class InspectTab(TabPane):
         hallucinated = [c for c in record.claims if not c.get("grounded", True)]
         if hallucinated:
             claims_log.write("")
-            claims_log.write("[bold #FF3366]ROOT CAUSE DIAGNOSIS[/]")
-            claims_log.write(f"[#222222]{'─' * 50}[/]")
+            claims_log.write("[bold #FF3366]\u26a0 ROOT CAUSE DIAGNOSIS[/]  [#333333]why claims failed[/]")
+            claims_log.write(f"[#333333]{'─' * 50}[/]")
 
             for claim in hallucinated:
                 text = claim.get("text", "")[:60]
@@ -230,4 +243,141 @@ class InspectTab(TabPane):
         self.notify(f"Exported to {path}")
 
     def action_re_verify(self) -> None:
-        self.notify("Re-verify: not yet connected to engine", severity="warning")
+        if not self._record:
+            self.notify("No event selected", severity="warning")
+            return
+        import asyncio
+        asyncio.create_task(self._do_re_verify())
+
+    async def _do_re_verify(self) -> None:
+        import httpx
+        record = self._record
+        if not record:
+            return
+
+        # Build request from the raw event data
+        sources = record.raw.get("sources", [])
+        response_text = record.response_preview
+        if not response_text:
+            self.notify("No response text to re-verify", severity="warning")
+            return
+
+        app = self.app
+        headers = {"Content-Type": "application/json"}
+        if hasattr(app, "api_key") and app.api_key:
+            headers["Authorization"] = f"Bearer {app.api_key}"
+        base = app.base_url.rstrip("/") if hasattr(app, "base_url") else ""
+
+        self.notify("Re-verifying with attribution...")
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                payload = {
+                    "response": response_text,
+                    "sources": sources,
+                    "agent_id": record.agent_id,
+                    "config": {"attribution": True, "attribution_threshold": 0.05},
+                }
+                resp = await client.post(f"{base}/v1/check", json=payload, headers=headers)
+                resp.raise_for_status()
+                data = resp.json()
+
+            # Reconstruct a synthetic EventRecord from the fresh result
+            from cortexos.tui.state import EventRecord
+            from datetime import datetime, timezone
+            synth_data = {
+                "type": "check",
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "hi": data.get("hallucination_index", 0.0),
+                "total_claims": data.get("total_claims", 0),
+                "grounded": data.get("grounded_count", 0),
+                "hallucinated": data.get("hallucinated_count", 0),
+                "opinion_count": data.get("opinion_count", 0),
+                "latency_ms": data.get("latency_ms", 0.0),
+                "claims": [
+                    {
+                        "text": c.get("text", ""),
+                        "verdict": c.get("verdict", ""),
+                        "grounded": c.get("grounded", False),
+                        "confidence": c.get("confidence", 0.0),
+                        "source_quote": c.get("source_quote"),
+                        "reason": c.get("reason"),
+                        "attribution": c.get("attribution"),
+                    }
+                    for c in data.get("claims", [])
+                ],
+                "verdicts": [c.get("verdict", "") for c in data.get("claims", [])],
+                "agent_id": record.agent_id,
+                "api_key_id": record.api_key_id,
+                "response_preview": response_text[:200],
+                "flagged": data.get("hallucinated_count", 0),
+                "flagged_claims": [],
+                "sources": sources,
+            }
+            new_record = EventRecord.from_sse(synth_data)
+            if new_record:
+                self.show_event(new_record)
+                self.notify(f"Re-verified: HI={new_record.hi:.2f}")
+        except Exception as e:
+            self.notify(f"Re-verify failed: {e}", severity="error")
+
+    def show_trace(self, trace_data: dict) -> None:
+        """Display trace results in the trace section."""
+        trace_log = self.query_one("#inspect-trace-log", RichLog)
+        trace_section = self.query_one("#inspect-trace-section")
+        trace_section.display = True
+        trace_log.clear()
+
+        matches = trace_data.get("matches", [])
+        trace_log.write("[bold #AA44FF]\u25c8 MEMORY TRACE[/]")
+        trace_log.write(f"[#222222]{'─' * 50}[/]")
+
+        if not matches:
+            trace_log.write("[#444444]No matching memories found[/]")
+            return
+
+        for i, m in enumerate(matches[:5], 1):
+            score = m.get("relevance_score", 0.0)
+            text = m.get("memory_text", "")[:120]
+            mem_id = m.get("memory_id", "")[:12]
+            if score >= 0.7:
+                score_color = "#00FF88"
+            elif score >= 0.4:
+                score_color = "#F5A623"
+            else:
+                score_color = "#555555"
+            trace_log.write(
+                f"  [#444444]{i}.[/]  [{score_color}]\u03c6={score:.2f}[/]  "
+                f"[#777777]{mem_id}[/]"
+            )
+            trace_log.write(f"     [#AAAAAA]{text}[/]")
+            trace_log.write("")
+
+    def action_show_trace_cmd(self) -> None:
+        if not self._record:
+            self.notify("No event selected — use :trace <query> from command palette", severity="warning")
+            return
+        # Run trace using the response preview as the query
+        query = self._record.response_preview[:200]
+        if not query:
+            self.notify("No text to trace", severity="warning")
+            return
+        import asyncio
+        asyncio.create_task(self._do_trace(query))
+
+    async def _do_trace(self, query: str) -> None:
+        import httpx
+        app = self.app
+        headers = {"Content-Type": "application/json"}
+        if hasattr(app, "api_key") and app.api_key:
+            headers["Authorization"] = f"Bearer {app.api_key}"
+        base = app.base_url.rstrip("/") if hasattr(app, "base_url") else ""
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {"query": query, "agent_id": "tui-cmd", "top_k": 5}
+                resp = await client.post(f"{base}/v1/memory/trace", json=payload, headers=headers)
+                data = resp.json()
+            self.show_trace(data)
+            matches = data.get("matches", [])
+            self.notify(f"Trace: {len(matches)} memory match(es) found")
+        except Exception as e:
+            self.notify(f"Trace failed: {e}", severity="error")

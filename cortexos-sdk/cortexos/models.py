@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Literal
 
 
 @dataclass
@@ -78,6 +79,92 @@ class GateResult:
             hallucination_index=data["hallucination_index"],
             flagged_claims=data.get("flagged_claims", []),
             suggested_corrections=data.get("suggested_corrections"),
+        )
+
+
+@dataclass
+class MemoryWriteResult:
+    """Result of writing a memory (POST /v1/memory/write)."""
+
+    status: Literal["written", "duplicate", "merged"]
+    memory_id: str
+    agent_id: str
+    duplicate_of: str | None = None
+    duplicate_pct: float | None = None
+
+    @property
+    def is_duplicate(self) -> bool:
+        return self.status == "duplicate"
+
+    @classmethod
+    def _from_api(cls, data: dict) -> MemoryWriteResult:
+        return cls(
+            status=data["status"],
+            memory_id=data["memory_id"],
+            agent_id=data["agent_id"],
+            duplicate_of=data.get("duplicate_of"),
+            duplicate_pct=data.get("duplicate_pct"),
+        )
+
+
+@dataclass
+class MemoryHealthResult:
+    """Memory health stats (GET /v1/memory/health/{agent_id})."""
+
+    agent_id: str
+    total_memories: int
+    duplicate_count: int
+    duplicate_pct: float
+    unique_memories: int
+    token_burn_savings_pct: float
+
+    @classmethod
+    def _from_api(cls, data: dict) -> MemoryHealthResult:
+        return cls(
+            agent_id=data["agent_id"],
+            total_memories=data["total_memories"],
+            duplicate_count=data["duplicate_count"],
+            duplicate_pct=data["duplicate_pct"],
+            unique_memories=data["unique_memories"],
+            token_burn_savings_pct=data["token_burn_savings_pct"],
+        )
+
+
+@dataclass
+class TraceMatch:
+    """A single memory match from a trace query."""
+
+    memory: str
+    score: float
+    ts: str
+    memory_id: str
+
+
+@dataclass
+class TraceResult:
+    """Result of cx.trace() — finds which memories are relevant to a query."""
+
+    query: str
+    agent_id: str
+    matches: list[TraceMatch]
+    total_searched: int
+
+    @classmethod
+    def _from_api(cls, data: dict) -> TraceResult:
+        matches = [
+            TraceMatch(
+                memory=m["memory"],
+                score=m["score"],
+                ts=m["ts"],
+                memory_id=m["memory_id"],
+            )
+            for m in data.get("matches", [])
+        ]
+        return cls(
+            query=data["query"],
+            agent_id=data["agent_id"],
+            matches=matches,
+            total_searched=data["total_searched"],
         )
 
 

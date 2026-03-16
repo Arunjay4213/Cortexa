@@ -38,14 +38,18 @@ class CortexCommandProvider(Provider):
         ]
 
         for name, help_text, callback in commands:
-            score = matcher.match(name)
-            if score > 0:
-                yield Hit(
-                    score,
-                    matcher.highlight(name),
-                    callback,
-                    help=help_text,
-                )
+            if not query:
+                # Show all commands when palette is opened with no query
+                yield Hit(1.0, name, callback, help=help_text)
+            else:
+                score = matcher.match(name)
+                if score > 0:
+                    yield Hit(
+                        score,
+                        matcher.highlight(name),
+                        callback,
+                        help=help_text,
+                    )
 
     def _clear(self) -> None:
         app: CortexMonitor = self.app  # type: ignore[assignment]
