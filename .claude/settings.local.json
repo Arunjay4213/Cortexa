@@ -93,7 +93,7 @@
       "Bash(uvicorn:*)",
       "Bash(pg_ctl:*)",
       "Bash(tee:*)",
-      "Bash(timeout 30 bash -c '\nuvicorn cortex.api.app:app --host 0.0.0.0 --port 8001 &\nUVICORN_PID=$!\nsleep 5\ncurl -s http://localhost:8001/api/v1/memories -X POST -H \"\"\"\"Content-Type: application/json\"\"\"\" -d \"\"\"\"{\\\\\"\"\"\"agent_id\\\\\"\"\"\": \\\\\"\"\"\"test\\\\\"\"\"\", \\\\\"\"\"\"content\\\\\"\"\"\": \\\\\"\"\"\"test memory\\\\\"\"\"\"}\"\"\"\"\nsleep 2\nkill $UVICORN_PID 2>/dev/null\n')",
+      "Bash(pip install:*)",
       "Bash(.venv/bin/python:*)",
       "Bash(/Users/revanshphull/cortex/cortex-engine/.venv/bin/python -m uvicorn:*)",
       "Bash(npm search:*)",

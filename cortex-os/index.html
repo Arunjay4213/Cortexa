@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cortexa — Memory Observability for AI Agents</title>
+    <meta name="description" content="Your agent hallucinated. Which memory caused it? Cortexa traces every response back to the memories that influenced it." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              emerald: {
+                400: '#34d399',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+                900: '#064e3b',
+              },
+              zinc: {
+                700: '#3f3f46',
+                800: '#27272a',
+                900: '#18181b',
+                950: '#09090b',
+              },
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            },
+          },
+        },
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        background: #0a0a0a;
+        color: #e4e4e7;
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+        50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.7); }
+      }
+      @keyframes pulseGlowGreen {
+        0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+        50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.7); }
+      }
+      @keyframes typewriter {
+        from { width: 0; }
+        to { width: 100%; }
+      }
+      @keyframes blink {
+        50% { border-color: transparent; }
+      }
+      @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes cascadeDelete {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.95); }
+        100% { opacity: 0; transform: scale(0.8); }
+      }
+      .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      .animate-pulse-glow {
+        animation: pulseGlow 2s ease-in-out infinite;
+      }
+      .animate-pulse-glow-green {
+        animation: pulseGlowGreen 2s ease-in-out infinite;
+      }
+      .animate-slide-in-left {
+        animation: slideInLeft 0.5s ease-out forwards;
+      }
+      .stagger-1 { animation-delay: 0.1s; }
+      .stagger-2 { animation-delay: 0.3s; }
+      .stagger-3 { animation-delay: 0.5s; }
+      .stagger-4 { animation-delay: 0.7s; }
+      .stagger-5 { animation-delay: 0.9s; }
+      .stagger-6 { animation-delay: 1.1s; }
+      .stagger-7 { animation-delay: 1.3s; }
+      .opacity-0-initial { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
