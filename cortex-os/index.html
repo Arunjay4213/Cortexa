@@ -2,30 +2,120 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="cortexalogo.jpeg" />
+    <link rel="icon" href="/cortexalogo.jpeg" />
+    <link rel="apple-touch-icon" href="/cortexalogo.jpeg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cortexa — Memory Observability for AI Agents</title>
-    <meta name="description" content="The only memory infrastructure that tells you which memory caused your AI agent's last mistake. Real-time attribution, GDPR compliance, hallucination detection, and memory lifecycle management." />
-    <meta name="keywords" content="AI agent memory, memory observability, LLM memory management, agent attribution, hallucination detection, GDPR AI compliance, Shapley values, ContextCite, AI infrastructure, memory lifecycle" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://cortexadev.com" />
+    <meta name="theme-color" content="#E8E3D5" />
 
-    <!-- Open Graph -->
+    <!-- Primary SEO -->
+    <title>Cortexa — Memory Observability for AI Agents | Trace Hallucinations to Root Cause</title>
+    <meta name="description" content="Cortexa traces every LLM response back to the memory that caused it. Find hallucination root cause in 3 seconds, eliminate 42% Ghost Tokens, and get cryptographic GDPR deletion certificates. The observability layer for Mem0, LangChain, LlamaIndex, and custom RAG." />
+    <meta name="keywords" content="AI agent memory observability, LLM hallucination tracing, memory attribution score, Ghost Token detection, RAG observability, AI memory debugging, GDPR AI compliance, memory lifecycle management, context window optimization, Mem0 observability, LangChain memory monitoring, LlamaIndex tracing, AI agent infrastructure, embedding drift detection, retrieval augmented generation monitoring" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://cortexadev.com" />
+    <meta name="author" content="Cortexa" />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cortexadev.com" />
-    <meta property="og:title" content="Cortexa — Memory Observability for AI Agents" />
-    <meta property="og:description" content="The only memory infrastructure that tells you which memory caused your AI agent's last mistake." />
+    <meta property="og:title" content="Cortexa — Your Agent Hallucinated. Which Memory Caused It?" />
+    <meta property="og:description" content="Trace every LLM response to the memory that shaped it. Root cause in 3 seconds. 42% Ghost Token recovery. Cryptographic GDPR deletion. The observability layer for AI agent memory." />
     <meta property="og:site_name" content="Cortexa" />
     <meta property="og:image" content="https://cortexadev.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Cortexa — Memory Observability for AI Agents" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Cortexa — Memory Observability for AI Agents" />
-    <meta name="twitter:description" content="Real-time attribution, hallucination detection, and memory lifecycle management for AI agents." />
+    <meta name="twitter:title" content="Cortexa — Your Agent Hallucinated. Which Memory Caused It?" />
+    <meta name="twitter:description" content="Trace hallucinations to root cause in 3 seconds. Eliminate Ghost Tokens. Cryptographic GDPR compliance. One pip install, zero migration." />
     <meta name="twitter:image" content="https://cortexadev.com/og-image.png" />
+    <meta name="twitter:image:alt" content="Cortexa — Memory Observability for AI Agents" />
 
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Cortexa",
+      "url": "https://cortexadev.com",
+      "description": "Memory observability layer for AI agents. Traces LLM responses to root-cause memories, detects Ghost Tokens, and provides cryptographic GDPR deletion certificates.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/PreOrder",
+        "description": "Early access — join the waitlist"
+      },
+      "featureList": [
+        "Hallucination root cause tracing in 3 seconds",
+        "Memory Attribution Score (MAS) benchmarking",
+        "Ghost Token detection and elimination",
+        "Cryptographic GDPR cascade deletion certificates",
+        "Context window optimization via attribution pruning",
+        "Compatible with Mem0, SuperMemory, LangChain, LlamaIndex"
+      ],
+      "creator": {
+        "@type": "Organization",
+        "name": "Cortexa",
+        "url": "https://cortexadev.com"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a Ghost Token?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A Ghost Token is a memory retrieved by your RAG or memory pipeline that the LLM never uses when generating its response — injected into context but contributing zero logit influence. Ghost Tokens inflate context size, add inference latency, and crowd out high-attribution memories. Benchmarks show ~42% of retrieved context in typical production agents is Ghost Tokens."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does attribution tracing work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Cortexa instruments your retrieval pipeline to compute a causal attribution score for each memory at inference time. The score represents that memory's contribution to the final output — measured by its influence on the logit distribution. When an answer is wrong, the highest-attributing memory is the root cause."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Memory Attribution Score (MAS)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "MAS is the percentage of your retrieved context that has nonzero logit influence. A production agent targeting MAS > 75% is running efficiently. Below 25%, you're in critical context noise territory with high embedding drift and measurable response degradation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Cortexa replace my memory system?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Cortexa wraps your existing store — Mem0, SuperMemory, LangChain, LlamaIndex, or custom. It sits between retrieval and generation. One pip install, zero data migration, no architecture changes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does GDPR cascade deletion work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Cortexa maintains a provenance graph linking source memories to all derived data — embeddings, chunked summaries, cached completions. When a deletion request arrives, cx.delete() walks the graph, cascades removal through every downstream artifact, and generates a cryptographic certificate proving complete erasure."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
