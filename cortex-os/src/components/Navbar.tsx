@@ -22,6 +22,7 @@ export function Navbar({ onOpenEarlyAccess }: NavbarProps) {
             { href: '#how-it-works', label: 'How It Works' },
             { href: '#manifesto',    label: 'Manifesto' },
             { href: '#faq',          label: 'FAQ' },
+            { href: '/docs',         label: 'Docs' },
           ].map(({ href, label }) => (
             <a key={href} href={href} className="text-sm font-medium transition-colors" style={navLink}>
               {label}
