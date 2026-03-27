@@ -1,0 +1,345 @@
+/* ─────────────────────────────────────────────────────
+   Cortexa — dark terminal aesthetic v2
+
+   Palette intent:
+     accent  (#00D4E8) — brand, interactive elements, user identity
+     success (#00E87A) — agent/system OK, healthy state
+     warning (#E8A800) — attention needed, contradictions
+     error   (#E83050) — failures, invalid state
+     ghost   (#4A4A6A) — inactive/muted chrome
+     dim     (#555570) — secondary text, de-emphasized
+     surface (#12121A) — card/panel backgrounds
+     bg      (#0A0A0F) — deep background
+   ───────────────────────────────────────────────────── */
+
+$accent: #00D4E8;
+$success: #00E87A;
+$warning: #E8A800;
+$error: #E83050;
+$ghost: #4A4A6A;
+$background: #0A0A0F;
+$surface: #12121A;
+$surface-bright: #1A1A28;
+$text: #E4E4EF;
+$dim: #555570;
+
+/* ── Screen ──────────────────────────────────────── */
+
+Screen {
+    background: $background;
+    color: $text;
+}
+
+/* ── Scrollbars ──────────────────────────────────── */
+
+* {
+    scrollbar-color: $ghost;
+    scrollbar-color-hover: $accent;
+    scrollbar-color-active: $accent;
+    scrollbar-background: $surface;
+    scrollbar-background-hover: $surface;
+    scrollbar-background-active: $surface;
+    scrollbar-size-vertical: 1;
+}
+
+/* ── Header Bar (2-row cockpit) ─────────────────── */
+
+HeaderBar {
+    dock: top;
+    height: 2;
+    background: $surface;
+    padding: 0 1;
+    border-bottom: solid $ghost;
+}
+
+#hdr-row1 {
+    height: 1;
+    layout: horizontal;
+}
+
+#hdr-row2 {
+    height: 1;
+    layout: horizontal;
+}
+
+#hdr-brand {
+    color: $accent;
+    text-style: bold;
+    width: auto;
+    padding: 0 2 0 0;
+}
+
+#hdr-mode {
+    width: auto;
+    padding: 0 2 0 0;
+    color: $dim;
+}
+
+#hdr-uptime {
+    width: auto;
+    padding: 0 2 0 0;
+    color: $dim;
+}
+
+#hdr-status {
+    width: auto;
+    color: $dim;
+}
+
+#hdr-status.on {
+    color: $success;
+}
+
+#hdr-status.pulse-bright {
+    color: $success;
+}
+
+#hdr-status.pulse-dim {
+    color: $ghost;
+}
+
+.hdr-spacer {
+    width: 1fr;
+}
+
+#hdr-health-bar {
+    width: auto;
+    padding: 0 2 0 0;
+}
+
+#hdr-sparkline {
+    width: 20;
+    height: 1;
+    padding: 0 2 0 0;
+    color: $accent;
+}
+
+#hdr-memories {
+    color: $dim;
+    width: auto;
+    padding: 0 2 0 0;
+}
+
+#hdr-ghosts {
+    color: $ghost;
+    width: auto;
+    padding: 0 2 0 0;
+    transition: text-style 300ms;
+}
+
+#hdr-ghosts.glow {
+    text-style: bold reverse;
+}
+
+#hdr-contradictions {
+    color: $warning;
+    width: auto;
+    transition: text-style 300ms;
+}
+
+#hdr-contradictions.glow {
+    text-style: bold reverse;
+}
+
+/* ── Conversation View ───────────────────────────── */
+
+ConversationView {
+    background: $background;
+    padding: 1 2;
+}
+
+/* ── Input Bar ───────────────────────────────────── */
+
+InputBar {
+    dock: bottom;
+    height: 3;
+    background: $surface;
+    layout: horizontal;
+    padding: 0 1;
+    border-top: solid $ghost;
+    align-vertical: middle;
+    transition: border 300ms;
+}
+
+InputBar:focus-within {
+    border-top: solid $accent;
+}
+
+InputBar.flash {
+    border-top: solid $success;
+}
+
+#prompt-char {
+    color: $accent;
+    text-style: bold;
+    width: 3;
+    height: 1;
+    padding: 0;
+}
+
+#prompt-input {
+    width: 1fr;
+    height: 1;
+    background: $surface;
+    border: none;
+    padding: 0 1;
+    color: $text;
+}
+
+#prompt-input:focus {
+    border: none;
+    background: $surface-bright;
+}
+
+#prompt-input > .input--placeholder {
+    color: $ghost;
+}
+
+#prompt-input > .input--cursor {
+    color: $accent;
+    text-style: bold reverse;
+}
+
+/* ── Footer (keybinding bar) ─────────────────────── */
+
+Footer {
+    background: $surface;
+    color: $dim;
+    dock: bottom;
+}
+
+Footer > .footer--highlight {
+    background: $accent 15%;
+    color: $text;
+}
+
+Footer > .footer--highlight-key {
+    background: $accent 25%;
+    color: $accent;
+    text-style: bold;
+}
+
+Footer > .footer--key {
+    background: $surface-bright;
+    color: $accent;
+    text-style: bold;
+}
+
+Footer > .footer--description {
+    color: $dim;
+}
+
+/* ── Messages ────────────────────────────────────── */
+
+.message-user {
+    color: $text;
+    margin: 0 0 1 0;
+    padding: 0 1 0 1;
+    border-left: thick $accent;
+}
+
+.message-agent {
+    color: $text;
+    margin: 0 0 1 0;
+    padding: 0 1 0 1;
+    border-left: thick $success;
+}
+
+.message-system {
+    color: $dim;
+    margin: 0 0 1 0;
+    padding: 0 1 0 1;
+    border-left: tall $ghost;
+}
+
+.message-error {
+    color: $error;
+    margin: 0 0 1 0;
+    padding: 0 1 0 1;
+    border-left: thick $error;
+}
+
+.message-warning {
+    color: $warning;
+    margin: 0 0 1 0;
+    padding: 0 1 0 1;
+    border-left: thick $warning;
+}
+
+MessageBubble:hover {
+    background: $surface;
+}
+
+/* ── Tool Call Widget ───────────────────────────── */
+
+ToolCallWidget:hover {
+    background: $surface;
+}
+
+ToolCallWidget .tool-done:hover {
+    text-style: bold;
+}
+
+/* ── Watch Sparkline ─────────────────────────────── */
+
+WatchSparkline {
+    height: 2;
+    margin: 0 0 1 2;
+    padding: 0 1;
+}
+
+#watch-sparkline {
+    width: 30;
+    height: 1;
+    color: $accent;
+}
+
+/* ── MAS Chart ──────────────────────────────────── */
+
+MASChart {
+    height: 12;
+    margin: 0 0 1 2;
+    padding: 0;
+}
+
+/* ── Thinking Indicator ─────────────────────────── */
+
+ThinkingIndicator {
+    height: 1;
+    margin: 0 0 0 2;
+}
+
+/* ── Toast Notifications ───────────────────────── */
+
+Toast {
+    background: $surface-bright;
+    color: $text;
+    border: tall $accent;
+    padding: 0 1;
+    margin: 1 2;
+}
+
+Toast.-information {
+    border: tall $accent;
+}
+
+Toast.-warning {
+    border: tall $warning;
+}
+
+Toast.-error {
+    border: tall $error;
+}
+
+/* ── Scroll Indicator ──────────────────────────── */
+
+ScrollIndicator {
+    color: $accent;
+    background: $surface;
+}
+
+/* ── Message Animations ────────────────────────── */
+
+MessageBubble {
+    transition: opacity 350ms out_cubic;
+}

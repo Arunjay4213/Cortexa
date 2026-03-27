@@ -1,0 +1,33 @@
+{
+  "description": "Finance domain: outdated revenue projection",
+  "query": "What is the Q4 revenue projection?",
+  "response": "The projected Q4 2025 revenue is $5.1 million, showing continued growth from $4.2M in Q3.",
+  "memories": [
+    {
+      "id": "f1",
+      "content": "Company revenue Q3 2025: $4.2 million.",
+      "created_at": "2025-10-01T00:00:00"
+    },
+    {
+      "id": "f2",
+      "content": "Company revenue Q2 2025: $3.8 million.",
+      "created_at": "2025-07-01T00:00:00"
+    },
+    {
+      "id": "f_poison",
+      "content": "Projected Q4 revenue: $5.1 million.",
+      "created_at": "2025-09-01T00:00:00",
+      "source_updated_at": "2025-12-01T00:00:00"
+    },
+    {
+      "id": "f_ghost",
+      "content": "CFO prefers quarterly board meetings over monthly.",
+      "created_at": "2025-06-01T00:00:00"
+    }
+  ],
+  "ground_truth": {
+    "expected_culprit": "f_poison",
+    "expected_ghosts": ["f_ghost"],
+    "expected_stale": ["f_poison"]
+  }
+}

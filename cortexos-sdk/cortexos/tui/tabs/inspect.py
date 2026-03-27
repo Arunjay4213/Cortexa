@@ -37,14 +37,14 @@ class InspectTab(TabPane):
             yield Static("CLAIMS", id="inspect-claims-title")
             with VerticalScroll(id="inspect-claims-section"):
                 yield RichLog(highlight=False, markup=True, wrap=True, id="inspect-claims-log")
+            with VerticalScroll(id="inspect-trace-section"):
+                yield RichLog(highlight=False, markup=True, wrap=True, id="inspect-trace-log")
             yield Static(
                 "[#00FF88][e][/] [#444444]export JSON[/]  "
                 "[#00FF88][r][/] [#444444]re-verify[/]  "
                 "[#00FF88][t][/] [#444444]trace[/]",
                 id="inspect-actions",
             )
-        with VerticalScroll(id="inspect-trace-section"):
-            yield RichLog(highlight=False, markup=True, wrap=True, id="inspect-trace-log")
 
     def on_mount(self) -> None:
         self.query_one("#inspect-header-bar").display = False
@@ -185,9 +185,7 @@ class InspectTab(TabPane):
                         claims_log.write(f"      [#666666]{preview}[/]")
 
                 claims_log.write("")
-        elif not has_attribution:
-            claims_log.write("")
-            claims_log.write("[#444444]Attribution not available \u2014 re-run with attribution=True[/]")
+        # Attribution always-on — no fallback message needed
 
         # ── Section 3: Root Cause Diagnosis ────────────────────
         hallucinated = [c for c in record.claims if not c.get("grounded", True)]

@@ -24,7 +24,7 @@ class Claim(BaseModel):
 
 
 class CheckConfig(BaseModel):
-    attribution: bool = False  # enable leave-one-out Shapley
+    attribution: bool = True  # enable leave-one-out Shapley
     attribution_threshold: float = 0.05  # min abs(influence) to report
     max_attribution_sources: int = 10  # cap sources for attribution
 

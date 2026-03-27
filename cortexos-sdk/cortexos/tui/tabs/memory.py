@@ -1,4 +1,4 @@
-"""Tab 3: Memory — Gate/shield/write operations + memory health stats."""
+"""Tab 3: Memory — Memory health dashboard (top) + operations log (bottom)."""
 
 from __future__ import annotations
 
@@ -29,8 +29,22 @@ def _dup_bar(pct: float, width: int = 20) -> str:
     return f"[{color}]{'█' * filled}[/][dim]{'░' * empty}[/]"
 
 
+def _health_grade(avg_hi: float, dup_pct: float) -> tuple[str, str]:
+    """Return (grade letter, color hex) based on HI and dup rate."""
+    score = (1 - avg_hi) * 0.7 + (1 - dup_pct / 100) * 0.3
+    if score >= 0.9:
+        return "A", "#00FF88"
+    if score >= 0.75:
+        return "B", "#AAFF00"
+    if score >= 0.6:
+        return "C", "#F5A623"
+    if score >= 0.4:
+        return "D", "#FF6600"
+    return "F", "#FF3366"
+
+
 class MemoryTab(TabPane):
-    """Gate/shield/write event log with memory health stats."""
+    """Memory health dashboard + gate/shield/write operations log."""
 
     def __init__(self, state: SessionState, **kwargs) -> None:
         super().__init__("MEMORY", id="tab-memory", **kwargs)
@@ -41,15 +55,15 @@ class MemoryTab(TabPane):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="memory-pane"):
+            yield Static("◈ MEMORY HEALTH", id="memory-health-title")
+            with Vertical(id="memory-health-panel"):
+                yield Static(self._render_health(), id="memory-health-content")
             yield Static("RECENT MEMORY OPERATIONS", id="memory-ops-title")
             with Vertical(id="memory-ops-panel"):
                 yield RichLog(
                     highlight=False, markup=True, wrap=False,
                     id="memory-ops-log",
                 )
-            yield Static("MEMORY HEALTH", id="memory-health-title")
-            with Vertical(id="memory-health-panel"):
-                yield Static(self._render_health(), id="memory-health-content")
 
     def add_event(self, record: EventRecord) -> None:
         if record.type not in ("gate", "shield", "memory_write", "memory_duplicate"):
@@ -80,14 +94,17 @@ class MemoryTab(TabPane):
             safe = record.raw.get("safe", True)
             if safe:
                 status = "[#00FF88]\u2726 SAFE    [/]"
-                line2 = f"          [#555555]src:shield_check[/]"
+                line2 = "          [#555555]src:shield_check[/]"
             else:
                 status = "[bold #FF0044]\U0001f534 INJECT  [/]"
-                line2 = f"          [#FF0044]src:shield_check  BLOCKED[/]"
+                line2 = "          [#FF0044]src:shield_check  BLOCKED[/]"
                 log.write(f"[on #1A0000]  {ts}  {status}  shield  {preview}[/]")
                 log.write(f"[on #1A0000]{line2}[/]")
                 self._refresh_health()
                 return
+            log.write(f"  {ts}  {status}  shield  {preview}")
+            log.write(line2)
+            log.write("")
         else:
             # gate event
             grounded = record.raw.get("grounded", True)
@@ -97,15 +114,18 @@ class MemoryTab(TabPane):
             else:
                 status = "[#FF6600]\u25cf BLOCKED [/]"
                 line2 = f"          [#FF6600]src:gate_check   HI:{record.hi:.2f}  flagged:{record.flagged}[/]"
-            log.write(f"  {ts}  {status}  {'gate  ' if record.type == 'gate' else 'shield'}  {preview}")
+            log.write(f"  {ts}  {status}  gate    {preview}")
             log.write(f"{line2}")
             log.write("")
 
         self._refresh_health()
 
     def _refresh_health(self) -> None:
-        health = self.query_one("#memory-health-content", Static)
-        health.update(self._render_health())
+        try:
+            health = self.query_one("#memory-health-content", Static)
+            health.update(self._render_health())
+        except Exception:
+            pass
 
     def _render_health(self) -> str:
         s = self._state
@@ -138,39 +158,61 @@ class MemoryTab(TabPane):
             dup_color = "#00FF88"
             dup_warn = ""
 
-        # Source trust distribution from agent stats
+        # Per-agent health grades (prominent at top)
         agents = s.agents
         total_checks = max(sum(a.checks for a in agents.values()), 1)
 
-        lines = [
-            f"[#555555]gate writes attempted[/]  [#FFFFFF]{total_gates:>3}[/]    "
-            f"[#555555]blocked[/]       [#FF6600]{blocked:>3}[/]  [#555555]({block_pct})[/]",
-            f"[#555555]injections caught[/]      [{inj_style}{inj_color}]{injections:>3}[/]    "
-            f"[#555555]anomalies[/]     [#F5A623]{anomalies:>3}[/]",
-            "",
-            "[#555555]MEMORY STORE HEALTH[/]",
-            f"[#555555]writes[/]  [#FFFFFF]{s.memory_write_count:>4}[/]   "
-            f"[#555555]duplicates[/]  [{dup_color}]{dup_count:>3}[/]",
-            f"[#555555]dup%[/]   [{dup_color}]{dup_pct:>5.1f}%[/]  {dup_bar}{dup_warn}",
-            f"[#555555]token burn savings if deduped: [{dup_color}]{dup_pct:.1f}%[/] fewer tokens/call[/]",
-            "",
-            "[#555555]SOURCE TRUST DISTRIBUTION[/]",
-        ]
+        lines: list[str] = []
 
-        # Show agent breakdown as source trust
-        for agent_id, agent in sorted(agents.items(), key=lambda x: x[1].checks, reverse=True):
-            pct = agent.checks / total_checks * 100
-            name = agent_id[:14] if len(agent_id) > 14 else agent_id.ljust(14)
-            if agent.avg_hi < 0.2:
-                color = "#00FF88"
-            elif agent.avg_hi < 0.5:
-                color = "#F5A623"
-            else:
-                color = "#FF6600"
-            bar = _trust_bar(pct)
-            lines.append(f"[#555555]{name}[/]  [{color}]{bar}[/]  [{color}]{pct:>3.0f}%[/]")
+        # ── Agent health grades ─────────────────────────────
+        if agents:
+            lines.append("[#555555]AGENT HEALTH[/]")
+            lines.append(f"[#333333]{'─' * 50}[/]")
+            for agent_id, agent in sorted(agents.items(), key=lambda x: x[1].checks, reverse=True):
+                grade, grade_color = _health_grade(agent.avg_hi, s.memory_duplicate_pct)
+                hi_val = agent.avg_hi
+                if hi_val < 0.2:
+                    hi_color = "#00FF88"
+                elif hi_val < 0.5:
+                    hi_color = "#F5A623"
+                else:
+                    hi_color = "#FF3366"
+                pct = agent.checks / total_checks * 100
+                bar = _trust_bar(pct)
+                name = agent_id[:16] if len(agent_id) > 16 else agent_id.ljust(16)
+                lines.append(
+                    f"  [{grade_color}]{grade}[/]  [#DDDDDD]{name}[/]  "
+                    f"[{hi_color}]HI:{hi_val:.2f}[/]  [{grade_color}]{bar}[/]  "
+                    f"[#555555]{agent.checks}chk[/]"
+                )
+            lines.append("")
+        else:
+            lines.append("[#333333]no agent data yet — send a /v1/check request[/]")
+            lines.append("")
 
-        if not agents:
-            lines.append("[#333333]no data yet[/]")
+        # ── Gate / shield stats ─────────────────────────────
+        lines.append("[#555555]GATE & SHIELD[/]")
+        lines.append(
+            f"  [#555555]gates[/]  [#FFFFFF]{total_gates:>3}[/]   "
+            f"[#555555]blocked[/]  [#FF6600]{blocked:>3}[/]  [#555555]({block_pct})[/]   "
+            f"[#555555]anomalies[/]  [#F5A623]{anomalies:>3}[/]"
+        )
+        lines.append(
+            f"  [#555555]injections caught[/]  [{inj_style}{inj_color}]{injections:>3}[/]"
+        )
+        lines.append("")
+
+        # ── Memory store health ─────────────────────────────
+        lines.append("[#555555]MEMORY STORE[/]")
+        lines.append(
+            f"  [#555555]writes[/]  [#FFFFFF]{s.memory_write_count:>4}[/]   "
+            f"[#555555]dups[/]  [{dup_color}]{dup_count:>3}[/]   "
+            f"[#555555]dup%[/]  [{dup_color}]{dup_pct:>5.1f}%[/]"
+        )
+        lines.append(f"  {dup_bar}{dup_warn}")
+        if dup_pct > 0:
+            lines.append(
+                f"  [#555555]token savings if deduped:[/] [{dup_color}]{dup_pct:.1f}% fewer tokens/call[/]"
+            )
 
         return "\n".join(lines)

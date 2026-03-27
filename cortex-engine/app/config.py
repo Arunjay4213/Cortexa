@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    model_config = ConfigDict(env_prefix="CORTEX_")
+    model_config = ConfigDict(env_prefix="CORTEX_", env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # API
     port: int = 10000

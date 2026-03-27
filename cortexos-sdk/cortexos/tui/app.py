@@ -122,15 +122,40 @@ class CortexMonitor(App):
             buttons.append(btn)
         return buttons
 
-    def _footer_text(self) -> str:
-        return (
-            "[#00FF88][1-5][/] [#444444]tabs[/]  "
-            "[#00FF88][enter][/] [#444444]inspect[/]  "
-            "[#00FF88][:][/] [#444444]command[/]  "
-            "[#00FF88][p][/] [#444444]pause[/]  "
-            "[#00FF88][c][/] [#444444]clear[/]  "
-            "[#00FF88][q][/] [#444444]quit[/]"
-        )
+    def _footer_text(self, tab_id: str | None = None) -> str:
+        t = tab_id or self._active_tab
+        common = "  [#00FF88][:][/] [#444444]command[/]  [#00FF88][q][/] [#444444]quit[/]"
+        if t == "tab-feed":
+            return (
+                "[#00FF88][↑↓][/] [#444444]select[/]  "
+                "[#00FF88][enter][/] [#444444]inspect[/]  "
+                "[#00FF88][p][/] [#444444]pause[/]  "
+                "[#00FF88][f][/] [#444444]filter[/]"
+                + common
+            )
+        elif t == "tab-claims":
+            return (
+                "[#00FF88][enter][/] [#444444]inspect[/]  "
+                "[#00FF88][s][/] [#444444]sort[/]  "
+                "[#00FF88][f][/] [#444444]filter[/]"
+                + common
+            )
+        elif t == "tab-memory":
+            return "[#00FF88][1-5][/] [#444444]tabs[/]" + common
+        elif t == "tab-agents":
+            return (
+                "[#00FF88][enter][/] [#444444]inspect[/]"
+                + common
+            )
+        elif t == "tab-inspect":
+            return (
+                "[#00FF88][r][/] [#444444]re-verify[/]  "
+                "[#00FF88][t][/] [#444444]trace[/]  "
+                "[#00FF88][e][/] [#444444]export[/]  "
+                "[#00FF88][esc][/] [#444444]back[/]"
+                + common
+            )
+        return "[#00FF88][1-5][/] [#444444]tabs[/]" + common
 
     def on_mount(self) -> None:
         # Hide command palette overlay initially
@@ -225,6 +250,10 @@ class CortexMonitor(App):
         switcher = self.query_one("#main-content", ContentSwitcher)
         switcher.current = tab_id
         self._update_tab_bar()
+        try:
+            self.query_one("#cortex-footer", Static).update(self._footer_text(tab_id))
+        except Exception:
+            pass
 
     def action_toggle_pause(self) -> None:
         self._paused = not self._paused
@@ -300,11 +329,11 @@ class CortexMonitor(App):
                 table.filter_by_verdict(verdict_map.get(target))
                 self.notify(f"Claims filter: {target}")
             else:
-                # Feed log filter by event type
-                from cortexos.tui.widgets.event_log import EventLog
-                log = self.query_one(FeedTab).query_one("#feed-log", EventLog)
+                # Feed list filter by event type
+                from cortexos.tui.widgets.feed_list import FeedList
+                feed_list = self.query_one(FeedTab).query_one("#feed-log", FeedList)
                 filt = target if target and target != "all" else None
-                log.set_filter(filt)
+                feed_list.set_filter(filt)
                 self.notify(f"Feed filter: {filt or 'all'}")
         elif verb == "threshold":
             try:
@@ -392,15 +421,28 @@ class CortexMonitor(App):
         base = self.base_url.rstrip("/")
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(f"{base}/healthz", headers=headers)
-                data = resp.json()
-                status = data.get("status", "?")
-                self.notify(f"health: {status}")
-                # Also refresh memory tab health display
+                # Try memory health endpoint first, fall back to /healthz
                 try:
-                    self.query_one(MemoryTab)._refresh_health()
+                    resp = await client.get(
+                        f"{base}/v1/memory/health",
+                        params={"agent_id": "all"},
+                        headers=headers,
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    status = data.get("status", "ok")
+                    total = data.get("total_memories", "?")
+                    self.notify(f"memory health: {status}  memories:{total}")
                 except Exception:
-                    pass
+                    resp = await client.get(f"{base}/healthz", headers=headers)
+                    data = resp.json()
+                    status = data.get("status", "?")
+                    self.notify(f"health: {status}")
+            # Refresh memory tab health display
+            try:
+                self.query_one(MemoryTab)._refresh_health()
+            except Exception:
+                pass
         except Exception as e:
             self.notify(f"health failed: {e}", severity="warning")
 
@@ -438,9 +480,9 @@ class CortexMonitor(App):
 
     # ── Feed row selection → Inspect ──────────────────────────
 
-    def on_rich_log_link_clicked(self, message) -> None:
-        """Not used but placeholder for future click handling."""
-        pass
+    def on_feed_list_event_selected(self, message) -> None:
+        """Handle FeedList row selection from any context."""
+        self.inspect_event(message.record)
 
     async def on_unmount(self) -> None:
         await self._stream.stop()

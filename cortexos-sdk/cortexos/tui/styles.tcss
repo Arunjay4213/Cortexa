@@ -1,6 +1,20 @@
 /* ═══════════════════════════════════════════════════════
-   CortexOS Monitor — Bloomberg Terminal / Cyberpunk Theme
-   ═══════════════════════════════════════════════════════ */
+   CortexOS Monitor — Premium Dark / Warp-inspired Theme
+   ═══════════════════════════════════════════════════════
+
+   Palette:
+     #0D0D0D  background
+     #1A1A1A  panel bg
+     #00FF88  green  (grounded, safe, active)
+     #FF3366  pink-red (hallucination, danger)
+     #F5A623  amber  (warning, partial)
+     #00DDFF  cyan   (metadata, latency)
+     #AA44FF  purple (Shapley)
+     #4488FF  blue   (memory write)
+     #FF6600  orange (gate blocked)
+     #888888  dim labels
+     #FFFFFF  primary values
+*/
 
 /* ── Global ─────────────────────────────────────────── */
 Screen {
@@ -17,7 +31,7 @@ Screen {
 
 #header-bar {
     height: 1;
-    background: #1A1A1A;
+    background: #141414;
     layout: horizontal;
     padding: 0 1;
 }
@@ -32,6 +46,20 @@ Screen {
     width: auto;
     color: #444444;
     content-align: center middle;
+}
+
+#header-event-count {
+    width: auto;
+    color: #444444;
+    content-align: center middle;
+    padding: 0 2;
+}
+
+#header-session-time {
+    width: auto;
+    color: #444444;
+    content-align: center middle;
+    padding: 0 1;
 }
 
 #header-status {
@@ -50,8 +78,8 @@ Screen {
 .tab-btn {
     width: auto;
     min-width: 14;
-    padding: 0 1;
-    color: #555555;
+    padding: 0 2;
+    color: #444444;
     background: #0D0D0D;
 }
 
@@ -59,19 +87,20 @@ Screen {
     color: #FFFFFF;
     text-style: bold;
     background: #0D0D0D;
+    border-bottom: tall #00FF88;
 }
 
 #header-sep {
     height: 1;
     background: #0D0D0D;
-    color: #222222;
+    color: #1A1A1A;
 }
 
 /* ── Custom Footer ──────────────────────────────────── */
 #cortex-footer {
     height: 1;
     dock: bottom;
-    background: #1A1A1A;
+    background: #141414;
     padding: 0 1;
     color: #444444;
 }
@@ -98,12 +127,12 @@ ContentSwitcher {
 
 #feed-panel {
     height: 1fr;
-    border: solid #1E3A2F;
+    border-left: tall #00FF88;
     padding: 0 1;
+    background: #0F0F0F;
 }
 
 #feed-panel-title {
-    dock: top;
     height: 1;
     color: #00FF88;
     text-style: bold;
@@ -113,6 +142,21 @@ ContentSwitcher {
 
 #feed-log {
     height: 1fr;
+    background: #0F0F0F;
+}
+
+/* ListView selection cursor */
+ListView > ListItem {
+    background: #0F0F0F;
+    padding: 0;
+}
+
+ListView > ListItem.--highlight {
+    background: #172817;
+}
+
+ListView:focus > ListItem.--highlight {
+    background: #1A3020;
 }
 
 #feed-right {
@@ -123,12 +167,12 @@ ContentSwitcher {
 
 #session-panel {
     height: 1fr;
-    border: solid #1A2A3A;
+    border-left: tall #4488FF;
     padding: 0 1;
+    background: #0F0F0F;
 }
 
 #session-title {
-    dock: top;
     height: 1;
     color: #00DDFF;
     text-style: bold;
@@ -142,13 +186,13 @@ ContentSwitcher {
 
 #sparkline-panel {
     height: 5;
-    border: solid #1E3A2F;
+    border-left: tall #00FF88;
     padding: 0 1;
     dock: bottom;
+    background: #0F0F0F;
 }
 
 #sparkline-title {
-    dock: top;
     height: 1;
     color: #444444;
     padding: 0 1;
@@ -182,17 +226,17 @@ DataTable {
 }
 
 DataTable > .datatable--header {
-    background: #1A1A2E;
+    background: #0A1628;
     color: #00DDFF;
     text-style: bold;
 }
 
 DataTable > .datatable--cursor {
-    background: #1A2A3A;
+    background: #1A2A1A;
 }
 
 DataTable > .datatable--header-cursor {
-    background: #1A1A2E;
+    background: #0A1628;
     color: #00DDFF;
     text-style: bold;
 }
@@ -203,14 +247,36 @@ DataTable > .datatable--header-cursor {
     layout: vertical;
 }
 
+#memory-health-panel {
+    height: auto;
+    min-height: 8;
+    max-height: 18;
+    border-left: tall #AA44FF;
+    padding: 0 1;
+    background: #0F0F0F;
+}
+
+#memory-health-title {
+    height: 1;
+    color: #AA44FF;
+    text-style: bold;
+    padding: 0 1;
+    background: #0D0D0D;
+}
+
+#memory-health-content {
+    height: auto;
+    padding: 0 0 1 0;
+}
+
 #memory-ops-panel {
     height: 1fr;
-    border: solid #1E3A2F;
+    border-left: tall #00FF88;
     padding: 0 1;
+    background: #0F0F0F;
 }
 
 #memory-ops-title {
-    dock: top;
     height: 1;
     color: #00FF88;
     text-style: bold;
@@ -219,26 +285,6 @@ DataTable > .datatable--header-cursor {
 }
 
 #memory-ops-log {
-    height: 1fr;
-}
-
-#memory-health-panel {
-    height: 12;
-    border: solid #1A2A3A;
-    padding: 0 1;
-    dock: bottom;
-}
-
-#memory-health-title {
-    dock: top;
-    height: 1;
-    color: #00DDFF;
-    text-style: bold;
-    padding: 0 1;
-    background: #0D0D0D;
-}
-
-#memory-health-content {
     height: 1fr;
 }
 
@@ -277,18 +323,19 @@ DataTable > .datatable--header-cursor {
 #inspect-header-bar {
     height: 3;
     padding: 1;
-    border: solid #1A2A3A;
+    border-left: tall #00DDFF;
     margin-bottom: 1;
+    background: #0F0F0F;
 }
 
 #inspect-claims-section {
     height: 1fr;
-    border: solid #1E3A2F;
+    border-left: tall #00FF88;
     padding: 0 1;
+    background: #0F0F0F;
 }
 
 #inspect-claims-title {
-    dock: top;
     height: 1;
     color: #00FF88;
     text-style: bold;
@@ -307,6 +354,18 @@ DataTable > .datatable--header-cursor {
     padding: 0 1;
 }
 
+#inspect-trace-section {
+    height: 10;
+    border-left: tall #AA44FF;
+    padding: 0 1;
+    background: #0F0F0F;
+    margin-top: 1;
+}
+
+#inspect-trace-log {
+    height: 1fr;
+}
+
 /* ── Command Palette Overlay ────────────────────────── */
 #cmd-overlay {
     layer: overlay;
@@ -316,7 +375,7 @@ DataTable > .datatable--header-cursor {
 }
 
 #cmd-panel {
-    width: 50;
+    width: 60;
     height: 12;
     background: #111111;
     border: double #00FF88;

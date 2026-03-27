@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cortexos"
-version = "0.3.0"
+version = "0.4.0"
 description = "CortexOS Python SDK — hallucination detection for LLM agents"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -46,6 +46,9 @@ cortexos = "cortexos.tui.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["cortexos*"]
+
+[tool.setuptools.package-data]
+cortexos = ["dashboard/static/**/*", "dashboard/static/*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

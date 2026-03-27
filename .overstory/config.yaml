@@ -60,7 +60,7 @@ logging:
   redactSecrets: true
 runtime:
   default: claude
-  shellInitDelayMs: 0
+  shellInitDelayMs: 3000
   pi:
     provider: anthropic
     modelMap:

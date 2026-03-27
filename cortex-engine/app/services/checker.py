@@ -230,7 +230,7 @@ async def run_check(
         if do_attribution:
             if attribution_start is None:
                 attribution_start = time.time()
-            attr_data, attr_primary, calls = _run_attribution(
+            attr_data, attr_primary, calls = await _run_attribution(
                 claim_text, request.sources, attributor,
                 attr_threshold, attr_max_sources,
             )

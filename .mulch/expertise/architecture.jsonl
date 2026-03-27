@@ -1,0 +1,1 @@
+{"classification":"tactical","recorded_at":"2026-03-26T21:30:34.217Z","tags":["merge-conflict"],"evidence":{"bead":"cortex-c4aa"},"type":"pattern","name":"","description":"Merge conflict failed at tier ai-resolve. Branch: overstory/cama-v3-builder/cortex-c4aa. Agent: cama-v3-builder. Conflicting files: cama-v2/cama/matrix.py, cama-v2/cama/pipeline_v3.py.","id":"mx-ecd3cf"}
