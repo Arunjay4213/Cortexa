@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowRight, Play, Activity, Cpu, Server, Database } from 'lucide-react'
+import { ArrowRight, Play, Cpu, Server, Database } from 'lucide-react'
 
 interface HeroProps {
   onOpenDemo: () => void
-  onOpenEarlyAccess?: () => void
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -495,7 +494,7 @@ function CommandCenter() {
    HERO SECTION — Dark Mode
    ═══════════════════════════════════════════════════════════════════════ */
 
-export function Hero({ onOpenDemo, onOpenEarlyAccess }: HeroProps) {
+export function Hero({ onOpenDemo }: HeroProps) {
   return (
     <section
       id="hero"

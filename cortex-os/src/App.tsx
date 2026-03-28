@@ -43,7 +43,6 @@ export default function App() {
       {/* Dark hero section */}
       <Hero
         onOpenDemo={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-        onOpenEarlyAccess={() => setEarlyAccessOpen(true)}
       />
 
       {/* Light sections */}
