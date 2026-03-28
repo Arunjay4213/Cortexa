@@ -17,7 +17,6 @@ export default function App() {
   const [videoOpen, setVideoOpen] = useState(false)
   const [earlyAccessOpen, setEarlyAccessOpen] = useState(false)
   const [path, setPath] = useState(() => {
-    // Handle GitHub Pages SPA redirect from 404.html
     const params = new URLSearchParams(window.location.search)
     const redirectPath = params.get('p')
     if (redirectPath) {
@@ -38,18 +37,27 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+    <div style={{ minHeight: '100vh' }}>
       <Navbar onOpenEarlyAccess={() => setEarlyAccessOpen(true)} />
-      <Hero onOpenDemo={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} />
-      <TraceDemo />
-      <ThreeQuestions />
-      <BeforeAfter />
-      <HowItWorks />
-      <Manifesto />
-      <CostSection />
-      <FAQ />
-      <WaitlistCTA />
-      <Footer />
+
+      {/* Dark hero section */}
+      <Hero
+        onOpenDemo={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+        onOpenEarlyAccess={() => setEarlyAccessOpen(true)}
+      />
+
+      {/* Light sections */}
+      <div data-theme="light" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+        <TraceDemo />
+        <ThreeQuestions />
+        <BeforeAfter />
+        <HowItWorks />
+        <Manifesto />
+        <CostSection />
+        <FAQ />
+        <WaitlistCTA />
+        <Footer />
+      </div>
 
       <VideoModal open={videoOpen} onClose={() => setVideoOpen(false)} />
       <EarlyAccessModal open={earlyAccessOpen} onClose={() => setEarlyAccessOpen(false)} />
