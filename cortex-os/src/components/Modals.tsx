@@ -1,66 +1,44 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { X, ArrowRight, CheckCircle } from 'lucide-react'
+import { X, ShieldCheck } from 'lucide-react'
 
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzuIb5zHBtc-Y-Qs55ghMBPudpJivVrL7ihCfmbdK-LSE-swU48GGdquzijaKX12s7CVw/exec'
 
-const backdrop = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-  exit: { opacity: 0 },
-}
-
-const modal = {
-  hidden: { opacity: 0, scale: 0.95, y: 20 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const } },
-  exit: { opacity: 0, scale: 0.95, y: 20, transition: { duration: 0.2 } },
-}
-
-interface ModalShellProps {
+interface ModalProps {
   open: boolean
   onClose: () => void
-  children: React.ReactNode
 }
 
-function ModalShell({ open, onClose, children }: ModalShellProps) {
+export function VideoModal({ open, onClose }: ModalProps) {
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 flex items-center justify-center p-4"
-          style={{ zIndex: 1000 }}
-          variants={backdrop}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          onClick={onClose}
         >
           <motion.div
-            className="absolute inset-0"
-            style={{ background: 'rgba(28,28,30,0.4)', backdropFilter: 'blur(4px)' }}
-            onClick={onClose}
-          />
-          <motion.div
-            className="relative w-full max-w-lg rounded-2xl p-8"
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-md)',
-              boxShadow: '0 25px 50px rgba(28,28,30,0.15)',
-            }}
-            variants={modal}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="relative w-full max-w-5xl rounded-2xl overflow-hidden"
+            style={{ aspectRatio: '16/9', background: '#000', border: '1px solid var(--border)' }}
+            onClick={e => e.stopPropagation()}
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-1 rounded-lg transition-colors"
-              style={{ color: 'var(--muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full transition-colors"
+              style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}
             >
-              <X size={18} />
+              <X size={20} />
             </button>
-            {children}
+            <div className="w-full h-full flex items-center justify-center">
+              <p className="text-sm font-mono" style={{ color: 'rgba(255,255,255,0.5)' }}>Demo video coming soon</p>
+            </div>
           </motion.div>
         </motion.div>
       )}
@@ -68,35 +46,7 @@ function ModalShell({ open, onClose, children }: ModalShellProps) {
   )
 }
 
-interface VideoModalProps {
-  open: boolean
-  onClose: () => void
-}
-
-export function VideoModal({ open, onClose }: VideoModalProps) {
-  return (
-    <ModalShell open={open} onClose={onClose}>
-      <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-        See Cortexa in Action
-      </h3>
-      <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
-        Watch how Cortexa traces a hallucination back to its root memory in seconds.
-      </p>
-      <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(28,28,30,0.06)', border: '1px solid var(--border)', aspectRatio: '16/9' }}>
-        <div className="w-full h-full flex items-center justify-center">
-          <p className="text-sm font-mono" style={{ color: 'var(--muted)' }}>Demo video coming soon</p>
-        </div>
-      </div>
-    </ModalShell>
-  )
-}
-
-interface EarlyAccessModalProps {
-  open: boolean
-  onClose: () => void
-}
-
-export function EarlyAccessModal({ open, onClose }: EarlyAccessModalProps) {
+export function EarlyAccessModal({ open, onClose }: ModalProps) {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -121,47 +71,91 @@ export function EarlyAccessModal({ open, onClose }: EarlyAccessModalProps) {
   }, [email, loading])
 
   return (
-    <ModalShell open={open} onClose={onClose}>
-      <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-        Get Early Access
-      </h3>
-      <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
-        Join the waitlist for teams running agents at scale. We'll reach out when your slot opens.
-      </p>
-
-      {submitted ? (
-        <div className="flex items-center gap-2 font-mono text-sm" style={{ color: 'var(--lime)' }}>
-          <CheckCircle size={18} />
-          You're on the list. We'll be in touch.
-        </div>
-      ) : (
-        <form onSubmit={submit} className="space-y-3">
-          <input
-            type="email"
-            placeholder="you@company.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            disabled={loading}
-            className="w-full px-4 py-3 rounded-xl text-sm font-mono disabled:opacity-50 outline-none transition-all"
-            style={{
-              background: 'rgba(28,28,30,0.05)',
-              border: '1px solid var(--border-md)',
-              color: 'var(--text)',
-            }}
-            onFocus={e => (e.target.style.borderColor = 'rgba(122,140,0,0.5)')}
-            onBlur={e => (e.target.style.borderColor = 'var(--border-md)')}
-          />
-          <button
-            type="submit"
-            className={`btn-primary w-full justify-center ${loading ? 'opacity-60 pointer-events-none' : ''}`}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            className="w-full max-w-md rounded-2xl p-8 shadow-2xl"
+            style={{ background: '#fff', border: '1px solid var(--border)' }}
+            onClick={e => e.stopPropagation()}
           >
-            {loading ? 'Sending...' : 'Join Waitlist'}
-            <ArrowRight size={15} />
-          </button>
-          {err && <p className="text-xs font-mono" style={{ color: '#B91C1C' }}>{err}</p>}
-        </form>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold" style={{ color: 'var(--text)', fontFamily: "'Space Grotesk', sans-serif" }}>
+                Early Access
+              </h3>
+              <button onClick={onClose} className="transition-colors" style={{ color: 'var(--muted)' }}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {!submitted ? (
+              <form onSubmit={submit} className="space-y-4">
+                <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
+                  Join the waitlist to get early access to Cortexa. We'll reach out when your slot opens.
+                </p>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest mb-2"
+                    style={{ color: 'var(--muted)' }}>
+                    Work Email
+                  </label>
+                  <input
+                    required
+                    type="email"
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    disabled={loading}
+                    className="w-full rounded-xl px-4 py-3 text-sm font-mono outline-none transition-all disabled:opacity-50"
+                    style={{
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border-md)',
+                      color: 'var(--text)',
+                    }}
+                    onFocus={e => (e.target.style.borderColor = 'rgba(122,140,0,0.5)')}
+                    onBlur={e => (e.target.style.borderColor = 'var(--border-md)')}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className={`w-full py-3.5 rounded-xl font-bold transition-colors ${loading ? 'opacity-60 pointer-events-none' : ''}`}
+                  style={{
+                    background: 'var(--lime)',
+                    color: '#fff',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                  }}
+                >
+                  {loading ? 'Sending...' : 'Join Waitlist'}
+                </button>
+                {err && <p className="text-xs font-mono" style={{ color: '#B91C1C' }}>{err}</p>}
+              </form>
+            ) : (
+              <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="text-center py-8 space-y-4">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ background: 'var(--lime-dim)', color: 'var(--lime)' }}>
+                  <ShieldCheck size={32} />
+                </div>
+                <h4 className="text-xl font-bold" style={{ color: 'var(--text)', fontFamily: "'Space Grotesk', sans-serif" }}>
+                  You're on the list!
+                </h4>
+                <p style={{ color: 'var(--muted)' }}>We'll reach out as soon as a spot opens up.</p>
+                <button onClick={onClose} className="font-bold pt-4 hover:underline" style={{ color: 'var(--lime)' }}>
+                  Back to site
+                </button>
+              </motion.div>
+            )}
+          </motion.div>
+        </motion.div>
       )}
-    </ModalShell>
+    </AnimatePresence>
   )
 }

@@ -52,7 +52,7 @@ export default function App() {
         <HowItWorks />
         <CostSection />
         <FAQ />
-        <WaitlistCTA />
+        <WaitlistCTA onOpenEarlyAccess={() => setEarlyAccessOpen(true)} />
         <Footer />
       </div>
 
