@@ -228,7 +228,7 @@ function Badge({
   return (
     <motion.div
       className={`absolute left-1/2 -translate-x-1/2 z-20 ${
-        position === 'above' ? '-top-8' : '-bottom-8'
+        position === 'above' ? '-top-10' : '-bottom-8'
       }`}
       initial={{ opacity: 0, y: position === 'above' ? 4 : -4, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -413,7 +413,7 @@ function CommandCenter() {
   }, [])
 
   return (
-    <div className="bg-zinc-950/50 backdrop-blur-md border border-zinc-800 rounded-[2rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-5 lg:p-6 space-y-5">
+    <div className="bg-zinc-950/50 backdrop-blur-md border border-zinc-800 rounded-[2rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-5 lg:p-6 space-y-7">
       <SegmentedControl
         value={state}
         onChange={(s) => {
