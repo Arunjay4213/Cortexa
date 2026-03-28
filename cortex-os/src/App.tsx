@@ -5,13 +5,13 @@ import { TraceDemo } from './components/TraceDemo'
 import { ThreeQuestions } from './components/ThreeQuestions'
 import { BeforeAfter } from './components/BeforeAfter'
 import { HowItWorks } from './components/HowItWorks'
-import { Manifesto } from './components/Manifesto'
 import { CostSection } from './components/CostSection'
 import { FAQ } from './components/FAQ'
 import { WaitlistCTA } from './components/WaitlistCTA'
 import { Footer } from './components/Footer'
 import { VideoModal, EarlyAccessModal } from './components/Modals'
 import { DocsPage } from './components/DocsPage'
+import { ManifestoPage } from './components/ManifestoPage'
 
 export default function App() {
   const [videoOpen, setVideoOpen] = useState(false)
@@ -32,9 +32,8 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  if (path === '/docs') {
-    return <DocsPage />
-  }
+  if (path === '/docs') return <DocsPage />
+  if (path === '/manifesto') return <ManifestoPage />
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -51,7 +50,6 @@ export default function App() {
         <ThreeQuestions />
         <BeforeAfter />
         <HowItWorks />
-        <Manifesto />
         <CostSection />
         <FAQ />
         <WaitlistCTA />

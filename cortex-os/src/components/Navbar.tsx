@@ -85,7 +85,7 @@ export function Navbar({ onOpenEarlyAccess }: NavbarProps) {
             {[
               { href: '#demo', label: 'Demo' },
               { href: '#how-it-works', label: 'How It Works' },
-              { href: '#manifesto', label: 'Manifesto' },
+              { href: '/manifesto', label: 'Manifesto' },
               { href: '#faq', label: 'FAQ' },
               { href: '/docs', label: 'Docs' },
             ].map(({ href, label }) => (

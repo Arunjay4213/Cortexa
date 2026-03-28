@@ -11,7 +11,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-6 text-xs" style={{ color: 'var(--text)' }}>
           <a href="#demo" className="hover:text-[#1C1C1E] transition-colors">How It Works</a>
-          <a href="#manifesto" className="hover:text-[#1C1C1E] transition-colors">Manifesto</a>
+          <a href="/manifesto" className="hover:text-[#1C1C1E] transition-colors">Manifesto</a>
           <a href="https://github.com/Arunjay4213/Cortexa" target="_blank" rel="noopener noreferrer"
             className="hover:text-[#1C1C1E] transition-colors flex items-center gap-1">
             GitHub <ExternalLink size={11} />
