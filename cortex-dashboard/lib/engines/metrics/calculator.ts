@@ -8,7 +8,51 @@
  * - Operational Actions (→)
  */
 
-import { Memory, AttributionResult, MemoryROI, TokenEconomics, AccuracyImpact } from '../attribution/types'
+// Inline types (previously imported from attribution/types, now deleted)
+interface Memory {
+  id: string
+  content: string
+  tokens: number
+  embedding: number[]
+  createdAt: Date
+  lastAccessed: Date
+  tier: 'hot' | 'warm' | 'cold'
+}
+
+interface AttributionScore {
+  memoryId: string
+  shapleyValue: number
+}
+
+interface AttributionResult {
+  queryId: string
+  scores: AttributionScore[]
+}
+
+export interface MemoryROI {
+  memoryId: string
+  tokenCost: number
+  attributionScore: number
+  retrievalFrequency: number
+  roi: number
+  trend: 'up' | 'down' | 'stable'
+  trendPercent: number
+}
+
+export interface TokenEconomics {
+  totalTokenCost: number
+  wasteRate: number
+  wasteCostPerDay: number
+  redundancyTax: number
+  consolidationSavings: number
+}
+
+export interface AccuracyImpact {
+  accuracyDelta: number
+  giniCoefficient: number
+  snr: number
+  hallucinationsPerDay: number
+}
 
 export interface MetricsConfig {
   inputTokenCost: number // Cost per input token (e.g., $0.00001 for GPT-4)

@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
+import { SWRProvider } from "@/lib/providers/SWRProvider";
+import { WebSocketProvider } from "@/lib/providers/WebSocketProvider";
+import { ToastProvider } from "@/components/primitives/Toast";
+import { WebSocketToastBridge } from "@/components/WebSocketToastBridge";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -8,14 +14,14 @@ const inter = Inter({
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const robotoMono = Roboto_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-roboto-mono",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cortexa.ink"),
+  metadataBase: new URL("https://cortexadev.com"),
   title: {
     default: "Cortexa – Memory Observability for AI Agents",
     template: "%s | Cortexa",
@@ -34,7 +40,7 @@ export const metadata: Metadata = {
     "AI infrastructure",
     "memory lifecycle",
   ],
-  authors: [{ name: "Cortexa", url: "https://cortexa.ink" }],
+  authors: [{ name: "Cortexa", url: "https://cortexadev.com" }],
   robots: {
     index: true,
     follow: true,
@@ -42,7 +48,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://cortexa.ink",
+    url: "https://cortexadev.com",
     title: "Cortexa – Memory Observability for AI Agents",
     description:
       "The only memory infrastructure that tells you which memory caused your AI agent's last mistake.",
@@ -64,7 +70,7 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://cortexa.ink",
+    canonical: "https://cortexadev.com",
   },
 };
 
@@ -74,9 +80,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${robotoMono.variable}`}>
       <body className="font-sans antialiased grain">
-        {children}
+        <AuthProvider>
+          <SWRProvider>
+            <ToastProvider>
+              <WebSocketProvider>
+                <WebSocketToastBridge />
+                <DashboardShell>{children}</DashboardShell>
+              </WebSocketProvider>
+            </ToastProvider>
+          </SWRProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -180,7 +180,7 @@ export default function CortexHUD() {
     acc: Math.random() * 10 + 90,
     mem: Math.floor(Math.random() * 60) + 20,
     cpu: Math.floor(Math.random() * 60) + 15,
-    status: (['active', 'warning', 'idle'] as const)[Math.floor(Math.random() * 3)],
+    status: ['active', 'warning', 'idle'][Math.floor(Math.random() * 3)] as const,
     sla: Math.floor(Math.random() * 20) + 80,
     efficiency: Math.floor(Math.random() * 50) + 50,
     costPerQ: Math.random() * 0.01 + 0.001,
@@ -191,8 +191,7 @@ export default function CortexHUD() {
     memoryTier: { hot: Math.floor(Math.random() * 8000) + 1000, warm: Math.floor(Math.random() * 10000) + 2000, cold: Math.floor(Math.random() * 15000) + 3000 },
     gdpr: { pending: Math.floor(Math.random() * 10), completed: Math.floor(Math.random() * 20) },
     qHist: generateHistory(60), latHist: generateHistory(60), memHist: generateHistory(60)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  })) as any[]));
+  }))));
 
   // Real-time updates - Enhanced for YC demo
   React.useEffect(() => {
@@ -268,15 +267,10 @@ export default function CortexHUD() {
     <div className="relative min-h-screen bg-[#E8E3D5] text-[#1C1C1E]/80 font-mono overflow-hidden">
       <Navigation />
 
-      {/* CRT Atmosphere */}
+      {/* Subtle vignette */}
       <div className="pointer-events-none fixed inset-0 z-[60]">
-        {/* Vignette */}
         <div className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%)'
-        }} />
-        {/* Scanlines */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          background: 'repeating-linear-gradient(0deg, transparent 0px, rgba(28,28,30,0.03) 1px, transparent 2px)'
+          background: 'radial-gradient(circle at center, transparent 0%, rgba(28,28,30,0.06) 100%)'
         }} />
       </div>
 

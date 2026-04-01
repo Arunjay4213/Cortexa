@@ -1,194 +1,368 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Brain, ArrowLeft, Sparkles, TrendingUp } from 'lucide-react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import {
+  Search,
+  ChevronDown,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  AlertTriangle,
+  Clock,
+} from "lucide-react";
+import { GrafanaPanel } from "@/components/dashboard/GrafanaPanel";
+import { mockQueryTraces } from "@/lib/mock-data";
+import {
+  formatTimestamp,
+  formatCurrency,
+  truncateText,
+} from "@/lib/utils";
+import type { HallucinationRisk } from "@/lib/types";
 
-export default function AttributionPage() {
-  const [runningAnalysis, setRunningAnalysis] = useState(false)
+// ── Sort types ───────────────────────────────────────────────────────────
 
-  const recentAnalyses = Array.from({ length: 15 }, (_, i) => ({
-    id: `attr_${String(i).padStart(4, '0')}`,
-    query: ['Legal case precedent', 'Financial forecast', 'HR policy check', 'Sales pipeline'][Math.floor(Math.random() * 4)],
-    memoriesAnalyzed: Math.floor(Math.random() * 5000 + 1000),
-    topContributor: `mem_${String(Math.floor(Math.random() * 100000)).padStart(6, '0')}`,
-    shapleyValue: (Math.random() * 0.5 + 0.3).toFixed(4),
-    computeTime: (Math.random() * 20 + 3).toFixed(1),
-    timestamp: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString()
-    }))
+type SortKey = "timestamp" | "totalCost" | "latencyMs" | "hallucinationRisk";
+type SortDir = "asc" | "desc";
 
-  const topMemories = [
-    { id: 'mem_042315', shapley: 0.8234, impact: 'critical', uses: 4521 },
-    { id: 'mem_089234', shapley: 0.7891, impact: 'high', uses: 3892 },
-    { id: 'mem_156789', shapley: 0.7456, impact: 'high', uses: 3421 },
-    { id: 'mem_234567', shapley: 0.6823, impact: 'medium', uses: 2987 },
-    { id: 'mem_345678', shapley: 0.6234, impact: 'medium', uses: 2654 }
-  ]
+const RISK_ORDER: Record<HallucinationRisk, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+};
 
-  const runAnalysis = () => {
-    setRunningAnalysis(true)
-    setTimeout(() => setRunningAnalysis(false), 3000)
-  }
+// ── Risk badge ───────────────────────────────────────────────────────────
+
+function riskBadge(risk: HallucinationRisk) {
+  const map: Record<HallucinationRisk, { bg: string; color: string; border: string; label: string }> = {
+    none:   { bg: "transparent", color: "#464c54", border: "transparent", label: "None" },
+    low:    { bg: "rgba(115,191,105,0.10)", color: "#73bf69", border: "rgba(115,191,105,0.20)", label: "Low" },
+    medium: { bg: "rgba(255,152,48,0.10)", color: "#ff9830", border: "rgba(255,152,48,0.20)", label: "Medium" },
+    high:   { bg: "rgba(242,73,92,0.10)", color: "#f2495c", border: "rgba(242,73,92,0.20)", label: "High" },
+  };
+  const s = map[risk];
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide"
+      style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
+    >
+      {(risk === "high" || risk === "medium") && <AlertTriangle size={10} />}
+      {s.label}
+    </span>
+  );
+}
+
+// ── Sort header ──────────────────────────────────────────────────────────
+
+function SortTh({
+  label,
+  sortKey,
+  currentKey,
+  currentDir,
+  onSort,
+  align = "left",
+}: {
+  label: string;
+  sortKey: SortKey;
+  currentKey: SortKey;
+  currentDir: SortDir;
+  onSort: (k: SortKey) => void;
+  align?: "left" | "right" | "center";
+}) {
+  const active = sortKey === currentKey;
+  const textAlign = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  const justify = align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start";
+  return (
+    <th
+      className={`py-2.5 px-3 text-[10px] uppercase tracking-wider font-medium cursor-pointer select-none ${textAlign}`}
+      style={{ color: active ? "var(--grafana-text-primary)" : "var(--grafana-text-muted)" }}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className={`inline-flex items-center gap-1 ${justify}`}>
+        {label}
+        {active ? (
+          currentDir === "desc" ? <ArrowDown size={9} /> : <ArrowUp size={9} />
+        ) : (
+          <ArrowUpDown size={9} style={{ opacity: 0.4 }} />
+        )}
+      </span>
+    </th>
+  );
+}
+
+// ── Grafana-style select ─────────────────────────────────────────────────
+
+function GrafanaSelect({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="appearance-none text-[12px] font-mono pl-2.5 pr-6 py-1.5 cursor-pointer focus:outline-none"
+        style={{
+          background: "#0b0c0e",
+          border: "1px solid var(--panel-border)",
+          borderRadius: "var(--panel-radius)",
+          color: "var(--grafana-text-primary)",
+        }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+      <ChevronDown
+        size={12}
+        className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+        style={{ color: "var(--grafana-text-muted)" }}
+      />
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 15;
+
+export default function AttributionListPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [agentFilter, setAgentFilter] = useState("all");
+  const [riskFilter, setRiskFilter] = useState("all");
+  const [sortKey, setSortKey] = useState<SortKey>("timestamp");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [page, setPage] = useState(0);
+
+  const agentIds = useMemo(() => {
+    const ids = new Set(mockQueryTraces.map((t) => t.agentId));
+    return Array.from(ids).sort();
+  }, []);
+
+  const filtered = useMemo(() => {
+    let traces = [...mockQueryTraces];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      traces = traces.filter(
+        (t) => t.query.toLowerCase().includes(q) || t.id.toLowerCase().includes(q)
+      );
+    }
+    if (agentFilter !== "all") traces = traces.filter((t) => t.agentId === agentFilter);
+    if (riskFilter !== "all") traces = traces.filter((t) => t.hallucinationRisk === riskFilter);
+
+    traces.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "timestamp":
+          cmp = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+          break;
+        case "totalCost":
+          cmp = a.totalCost - b.totalCost;
+          break;
+        case "latencyMs":
+          cmp = a.latencyMs - b.latencyMs;
+          break;
+        case "hallucinationRisk":
+          cmp = RISK_ORDER[a.hallucinationRisk] - RISK_ORDER[b.hallucinationRisk];
+          break;
+      }
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+    return traces;
+  }, [searchQuery, agentFilter, riskFilter, sortKey, sortDir]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const rangeStart = page * PAGE_SIZE + 1;
+  const rangeEnd = Math.min((page + 1) * PAGE_SIZE, filtered.length);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    else { setSortKey(key); setSortDir("desc"); }
+    setPage(0);
+  };
 
   return (
-    <div className="min-h-screen bg-black text-zinc-200 font-mono">
-      {/* Header */}
-      <div className="border-b border-zinc-800/50 bg-zinc-950 sticky top-0 z-50">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <button className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 transition-colors">
-                  <ArrowLeft className="w-4 h-4 text-zinc-400" />
-                </button>
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-                  <Brain className="w-5 h-5 text-cyan-400" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-zinc-200">Attribution Engine</h1>
-                  <p className="text-xs text-zinc-500">Amortized Shapley analysis</p>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={runAnalysis}
-              disabled={runningAnalysis}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-sm text-cyan-400 transition-colors disabled:opacity-50"
-            >
-              <Sparkles className="w-4 h-4" />
-              {runningAnalysis ? 'Running...' : 'Run Analysis'}
-            </button>
+    <div className="flex flex-col" style={{ gap: "var(--panel-gap)" }}>
+      {/* ── Filters panel ──────────────────────────────────────── */}
+      <GrafanaPanel title="Filters" noPadding>
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[220px]">
+            <Search
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--grafana-text-muted)" }}
+            />
+            <input
+              type="text"
+              placeholder="Search query text or trace ID..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
+              className="w-full pl-9 pr-3 py-1.5 text-[13px] font-mono focus:outline-none"
+              style={{
+                background: "#0b0c0e",
+                border: "1px solid var(--panel-border)",
+                borderRadius: "var(--panel-radius)",
+                color: "var(--grafana-text-primary)",
+              }}
+            />
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Total Analyses', value: '12.4K', change: '+18%' },
-            { label: 'Avg Compute Time', value: '8.2ms', change: '-23%' },
-            { label: 'Memories Analyzed', value: '1.24M', change: '+12%' },
-            { label: 'Accuracy', value: '96.8%', change: '+2.1%' }
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="p-4 rounded-lg bg-zinc-900 border border-zinc-800"
-            >
-              <div className="text-xs text-zinc-600 mb-2 uppercase tracking-wider">
-                {stat.label}
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-zinc-200">{stat.value}</span>
-                <span className="text-xs font-mono text-green-400">{stat.change}</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+          {/* Agent dropdown */}
+          <GrafanaSelect
+            value={agentFilter}
+            onChange={(v) => { setAgentFilter(v); setPage(0); }}
+            options={[
+              { value: "all", label: "All Agents" },
+              ...agentIds.map((id) => ({ value: id, label: id })),
+            ]}
+          />
 
-        {/* Top Contributing Memories */}
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-zinc-200 mb-4">Top Contributing Memories</h2>
-          <div className="space-y-3">
-            {topMemories.map((mem, i) => {
-              const impactColors = {
-                critical: 'text-red-400 bg-red-500/10 border-red-500/30',
-                high: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-                medium: 'text-blue-400 bg-blue-500/10 border-blue-500/30'
-              }
-              return (
-                <motion.div
-                  key={mem.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-                        <span className="text-sm font-bold text-cyan-400">{i + 1}</span>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="text-sm font-mono font-bold text-blue-400">{mem.id}</span>
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${impactColors[mem.impact as keyof typeof impactColors]}`}>
-                            {mem.impact}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-zinc-500">
-                          <span>Used {mem.uses.toLocaleString()} times</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-zinc-600 mb-1">Shapley Value</div>
-                      <div className="text-2xl font-bold text-green-400">{mem.shapley}</div>
-                    </div>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="mt-3 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-green-400"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${mem.shapley * 100}%` }}
-                      transition={{ duration: 1, delay: i * 0.1 }}
-                    />
-                  </div>
-                </motion.div>
-              )
-            })}
+          {/* Risk dropdown */}
+          <GrafanaSelect
+            value={riskFilter}
+            onChange={(v) => { setRiskFilter(v); setPage(0); }}
+            options={[
+              { value: "all", label: "All Risk" },
+              { value: "high", label: "High" },
+              { value: "medium", label: "Medium" },
+              { value: "low", label: "Low" },
+              { value: "none", label: "None" },
+            ]}
+          />
+
+          {/* Time range display */}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-mono"
+            style={{
+              background: "#0b0c0e",
+              border: "1px solid var(--panel-border)",
+              borderRadius: "var(--panel-radius)",
+              color: "var(--grafana-text-secondary)",
+            }}
+          >
+            <Clock size={12} style={{ color: "var(--grafana-text-muted)" }} />
+            Last 14 days
           </div>
+
+          {/* Result count */}
+          <span className="text-[11px] font-mono ml-auto" style={{ color: "var(--grafana-text-muted)" }}>
+            {filtered.length} trace{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </GrafanaPanel>
+
+      {/* ── Query Traces table ─────────────────────────────────── */}
+      <GrafanaPanel title="Query Traces" noPadding>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12px]">
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--panel-border)" }}>
+                <th className="text-left py-2.5 px-3 text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--grafana-text-muted)" }}>Trace ID</th>
+                <SortTh label="Time" sortKey="timestamp" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} />
+                <th className="text-left py-2.5 px-3 text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--grafana-text-muted)" }}>Agent</th>
+                <th className="text-left py-2.5 px-3 text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--grafana-text-muted)" }}>Query</th>
+                <th className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--grafana-text-muted)" }}>Memories</th>
+                <SortTh label="Cost" sortKey="totalCost" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} align="right" />
+                <SortTh label="Latency" sortKey="latencyMs" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} align="right" />
+                <SortTh label="Risk" sortKey="hallucinationRisk" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} align="center" />
+              </tr>
+            </thead>
+            <tbody>
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center text-[13px]" style={{ color: "var(--grafana-text-muted)" }}>
+                    No traces match your filters.
+                  </td>
+                </tr>
+              ) : (
+                paginated.map((trace) => {
+                  const isHigh = trace.hallucinationRisk === "high";
+                  return (
+                    <tr
+                      key={trace.id}
+                      className="transition-colors"
+                      style={{
+                        borderBottom: "1px solid var(--panel-border)",
+                        borderLeft: isHigh ? "3px solid #f2495c" : "3px solid transparent",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--panel-bg-hover)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <td className="py-2.5 px-3">
+                        <Link href={`/attribution/${trace.id}`} className="font-mono text-[12px] hover:underline" style={{ color: "#6e9fff" }}>
+                          {trace.id.toUpperCase()}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono tabular-nums whitespace-nowrap" style={{ color: "var(--grafana-text-muted)" }}>
+                        {formatTimestamp(trace.timestamp)}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-medium" style={{ background: "var(--panel-bg-hover)", color: "var(--grafana-text-secondary)" }}>
+                          {trace.agentId}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono max-w-[280px] truncate" style={{ color: "var(--grafana-text-secondary)" }}>
+                        {truncateText(trace.query, 55)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono tabular-nums" style={{ color: "var(--grafana-text-secondary)" }}>
+                        {trace.memoriesRetrieved.length}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono tabular-nums" style={{ color: "var(--grafana-text-muted)" }}>
+                        {formatCurrency(trace.totalCost)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono tabular-nums" style={{ color: "var(--grafana-text-muted)" }}>
+                        {trace.latencyMs}ms
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {riskBadge(trace.hallucinationRisk)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Recent Analyses */}
-        <div>
-          <h2 className="text-lg font-bold text-zinc-200 mb-4">Recent Analyses</h2>
-          <div className="space-y-2">
-            {recentAnalyses.map((analysis, i) => (
-              <motion.div
-                key={analysis.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-900 hover:border-zinc-700 transition-colors cursor-pointer"
+        {/* Pagination footer */}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-2.5" style={{ borderTop: "1px solid var(--panel-border)" }}>
+            <span className="text-[11px] font-mono" style={{ color: "var(--grafana-text-muted)" }}>
+              Showing {rangeStart}–{rangeEnd} of {filtered.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-3 py-1 text-[11px] font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ background: "transparent", border: "1px solid var(--panel-border)", borderRadius: "var(--panel-radius)", color: "var(--grafana-text-primary)" }}
+                onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = "var(--panel-bg-hover)"; }}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs font-mono text-zinc-600">{analysis.id}</span>
-                    <span className="text-sm text-zinc-400">{analysis.query}</span>
-                  </div>
-                  <div className="flex items-center gap-6 text-xs">
-                    <div>
-                      <span className="text-zinc-600">Memories: </span>
-                      <span className="font-mono text-cyan-400">{analysis.memoriesAnalyzed.toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-600">Top: </span>
-                      <span className="font-mono text-blue-400">{analysis.topContributor}</span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-600">Shapley: </span>
-                      <span className="font-mono text-green-400">{analysis.shapleyValue}</span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-600">Time: </span>
-                      <span className="font-mono text-zinc-400">{analysis.computeTime}ms</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                Prev
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="px-3 py-1 text-[11px] font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ background: "transparent", border: "1px solid var(--panel-border)", borderRadius: "var(--panel-radius)", color: "var(--grafana-text-primary)" }}
+                onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = "var(--panel-bg-hover)"; }}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+      </GrafanaPanel>
     </div>
-  )
+  );
 }
