@@ -4,7 +4,7 @@ An observability layer for AI agent memory.
 
 CortexOS sits between a memory system and the LLM that reads from it.
 For each retrieval it records which memories were returned, scores how much each one influenced the response, tracks what the retrieved context cost in tokens, and keeps a provenance graph so a stored memory can be traced back to the interaction that created it.
-It is designed to wrap existing memory systems rather than replace them: the SDK ships as a wrapper around any Mem0-compatible client.
+It is meant to sit on top of the memory system you already have, and the SDK ships as a wrapper around any Mem0-compatible client.
 
 Live site: [cortexadev.com](https://cortexadev.com)
 
@@ -20,14 +20,13 @@ This is a monorepo with three independent subprojects.
 
 ### cortex-engine
 
-The backend service.
-It is a FastAPI application (`cortex.api.app:app`) that exposes a REST API under `/api/v1` with five routers:
+The backend is a FastAPI application (`cortex.api.app:app`) that exposes a REST API under `/api/v1` with five routers:
 
-- `memories` - create, list, fetch and delete memory units.
-- `transactions` - a two-phase retrieval protocol; a search initiates a pending transaction, and reporting the model's response completes it and triggers scoring.
-- `attribution` - attribution scores per transaction and per memory.
-- `health` - per-agent health and contradiction checks.
-- `dashboard` - an aggregated overview endpoint.
+- `memories`: create, list, fetch and delete memory units.
+- `transactions`: a two-phase retrieval protocol; a search initiates a pending transaction, and reporting the model's response completes it and triggers scoring.
+- `attribution`: attribution scores per transaction and per memory.
+- `health`: per-agent health and contradiction checks.
+- `dashboard`: an aggregated overview endpoint.
 
 A plain `/healthz` endpoint is served at the root for liveness checks.
 
@@ -46,18 +45,17 @@ Tests live in `cortex-engine/tests` and run under pytest with `asyncio_mode = "a
 
 ### cortex-dashboard
 
-The Next.js App Router dashboard.
-It has pages for the overview, agents, memory, memory flow, attribution, cockpit, terminal, health, compliance, analytics, alerts, engine status, settings and docs.
+The dashboard is built on the Next.js App Router and has pages for the overview, agents, memory, memory flow, attribution, cockpit, terminal, health, compliance, analytics, alerts, engine status, settings and docs.
 Charts and graph views are built with Recharts, D3, React Flow and Framer Motion.
 
-`cortex-dashboard/lib/engines` holds TypeScript implementations of two attribution algorithms, ContextCite and Shapley value computation, plus a metrics calculator, all covered by Jest tests.
-Several dashboard views are driven by `lib/mock-data.ts` rather than live engine data, and the `/engine` page polls `http://localhost:8000/healthz` to show whether the Python backend is running.
+`cortex-dashboard/lib/engines` holds TypeScript implementations of two attribution algorithms, ContextCite and Shapley value computation, plus a metrics calculator, with Jest tests for all three.
+Several dashboard views are driven by `lib/mock-data.ts` instead of live engine data.
+The `/engine` page polls `http://localhost:8000/healthz` to show whether the Python backend is running.
 `cortex-dashboard/README.md` is the longer product write-up and demo walkthrough.
 
 ### cortex-os
 
-The public site, built with Vite and React.
-It is a single-page app with client-side routing for `/`, `/docs` and `/manifesto`, and includes the hero, trace demo, provenance graph, cost section, FAQ and waitlist sections.
+The public site is a Vite and React single-page app with client-side routing for `/`, `/docs` and `/manifesto`, and it has the hero, trace demo, provenance graph, cost section, FAQ and waitlist sections.
 `.github/workflows/deploy.yml` builds this project on every push to `main` and publishes `cortex-os/dist` to GitHub Pages, served at the custom domain in `cortex-os/public/CNAME`.
 
 ## Running locally
@@ -100,7 +98,7 @@ npm run dev
 The dashboard runs on `http://localhost:3000`.
 It renders without the backend, but the engine page will report the API as offline until `cortex-engine` is running on port 8000.
 
-Other scripts: `npm run build`, `npm start`, `npm run lint`, `npm test`.
+The other scripts are `npm run build`, `npm start`, `npm run lint`, `npm test`.
 
 ### cortex-os
 
