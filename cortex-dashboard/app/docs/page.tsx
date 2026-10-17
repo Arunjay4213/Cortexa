@@ -1506,7 +1506,7 @@ export default function DocsPage() {
               <Panel title="API Key Authentication">
                 <div className="flex flex-col gap-5">
                   <p className="text-[15px]" style={{ color: "var(--grafana-text-secondary)", lineHeight: 1.8 }}>
-                    All SDK and API requests require a CortexOS API key. Keys are prefixed with <code className="font-mono px-1.5 py-0.5 rounded-sm" style={{ background: "#0b0c0e", color: "#8ab8ff" }}>cx-</code>. Get your key at <span style={{ color: "#8ab8ff" }}>cortexa.ink</span>.
+                    All SDK and API requests require a CortexOS API key. Keys are prefixed with <code className="font-mono px-1.5 py-0.5 rounded-sm" style={{ background: "#0b0c0e", color: "#8ab8ff" }}>cx-</code>. Get your key at <span style={{ color: "#8ab8ff" }}>cortexadev.com</span>.
                   </p>
                   <div className="flex flex-col gap-3">
                     <span className="text-[14px] font-medium" style={{ color: "var(--grafana-text-primary)" }}>

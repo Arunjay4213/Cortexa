@@ -241,7 +241,7 @@ export function DocsPage() {
           {activeSection === 'authentication' && <S>
             <Panel title="API Key Authentication">
               <p className="text-sm mb-5" style={{ color: 'var(--muted)', lineHeight: 1.8 }}>
-                All requests require a CortexOS API key prefixed with <Inline>cx-</Inline>. Get your key at <span className="font-medium" style={{ color: 'var(--lime)' }}>cortexa.ink</span>.
+                All requests require a CortexOS API key prefixed with <Inline>cx-</Inline>. Get your key at <span className="font-medium" style={{ color: 'var(--lime)' }}>cortexadev.com</span>.
               </p>
               <div className="flex flex-col gap-5">
                 <div><Label>Option 1: Pass directly</Label>

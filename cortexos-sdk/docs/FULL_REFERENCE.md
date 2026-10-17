@@ -742,4 +742,4 @@ pytest tests/ -v  # all tests
 
 ---
 
-*Get an API key at [cortexa.ink](https://cortexa.ink)*
+*Get an API key at [cortexadev.com](https://cortexadev.com)*

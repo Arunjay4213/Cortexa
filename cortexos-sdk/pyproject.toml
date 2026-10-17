@@ -36,8 +36,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://cortexa.ink"
-Documentation = "https://cortexa.ink/docs"
+Homepage = "https://cortexadev.com"
+Documentation = "https://github.com/Arunjay4213/Cortexa"
 Repository = "https://github.com/Tactacion/cortexos-sdk"
 "Bug Tracker" = "https://github.com/Tactacion/cortexos-sdk/issues"
 

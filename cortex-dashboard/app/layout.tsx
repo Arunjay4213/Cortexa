@@ -21,7 +21,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cortexa.ink"),
+  metadataBase: new URL("https://cortexadev.com"),
   title: {
     default: "Cortexa – Memory Observability for AI Agents",
     template: "%s | Cortexa",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     "AI infrastructure",
     "memory lifecycle",
   ],
-  authors: [{ name: "Cortexa", url: "https://cortexa.ink" }],
+  authors: [{ name: "Cortexa", url: "https://cortexadev.com" }],
   robots: {
     index: true,
     follow: true,
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://cortexa.ink",
+    url: "https://cortexadev.com",
     title: "Cortexa – Memory Observability for AI Agents",
     description:
       "The only memory infrastructure that tells you which memory caused your AI agent's last mistake.",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://cortexa.ink",
+    canonical: "https://cortexadev.com",
   },
 };
 

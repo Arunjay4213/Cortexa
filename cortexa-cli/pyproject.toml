@@ -37,9 +37,9 @@ chromadb = ["chromadb>=0.5"]
 dev = ["pytest>=8.0", "pytest-asyncio"]
 
 [project.urls]
-Homepage = "https://cortexa.ink"
-Documentation = "https://cortexa.ink/docs"
-Repository = "https://github.com/Tactacion/cortexa"
+Homepage = "https://cortexadev.com"
+Documentation = "https://github.com/Arunjay4213/Cortexa"
+Repository = "https://github.com/Arunjay4213/Cortexa"
 
 [project.scripts]
 cx = "cortexa.app.main:run"

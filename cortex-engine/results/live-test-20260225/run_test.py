@@ -24,7 +24,7 @@ from mem0 import Memory
 
 GROQ_API_KEY = os.environ.get(
     "GROQ_API_KEY",
-    "***REMOVED***",
+    "",
 )
 CORTEX_URL = os.environ.get("CORTEX_URL", "http://localhost:10000")
 GROQ_MODEL = "llama-3.3-70b-versatile"

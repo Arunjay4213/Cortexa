@@ -1,6 +1,6 @@
 # CortexOS Python SDK
 
-**v0.3.0** — The official Python SDK for [Cortexa](https://cortexa.ink) — hallucination detection, memory intelligence, and verification for LLM agents.
+**v0.3.0** — The official Python SDK for [Cortexa](https://cortexadev.com) — hallucination detection, memory intelligence, and verification for LLM agents.
 
 ## Quickstart
 
@@ -21,7 +21,7 @@ print(f"Hallucination Index: {result.hallucination_index}")
 # → Hallucination Index: 0.0
 ```
 
-Get an API key at [cortexa.ink](https://cortexa.ink)
+Get an API key at [cortexadev.com](https://cortexadev.com)
 
 ## Installation
 
