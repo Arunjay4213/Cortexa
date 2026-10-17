@@ -10,13 +10,17 @@ Live site: [cortexadev.com](https://cortexadev.com)
 
 ## Repository layout
 
-This is a monorepo with three independent subprojects.
+This is a monorepo with several independent subprojects.
 
 | Directory | Stack | What it is |
 |---|---|---|
 | `cortex-engine` | Python 3.11+, FastAPI, SQLAlchemy, Postgres | The backend API and attribution engine |
 | `cortex-dashboard` | Next.js 16, React 19, TypeScript, Tailwind CSS 4 | The operator dashboard UI |
 | `cortex-os` | Vite 6, React 18, TypeScript, Tailwind CSS 4 | The public marketing and docs site |
+| `cortexos-sdk` | Python | The Python SDK (`pip install cortexos`), with a terminal UI behind the `cortexos` command |
+| `cortexa-cli` | Python | A local CLI (`cx`) that checks an agent's memories for ghost tokens, contradictions, and stale entries |
+| `cama-v2`, `cama-v2-tests` | Python | CAMA, a research prototype for causal attribution in memory-augmented generation, and its benchmark and test suite |
+| `demos` | Python | A sample customer-support agent that uses Cortexa for its memory |
 
 ### cortex-engine
 

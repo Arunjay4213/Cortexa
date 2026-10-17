@@ -268,15 +268,10 @@ export default function CortexHUD() {
     <div className="relative min-h-screen bg-[#E8E3D5] text-[#1C1C1E]/80 font-mono overflow-hidden">
       <Navigation />
 
-      {/* CRT Atmosphere */}
+      {/* Subtle vignette */}
       <div className="pointer-events-none fixed inset-0 z-[60]">
-        {/* Vignette */}
         <div className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%)'
-        }} />
-        {/* Scanlines */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          background: 'repeating-linear-gradient(0deg, transparent 0px, rgba(28,28,30,0.03) 1px, transparent 2px)'
+          background: 'radial-gradient(circle at center, transparent 0%, rgba(28,28,30,0.06) 100%)'
         }} />
       </div>
 

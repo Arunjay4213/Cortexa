@@ -1,0 +1,33 @@
+{
+  "description": "Legal domain: wrong early termination fee",
+  "query": "What is the early termination fee?",
+  "response": "The early termination fee for this contract is $10,000.",
+  "memories": [
+    {
+      "id": "l1",
+      "content": "Contract effective date: January 1, 2025.",
+      "created_at": "2025-01-01T00:00:00"
+    },
+    {
+      "id": "l2",
+      "content": "Contract term: 24 months.",
+      "created_at": "2025-01-01T00:00:00"
+    },
+    {
+      "id": "l_poison",
+      "content": "Early termination fee: $10,000.",
+      "created_at": "2025-01-01T00:00:00",
+      "source_updated_at": "2025-08-01T00:00:00"
+    },
+    {
+      "id": "l_ghost",
+      "content": "Client prefers communication via email over phone.",
+      "created_at": "2025-03-01T00:00:00"
+    }
+  ],
+  "ground_truth": {
+    "expected_culprit": "l_poison",
+    "expected_ghosts": ["l_ghost"],
+    "expected_stale": ["l_poison"]
+  }
+}

@@ -22,3 +22,36 @@ node_modules/
 
 # Build output
 dist/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Large models (download separately)
+cortex-engine/models/
+
+# Benchmark results (regenerate locally)
+*_results*.json
+benchmark_results*.json
+
+# Video project (separate repo)
+cortexa-video/
+
+# Build artifacts
+.next/
+out/
+.overstory/
+.mulch/

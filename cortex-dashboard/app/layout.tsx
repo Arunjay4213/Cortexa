@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
+import { SWRProvider } from "@/lib/providers/SWRProvider";
+import { WebSocketProvider } from "@/lib/providers/WebSocketProvider";
+import { ToastProvider } from "@/components/primitives/Toast";
+import { WebSocketToastBridge } from "@/components/WebSocketToastBridge";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -8,9 +14,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const robotoMono = Roboto_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-roboto-mono",
   display: "swap",
 });
 
@@ -74,9 +80,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${robotoMono.variable}`}>
       <body className="font-sans antialiased grain">
-        {children}
+        <AuthProvider>
+          <SWRProvider>
+            <ToastProvider>
+              <WebSocketProvider>
+                <WebSocketToastBridge />
+                <DashboardShell>{children}</DashboardShell>
+              </WebSocketProvider>
+            </ToastProvider>
+          </SWRProvider>
+        </AuthProvider>
       </body>
     </html>
   );
